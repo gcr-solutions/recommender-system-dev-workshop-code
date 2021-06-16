@@ -1,0 +1,28 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ui
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - front-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: ui
+        port:
+          number: 5800
+    corsPolicy:
+      allowOrigins:
+        - regex: ".*"
+      allowMethods:
+        - POST
+        - GET
+      allowCredentials: true
+      allowHeaders:
+        - "*"
+      maxAge: "24h"

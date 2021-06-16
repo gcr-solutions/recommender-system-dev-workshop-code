@@ -1,0 +1,26 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+  name: default-istiocontrolplane
+spec:
+  components:
+    ingressGateways:
+      - enabled: true
+        name: istio-ingressgateway
+      - enabled: true
+        name: istio-ingressgateway-news-dev
+        label:
+          istio: ingressgateway-news-dev
+      - enabled: true
+        name: istio-ingressgateway-movie-dev
+        label:
+          istio: ingressgateway-movie-dev
+      - enabled: true
+        name: istio-ingressgateway-news-demo
+        label:
+          istio: ingressgateway-news-demo
+      - enabled: true
+        name: istio-ingressgateway-movie-demo
+        label:
+          istio: ingressgateway-movie-demo          

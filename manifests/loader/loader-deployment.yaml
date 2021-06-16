@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loader
+  template:
+    metadata:
+      labels:
+        app: loader
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: rs-loader
+          image: rs/loader:latest
+          ports:
+            - name: http
+              containerPort: 5000
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2048Mi
+          env:
+            - name: S3_BUCKET_DATA
+              value: $(S3_BUCKET)
+            - name: RECORDS_PATH
+              value: sample-data/system/item-data/
+            - name: REDIS_HOST
+              value: $(MESSGE_BROKER_REDIS_HOST)
+            - name: REDIS_PORT
+              value: $(MESSGE_BROKER_REDIS_PORT)
+            - name: LOADER_PORT
+              value: "5000"
+            - name: LOCAL_DATA_FOLDER
+              value: $(LOCAL_DATA_FOLDER)              
+          volumeMounts:
+            - name: persistent-storage
+              mountPath: /rs-data
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: efs-claim

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: portrait
+spec: 
+  type: ClusterIP
+  selector:
+    app: portrait
+  ports:
+  - name: http
+    port: 5300
+    targetPort: 5300

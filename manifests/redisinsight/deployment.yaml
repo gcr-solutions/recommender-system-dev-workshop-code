@@ -1,0 +1,50 @@
+# RedisInsight service with name 'redisinsight-service'
+apiVersion: v1
+kind: Service
+metadata:
+  name: redisinsight-service       # name should not be 'redisinsight'
+                                   # since the service creates
+                                   # environment variables that
+                                   # conflicts with redisinsight
+                                   # application's environment
+                                   # variables `REDISINSIGHT_HOST` and
+                                   # `REDISINSIGHT_PORT`
+spec:
+  # type: LoadBalancer
+  ports:
+    - port: 9080
+      targetPort: 8001
+  selector:
+    app: redisinsight
+---
+# RedisInsight deployment with name 'redisinsight'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redisinsight #deployment name
+  labels:
+    app: redisinsight #deployment label
+spec:
+  replicas: 1 #a single replica pod
+  selector:
+    matchLabels:
+      app: redisinsight #which pods is the deployment managing, as defined by the pod template
+  template: #pod template
+    metadata:
+      labels:
+        app: redisinsight #label for pod/s
+    spec:
+      containers:
+
+      - name:  redisinsight #Container name (DNS_LABEL, unique)
+        image: redislabs/redisinsight:1.7.0 #repo/image
+        imagePullPolicy: IfNotPresent #Always pull image
+        volumeMounts:
+        - name: db #Pod volumes to mount into the container's filesystem. Cannot be updated.
+          mountPath: /db
+        ports:
+        - containerPort: 8001 #exposed conainer port and protocol
+          protocol: TCP
+      volumes:
+      - name: db
+        emptyDir: {} # node-ephemeral volume https://kubernetes.io/docs/concepts/storage/volumes/#emptydir

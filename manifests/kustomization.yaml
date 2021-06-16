@@ -1,0 +1,131 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# namespace to deploy all resources to
+namespace: rs-beta
+
+resources:
+- ./efs/pv-claim.yaml
+- config.yaml
+- gateway.yaml
+- loader
+- filter
+- portrait
+- rank
+- recall
+- redis
+- event
+- retrieve
+- demo
+- ui
+
+
+
+# all with following *kustomization*
+images:
+- name: rs/demo
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/demo
+  newTag: 2e02247dc42f72949dddc3a1ff21af981b7bd33e
+- name: rs/event
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/event
+  newTag: 2e02247dc42f72949dddc3a1ff21af981b7bd33e
+- name: rs/filter
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/filter
+  newTag: dc503692b98eb06562334fb3ccf0075d00505d33
+- name: rs/filter-plugin
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/filter-plugin
+  newTag: news-dc503692b98eb06562334fb3ccf0075d00505d33
+- name: rs/loader
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/loader
+  newTag: 0388ebf7f56110b9a8350c903668bd07a77b1836
+- name: rs/portrait
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/portrait
+  newTag: 0388ebf7f56110b9a8350c903668bd07a77b1836
+- name: rs/portrait-plugin
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/portrait-plugin
+  newTag: news-0388ebf7f56110b9a8350c903668bd07a77b1836
+- name: rs/rank
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/rank
+  newTag: 7dbbfb61ec7d529f496c7040bb82ffe15272a86b
+- name: rs/rank-plugin
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/rank-plugin
+  newTag: news-7dbbfb61ec7d529f496c7040bb82ffe15272a86b
+- name: rs/recall
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/recall
+  newTag: 7dbbfb61ec7d529f496c7040bb82ffe15272a86b
+- name: rs/recall-plugin
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/recall-plugin
+  newTag: news-7dbbfb61ec7d529f496c7040bb82ffe15272a86b
+- name: rs/retrieve
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/retrieve
+  newTag: 91dbff74deb9e108128d47c8fac154bae0a0c648
+- name: rs/ui
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/ui
+  newTag: 79961c0f22916dff4d3f3a779dfdfe5da7428c67
+
+
+
+vars:
+- fieldref:
+    fieldPath: data.redis_host
+  name: REDIS_HOST
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-beta-config
+- fieldref:
+    fieldPath: data.redis_port
+  name: REDIS_PORT
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-beta-config
+- fieldref:
+    fieldPath: data.messge_broker_redis_host
+  name: MESSGE_BROKER_REDIS_HOST
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-beta-config
+- fieldref:
+    fieldPath: data.messge_broker_redis_port
+  name: MESSGE_BROKER_REDIS_PORT
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-beta-config
+- fieldref:
+    fieldPath: data.aws_region
+  name: AWS_REGION
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-beta-config
+- fieldref:
+    fieldPath: data.s3_bucket
+  name: S3_BUCKET
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-beta-config
+- fieldref:
+    fieldPath: data.click_record_file_path
+  name: CLICK_RECORD_FILE_PATH
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-beta-config
+- fieldref:
+    fieldPath: data.user_record_file_path
+  name: USER_RECORD_FILE_PATH
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-beta-config
+- fieldref:
+    fieldPath: data.local_data_folder
+  name: LOCAL_DATA_FOLDER
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-beta-config

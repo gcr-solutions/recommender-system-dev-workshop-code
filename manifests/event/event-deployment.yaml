@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event
+  template:
+    metadata:
+      labels:
+        app: event
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: rs-event
+        image:  rs/event:latest
+        ports:
+          - name: http
+            containerPort: 5100
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 2048Mi
+        env:
+          - name: REDIS_HOST
+            value: $(MESSGE_BROKER_REDIS_HOST)
+          - name: REDIS_PORT
+            value: $(MESSGE_BROKER_REDIS_PORT)
+          - name: EVENT_PORT
+            value: "5100"
+          - name: PORTRAIT_HOST
+            value: "portrait"
+          - name: PORTRAIT_PORT
+            value: "5300"
+          - name: RECALL_HOST
+            value: "recall"
+          - name: RECALL_PORT
+            value: "5500"
+          - name: AWS_REGION
+            value: $(AWS_REGION)
+          - name: S3_BUCKET
+            value: $(S3_BUCKET)
+          - name: S3_PREFIX
+            value: $(S3_PREFIX)
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace

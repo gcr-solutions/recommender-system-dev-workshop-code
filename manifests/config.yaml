@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rs-beta-config
+data:
+  redis_port: "6379"
+  redis_host: "rs-redis-cluster.bzodip.0001.apse1.cache.amazonaws.com"
+  messge_broker_redis_port: "6379"
+  messge_broker_redis_host: "redis-cart"
+  aws_region: "ap-southeast-1"
+  s3_bucket: "aws-gcr-rs-sol-demo-ap-southeast-1-522244679887"
+  click_record_file_path: 'sample-data/system/ingest-data/action/'
+  user_record_file_path: 'sample-data/system/ingest-data/user/'
+  local_data_folder: '/rs-data/'  

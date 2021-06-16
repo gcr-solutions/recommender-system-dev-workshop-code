@@ -1,0 +1,11 @@
+version: "3"
+services:
+  retrieve-svc:
+    build:
+      dockerfile: Dockerfile
+      context: ./
+    ports:
+      - '5600:5600'
+    environment:
+      TEST: 'True'
+

@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys Lambda
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+
+Resources:
+  RSLambdaAndStepFuncsRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub rs-${Stage}-LambdaAndStepFuncsRole-${AWS::Region}
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - states.amazonaws.com
+                - events.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonSageMakerFullAccess"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonS3FullAccess"
+      Policies:
+        - PolicyName: rs-role-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: "*"
+                Resource: "*"
+
+  RSSMRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub rs-${Stage}-SMRole-${AWS::Region}
+      Path: /service-role/
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - sagemaker.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonSageMakerFullAccess"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonS3FullAccess"
+      Policies:
+        - PolicyName: rs-role-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: "*"
+                Resource: "*"
+
+
+

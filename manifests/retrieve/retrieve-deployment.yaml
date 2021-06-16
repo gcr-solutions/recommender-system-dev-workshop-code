@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: retrieve
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: retrieve
+  template:
+    metadata:
+      labels: 
+        app: retrieve
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: rs-retrieve
+        image:  rs/retrieve:latest
+        ports:
+          - name: http
+            containerPort: 5600
+        resources:
+          requests: 
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 2048Mi
+        env:
+          - name: REDIS_HOST
+            value: $(MESSGE_BROKER_REDIS_HOST)
+          - name: REDIS_PORT
+            value: $(MESSGE_BROKER_REDIS_PORT)
+          - name: RETRIEVE_PORT
+            value: "5600"
+          - name: FILTER_HOST
+            value: "filter"
+          - name: FILTER_PORT
+            value: "5200"

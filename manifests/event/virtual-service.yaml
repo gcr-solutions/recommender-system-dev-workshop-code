@@ -1,0 +1,28 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: event
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - front-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api/v1/event
+    route:
+    - destination:
+        host: event
+        port:
+          number: 5100
+    corsPolicy:
+      allowOrigins:
+        - regex: ".*"
+      allowMethods:
+        - POST
+        - GET
+      allowCredentials: true
+      allowHeaders:
+        - "*"
+      maxAge: "24h"

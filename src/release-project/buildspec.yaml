@@ -1,0 +1,38 @@
+version: 0.2
+
+env:
+  variables:
+    projects: "demo ui loader event retrieve filter filter-plugin portrait portrait-plugin rank rank-plugin recall recall-plugin news-action-preprocessing news-add-item-user-batch news-dashboard news-filter-batch news-inverted-list news-item-feature-update-batch news-item-preprocessing news-model-update-action-gpu news-model-update-embedding-gpu news-portrait-batch news-rank-batch news-recall-batch news-weight-update-batch"
+    
+phases:
+    build:
+        commands:
+          - echo Build started on `date`
+          - ACCOUNT_ID=$(aws sts get-caller-identity|jq -r '.Account')
+          - |
+            echo "------------------push image to public ecr-----------------------------------------------"
+            for APP_NAME in $projects  
+            do
+              APP_IMAGE=rs/$APP_NAME
+              APP_REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$APP_IMAGE
+              echo login ecr repo: $APP_REPOSITORY_URI 
+              echo "------------------pull image from private ecr-----------------------------------------------"
+              aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $APP_REPOSITORY_URI
+              IMAGE_TAG=$(aws ecr describe-images --output json --repository-name $APP_IMAGE --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' | jq . --raw-output)
+              if [[ $APP_IMAGE =~ "-plugin" ]];then
+                IMAGE_TAG=$(aws ecr describe-images --output json --repository-name $APP_IMAGE --query 'sort_by(imageDetails,& imagePushedAt)[*].imageTags[*]' | grep -w 'news' | tail -n1 | sed 's/ //g' | jq . --raw-output)
+              fi
+              echo "-----------------get IMAGE_TAG: $IMAGE_TAG ---------------"
+              docker pull $APP_REPOSITORY_URI:$IMAGE_TAG
+              echo "------------------upload to public ecr-----------------------------------------------"
+              echo login public ecr
+              aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/t8u1z3c8
+              aws ecr-public describe-repositories --repository-names ${REPO_NAME} --region us-east-1 || aws ecr-public create-repository --repository-name $APP_IMAGE --region us-east-1
+              docker tag $APP_REPOSITORY_URI:$IMAGE_TAG public.ecr.aws/t8u1z3c8/$APP_IMAGE:latest
+              docker push public.ecr.aws/t8u1z3c8/$APP_IMAGE:latest
+
+              docker tag $APP_REPOSITORY_URI:$IMAGE_TAG public.ecr.aws/t8u1z3c8/$APP_IMAGE:cd-test
+              docker push public.ecr.aws/t8u1z3c8/$APP_IMAGE:cd-test
+            done
+
+            

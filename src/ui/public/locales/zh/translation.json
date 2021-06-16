@@ -1,0 +1,25 @@
+{
+  "name": "亚马逊云科技推荐系统（演示）",
+  "logout": "退出",
+  "Vrec-anomy-user-xxx": "游客",
+  "status": {
+    "inprogress": "执行中...",
+    "success": "执行成功",
+    "failed": "执行失败"
+  },
+  "detail": "查看详情",
+  "header": {
+    "preTime": "欢迎回来, 这是您第 ",
+    "time": "",
+    "time1": "",
+    "time2": "",
+    "time3": "",
+    "visit": " 次来访了"
+  },
+  "menu": {
+    "home": "首页",
+    "news": "新闻类",
+    "movie": "电影类",
+    "music": "音乐类"
+  }
+}

@@ -1,0 +1,14 @@
+# Requirements without Version Specifiers
+
+# Requirements with Version Specifiers
+tqdm==4.59.0
+deepctr==0.8.4
+pandas==1.1.5
+redis== 3.5.3
+numpy==1.19.5
+tensorflow==1.15.2
+grpcio==1.36.1
+grpcio-reflection==1.36.1
+grpcio-tools==1.36.0
+protobuf==3.15.3
+requests==2.25.1

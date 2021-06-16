@@ -1,0 +1,246 @@
+{
+ "total_item_count": 2630,
+ "recommender_click_cover_ratio": 0.85,
+ "item_click_ratio": 0.82,
+ "total_click_count": 4917,
+ "top_users": [
+  {
+   "user_id": "e1e33b5d-3224-4068-972c-4a541b1ea378",
+   "name": "anonymous",
+   "count": 3
+  },
+  {
+   "user_id": "42669c6d-afbe-4572-b3d5-da38ad0d1354",
+   "name": "anonymous",
+   "count": 3
+  },
+  {
+   "user_id": "3b6fd47b-1773-4a18-ac57-6b066d5adff5",
+   "name": "anonymous",
+   "count": 3
+  },
+  {
+   "user_id": "2cafb174-1915-45d3-b2b0-c8793c50740c",
+   "name": "anonymous",
+   "count": 5
+  },
+  {
+   "user_id": "4287442a-3da5-4dec-a867-8805ce20f617",
+   "name": "Magic",
+   "count": 1
+  },
+  {
+   "user_id": "2e9fac5c-7159-496c-8be0-63588d178ac9",
+   "name": "anonymous",
+   "count": 6
+  },
+  {
+   "user_id": "0d5c9469-14db-480d-a4f2-dd70b27ec24a",
+   "name": "anonymous",
+   "count": 1
+  },
+  {
+   "user_id": "1439f474-bac6-4d1b-9310-f3852ff95ce5",
+   "name": "anonymous",
+   "count": 3
+  },
+  {
+   "user_id": "53d4a0e0-afed-46a8-9342-782af127aa50",
+   "name": "func-test",
+   "count": 4
+  },
+  {
+   "user_id": "6c620666-a863-4322-b3f7-7b23549c0571",
+   "name": "anonymous",
+   "count": 5
+  }
+ ],
+ "top_items": [
+  {
+   "id": "6552253218666054148",
+   "title": "奥尼尔：我是全美第一个爆料的，詹皇和乔治的下家是这里！",
+   "count": 1
+  },
+  {
+   "id": "6552268316226880007",
+   "title": "华为在十多个国家5G测试，基站规模世界第一，比日韩两国之和还多",
+   "count": 1
+  },
+  {
+   "id": "6552310238081450503",
+   "title": "福州三坊七巷国家5A级景区林则徐母亲故居",
+   "count": 1
+  },
+  {
+   "id": "6552243921328538115",
+   "title": "中国南海岛礁部署导弹？杜特尔特竟然这样说，估计特朗普很郁闷！",
+   "count": 1
+  },
+  {
+   "id": "6552146340690788877",
+   "title": "山东青岛，2018年第一季度青岛市经济简报，青岛各县市区GDP排名",
+   "count": 1
+  },
+  {
+   "id": "6552479697500897799",
+   "title": "中美贸易战：美国农场主因失去中国订单而损失惨重",
+   "count": 1
+  },
+  {
+   "id": "6552377415971111428",
+   "title": "老挝一座袖珍的老皇城，是一个在西方游客眼中的“世外桃源”！",
+   "count": 1
+  },
+  {
+   "id": "6479397812118225165",
+   "title": "华为mate10和华为mate9，哪个值得入手？",
+   "count": 1
+  },
+  {
+   "id": "6552277485604569603",
+   "title": "骑士主场战猛龙詹姆斯再创伟大纪录，今天詹皇给猛龙上了一课",
+   "count": 1
+  },
+  {
+   "id": "6552313667285680653",
+   "title": "2018瑞典世界乒乓球团体竞标赛中国女乒21次夺冠之胜利发型盘点",
+   "count": 1
+  }
+ ],
+ "click_count_by_source": [
+  {
+   "source": "news_agriculture",
+   "source_code": "115",
+   "count": 171
+  },
+  {
+   "source": "news_house",
+   "source_code": "106",
+   "count": 207
+  },
+  {
+   "source": "news_world",
+   "source_code": "113",
+   "count": 193
+  },
+  {
+   "source": "news_finance",
+   "source_code": "104",
+   "count": 195
+  },
+  {
+   "source": "news_edu",
+   "source_code": "108",
+   "count": 190
+  },
+  {
+   "source": "news_game",
+   "source_code": "116",
+   "count": 206
+  },
+  {
+   "source": "news_travel",
+   "source_code": "112",
+   "count": 212
+  },
+  {
+   "source": "news_military",
+   "source_code": "110",
+   "count": 184
+  },
+  {
+   "source": "news_sports",
+   "source_code": "103",
+   "count": 219
+  },
+  {
+   "source": "stock",
+   "source_code": "114",
+   "count": 5
+  },
+  {
+   "source": "recommend",
+   "source_code": "1",
+   "count": 2320
+  },
+  {
+   "source": "news_tech",
+   "source_code": "109",
+   "count": 190
+  },
+  {
+   "source": "news_culture",
+   "source_code": "101",
+   "count": 193
+  },
+  {
+   "source": "news_car",
+   "source_code": "107",
+   "count": 199
+  },
+  {
+   "source": "news_story",
+   "source_code": "100",
+   "count": 42
+  },
+  {
+   "source": "news_entertainment",
+   "source_code": "102",
+   "count": 191
+  }
+ ],
+ "click_count_recommender_time_window": [
+  {
+   "start_time": 1620453600,
+   "end_time": 1620457200,
+   "is_recommender": true,
+   "count": 3
+  },
+  {
+   "start_time": 1620457200,
+   "end_time": 1620460800,
+   "is_recommender": true,
+   "count": 7
+  },
+  {
+   "start_time": 1620471600,
+   "end_time": 1620475200,
+   "is_recommender": true,
+   "count": 3
+  },
+  {
+   "start_time": 1620475200,
+   "end_time": 1620478800,
+   "is_recommender": false,
+   "count": 1
+  },
+  {
+   "start_time": 1620619200,
+   "end_time": 1620622800,
+   "is_recommender": true,
+   "count": 5
+  },
+  {
+   "start_time": 1620626400,
+   "end_time": 1620630000,
+   "is_recommender": true,
+   "count": 3
+  },
+  {
+   "start_time": 1620637200,
+   "end_time": 1620640800,
+   "is_recommender": true,
+   "count": 3
+  },
+  {
+   "start_time": 1620723600,
+   "end_time": 1620727200,
+   "is_recommender": true,
+   "count": 3
+  }
+ ],
+ "total_user_count": 1030,
+ "register_user_count": 1003,
+ "anonymous_user_count": 27,
+ "report_time": 1621406143
+}

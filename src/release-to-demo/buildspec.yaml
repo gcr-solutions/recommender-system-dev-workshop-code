@@ -1,0 +1,60 @@
+version: 0.2
+
+env:
+  variables:
+    CONTAINERS: "demo ui loader event retrieve filter filter-plugin portrait portrait-plugin rank rank-plugin recall recall-plugin"
+    STAGE: "demo"
+    SCENARIOS: "news movie"
+  secrets-manager:
+    GITHUB_USER: github-rs:githubUser
+    ACCESS_TOKEN: github-rs:accessToken
+    APP_CONF_REPO: github-rs:appConfRepo    
+
+phases:
+  install:
+    commands:
+      - export CODEBUILD_GIT_MESSAGE="$(git log -1 --pretty=%B)"
+      - echo $CODEBUILD_GIT_MESSAGE
+      - echo $AWS_DEFAULT_REGION
+      - aws --version
+      - |
+        curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+      - export PATH=$PWD:$PATH
+      - kustomize version
+  build:
+    commands:
+      - echo Build started on `date`
+      - ACCOUNT_ID=$(aws sts get-caller-identity|jq -r '.Account')
+      - |
+        cd; mkdir workspace; cd workspace 
+        git clone https://$ACCESS_TOKEN:x-oauth-basic@github.com/$GITHUB_USER/$APP_CONF_REPO.git
+        git config --global user.email "robot@codebuild.aws"
+        git config --global user.name "robot"
+        cd $APP_CONF_REPO
+        cd manifests/envs
+        for APP_NAME in $CONTAINERS
+        do
+          for SCENARIO in $SCENARIOS
+          do
+            echo "------------------change" $APP_NAME $SCENARIO "kustomize config-----------------------------------------------"
+            APP_IMAGE=rs/$APP_NAME
+            APP_REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$APP_IMAGE
+            echo login ecr repo: $APP_REPOSITORY_URI 
+            aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $APP_REPOSITORY_URI
+            if [[ $APP_IMAGE =~ "-plugin" ]];then
+              IMAGE_TAG=$(aws ecr describe-images --output json --repository-name $APP_IMAGE --query 'sort_by(imageDetails,& imagePushedAt)[*].imageTags[*]' | grep -w $SCENARIO | tail -n1 | sed 's/ //g' | jq . --raw-output)
+            else
+              IMAGE_TAG=$(aws ecr describe-images --output json --repository-name $APP_IMAGE --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' | jq . --raw-output)
+            fi
+            cd $SCENARIO-$STAGE
+            kustomize edit set image rs/$APP_NAME=$APP_REPOSITORY_URI:$IMAGE_TAG
+            cat kustomization.yaml
+            cd ../
+          done 
+        done
+        git add -A
+        git commit -m "${CODEBUILD_GIT_MESSAGE}"
+        git pull --rebase
+        git push            
+
+            

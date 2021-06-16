@@ -1,0 +1,129 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# namespace to deploy all resources to
+namespace: __ESK-NAMESPACE__
+
+resources:
+- config.yaml
+- gateway.yaml
+- ./efs/pv-claim.yaml
+- ../../loader
+- ../../filter
+- ../../portrait
+- ../../rank
+- ../../recall
+- ../../redis
+- ../../event
+- ../../retrieve
+- ../../demo
+- ../../ui
+
+
+
+# all with following *kustomization*
+images:
+- name: rs/demo
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/demo
+  newTag: placeholder
+- name: rs/event
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/event
+  newTag: placeholder
+- name: rs/filter
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/filter
+  newTag: placeholder
+- name: rs/filter-plugin
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/filter-plugin
+  newTag: placeholder
+- name: rs/loader
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/loader
+  newTag: placeholder
+- name: rs/portrait
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/portrait
+  newTag: placeholder
+- name: rs/portrait-plugin
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/portrait-plugin
+  newTag: placeholder
+- name: rs/rank
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/rank
+  newTag: placeholder
+- name: rs/rank-plugin
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/rank-plugin
+  newTag: placeholder
+- name: rs/recall
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/recall
+  newTag: placeholder
+- name: rs/recall-plugin
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/recall-plugin
+  newTag: placeholder
+- name: rs/retrieve
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/retrieve
+  newTag: placeholder
+- name: rs/ui
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/ui
+  newTag: placeholder
+
+vars:
+- fieldref:
+    fieldPath: data.redis_host
+  name: REDIS_HOST
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: __CONFIG-NAME__
+- fieldref:
+    fieldPath: data.redis_port
+  name: REDIS_PORT
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: __CONFIG-NAME__
+- fieldref:
+    fieldPath: data.messge_broker_redis_host
+  name: MESSGE_BROKER_REDIS_HOST
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: __CONFIG-NAME__
+- fieldref:
+    fieldPath: data.messge_broker_redis_port
+  name: MESSGE_BROKER_REDIS_PORT
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: __CONFIG-NAME__
+- fieldref:
+    fieldPath: data.aws_region
+  name: AWS_REGION
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: __CONFIG-NAME__
+- fieldref:
+    fieldPath: data.s3_bucket
+  name: S3_BUCKET
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: __CONFIG-NAME__
+- fieldref:
+    fieldPath: data.click_record_file_path
+  name: CLICK_RECORD_FILE_PATH
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: __CONFIG-NAME__
+- fieldref:
+    fieldPath: data.user_record_file_path
+  name: USER_RECORD_FILE_PATH
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: __CONFIG-NAME__
+- fieldref:
+    fieldPath: data.local_data_folder
+  name: LOCAL_DATA_FOLDER
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: __CONFIG-NAME__

@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels: 
+        app: demo
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: rs-demo
+        image:  rs/demo:latest
+        ports:
+          - name: http
+            containerPort: 5900
+        resources:
+          requests: 
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 2048Mi
+        env:
+          - name: DEMO_PORT
+            value: "5900"
+          - name: REDIS_HOST
+            value: $(REDIS_HOST)
+          - name: REDIS_PORT
+            value: $(REDIS_PORT)
+          - name: EVENT_SERVICE_ENDPOINT
+            value: "http://event:5100"
+          - name: RETRIEVE_SERVICE_ENDPOINT
+            value: "http://retrieve:5600"
+          - name: LOCAL_DATA_FOLDER
+            value: $(LOCAL_DATA_FOLDER)
+          - name: CLICK_RECORD_BUCKET            
+            value: $(CLICK_RECORD_BUCKET)
+          - name: S3_BUCKET
+            value: $(S3_BUCKET)
+          - name: S3_PREFIX
+            value: $(S3_PREFIX)
+          - name: AWS_REGION
+            value: $(AWS_REGION)
+          - name: CLICK_RECORD_FILE_PATH
+            value: $(CLICK_RECORD_FILE_PATH)
+          - name: USER_RECORD_FILE_PATH
+            value: $(USER_RECORD_FILE_PATH)
+        volumeMounts:
+          - name: persistent-storage
+            mountPath: /rs-data
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: efs-claim
+      nodeSelector:
+        alpha.eksctl.io/nodegroup-name: "rs-cpu-ng-1"
+      tolerations:
+      - key: "feaster"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+           

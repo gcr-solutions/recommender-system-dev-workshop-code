@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: retrieve
+spec: 
+  type: ClusterIP
+  selector:
+    app: retrieve
+  ports:
+  - name: http
+    port: 5600
+    targetPort: 5600

@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rs-news-dev-ns
+  labels:
+    istio-injection: enabled

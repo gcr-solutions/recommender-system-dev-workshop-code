@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: recall
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: recall 
+  template:
+    metadata:
+      labels: 
+        app: recall 
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: rs-recall
+        image:  rs/recall:latest
+        ports:
+          - name: http
+            containerPort: 5500
+        resources:
+          requests: 
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 2048Mi
+        env:
+          - name: REDIS_HOST
+            value: $(MESSGE_BROKER_REDIS_HOST)
+          - name: REDIS_PORT
+            value: $(MESSGE_BROKER_REDIS_PORT)
+          - name: RECALL_PORT
+            value: "5500"
+      - name: rs-recall-plugin
+        image:  rs/recall-plugin:latest
+        ports:
+          - name: http
+            containerPort: 50051
+        resources:
+          requests: 
+            cpu: 3000m
+            memory: 4096Mi
+          limits:
+            cpu: 8000m
+            memory: 8192Mi
+        env:
+          - name: LOCAL_DATA_FOLDER
+            value: $(LOCAL_DATA_FOLDER)
+          - name: RECALL_PER_NEWS_ID
+            value: "10"
+          - name: SIMILAR_ENTITY_THRESHOLD
+            value: "20"
+          - name: RECALL_THRESHOLD
+            value: "2"
+          - name: RECALL_MERGE_NUMBER
+            value: "20"
+          - name: REDIS_HOST
+            value: $(REDIS_HOST)
+          - name: REDIS_PORT
+            value: $(REDIS_PORT)
+          - name: PORTRAIT_SERVICE_ENDPOINT
+            value: "http://portrait:5300"
+        volumeMounts:
+          - name: persistent-storage
+            mountPath: /rs-data
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: efs-claim

@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: portrait
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: portrait 
+  template:
+    metadata:
+      labels: 
+        app: portrait 
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: rs-portrait
+        image:  rs/portrait:latest
+        ports:
+          - name: http
+            containerPort: 5300
+        resources:
+          requests: 
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1024Mi
+        env:
+          - name: REDIS_HOST
+            value: $(MESSGE_BROKER_REDIS_HOST)
+          - name: REDIS_PORT
+            value: $(MESSGE_BROKER_REDIS_PORT)
+          - name: PORTRAIT_PORT
+            value: "5300"
+      - name: rs-portrait-plugin
+        image:  rs/portrait-plugin:latest
+        ports:
+          - name: http
+            containerPort: 50051
+        resources:
+          requests: 
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1024Mi
+        env:
+          - name: LOCAL_DATA_FOLDER
+            value: $(LOCAL_DATA_FOLDER)
+          - name: REDIS_HOST
+            value: $(REDIS_HOST)
+          - name: REDIS_PORT
+            value: $(REDIS_PORT)
+        volumeMounts:
+          - name: persistent-storage
+            mountPath: /rs-data
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: efs-claim

@@ -1,0 +1,25 @@
+{
+  "name": "Recommender System（DEMO）",
+  "logout": "Sign Out",
+  "Vrec-anomy-user-xxx": "Vistor",
+  "status": {
+    "inprogress": "In Progress...",
+    "success": "Success",
+    "failed": "Failed"
+  },
+  "detail": "View Detail",
+  "header": {
+    "preTime": "Welcome back, this is your ",
+    "time0": "th",
+    "time1": "st",
+    "time2": "nd",
+    "time3": "rd",
+    "visit": " visit"
+  },
+  "menu": {
+    "home": "Home",
+    "news": "News",
+    "movie": "Movie",
+    "music": "Music"
+  }
+}

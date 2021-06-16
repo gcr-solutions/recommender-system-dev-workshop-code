@@ -1,0 +1,5 @@
+{
+  "DEPLOY_TYPE": "NEWS",
+  "NEWS_API_URL": "/api/v1/demo",
+  "MOVIE_API_URL": "/api/v1/demo"
+}

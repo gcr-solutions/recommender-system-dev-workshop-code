@@ -1,0 +1,74 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: rs-beta
+  region: ap-northeast-1
+  version: "1.19"
+
+
+nodeGroups:
+  - name: rs-cpu-ng
+    labels: { role: rs-cpu-ng }
+    instanceType: r5.4xlarge
+    minSize: 4
+    maxSize: 8
+    volumeSize: 80
+    ssh:
+      allow: true
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
+      withAddonPolicies:
+        imageBuilder: true
+        externalDNS: true
+        certManager: true
+        ebs: true
+        fsx: true
+        efs: true
+        appMesh: true
+        xRay: true
+        autoScaler: true
+        albIngress: true
+        cloudWatch: true
+    tags:
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/rs-beta: "owned"
+  # - name: rs-gpup2-ng
+  #   labels:
+  #     role: rs-gpup2-ng-role
+  #     gpu-label: gpu
+  #   taints:
+  #     feaster: "true:NoSchedule"
+  #   tags:
+  #     k8s.io/cluster-autoscaler/enabled: "true"
+  #     k8s.io/cluster-autoscaler/rs-beta: "owned"
+  #     k8s.io/cluster-autoscaler/node-template/label/gpu-label: "gpu"
+  #     k8s.io/cluster-autoscaler/node-template/taint/feaster: "true:NoSchedule"
+  #   instanceType: p2.xlarge
+  #   minSize: 0
+  #   maxSize: 2
+  #   volumeSize: 160
+  #   ssh:
+  #     allow: true
+  #   iam:
+  #     attachPolicyARNs:
+  #       - arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
+  #       - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  #     withAddonPolicies:
+  #       imageBuilder: true
+  #       externalDNS: true
+  #       certManager: true
+  #       ebs: true
+  #       fsx: true
+  #       efs: true
+  #       appMesh: true
+  #       xRay: true
+  #       autoScaler: true
+  #       albIngress: true
+  #       cloudWatch: true
+

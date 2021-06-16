@@ -1,0 +1,28 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: loader
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - front-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /loader
+    route:
+    - destination:
+        host: loader
+        port:
+          number: 5000
+    corsPolicy:
+      allowOrigins:
+        - regex: ".*"
+      allowMethods:
+        - POST
+        - GET
+      allowCredentials: true
+      allowHeaders:
+        - "*"
+      maxAge: "24h"

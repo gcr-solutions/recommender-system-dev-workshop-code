@@ -1,0 +1,230 @@
+.open-setting {
+  position: absolute;
+  right: 20px;
+  top: 70px;
+}
+.sys-setting {
+  width: 300px;
+  .title {
+    font-weight: bold;
+    padding: 20px 0 20px 20px;
+    border-bottom: 1px solid #ccc;
+  }
+  .btn {
+    padding: 20px 20px 20px 20px;
+    border-bottom: 1px dashed #ccc;
+    // margin-bottom: 10px;
+    .tips {
+      color: #888;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+    span.item {
+      vertical-align: bottom;
+      display: inline-block;
+      padding-bottom: 3px;
+      margin-left: 10px;
+      font-size: 14px;
+      &.running {
+        color: #888888;
+        font-weight: bold;
+      }
+      &.success {
+        color: #3a9200;
+        font-weight: bold;
+      }
+      &.falied {
+        color: #ff0000;
+        font-weight: bold;
+      }
+      a {
+        color: #0073bb;
+        text-decoration: none;
+      }
+      .status-icon {
+        font-size: 16px;
+        line-height: 0;
+        margin-bottom: -3px;
+        margin-right: 2px;
+      }
+    }
+  }
+}
+.dashboard-wrap {
+  padding: 15px 0 0;
+  height: calc(100vh - 110px);
+  display: flex;
+  flex-direction: column;
+  .card {
+    position: relative;
+    flex: 1;
+    margin: 5px;
+    // width: 90%;
+    height: 100%;
+    background-color: #fff;
+    box-shadow: 1px 1px 2px #ddd;
+    color: #333;
+    text-align: center;
+    .title-icon {
+      position: absolute;
+      color: #dcdcdc;
+      right: 20px;
+      top: 20px;
+      .m-icon {
+        font-size: 54px;
+      }
+    }
+    .chart-title {
+      font-size: 16px;
+      font-weight: bold;
+      padding: 15px 0 0 30px;
+      text-align: left;
+      // padding-left: 25px;
+      .icon {
+        position: absolute;
+        margin-left: -27px;
+        margin-top: -3px;
+      }
+    }
+    .name {
+      padding-top: 5vh;
+      font-size: 16px;
+      padding-bottom: 5px;
+    }
+    &.summary {
+      flex: 2;
+    }
+    &.hot {
+      flex: 3;
+    }
+    .count {
+      font-size: 52px;
+      font-weight: bold;
+      letter-spacing: -1px;
+      .suffix {
+        font-size: 16px;
+        font-weight: normal;
+      }
+    }
+  }
+  .summary-card {
+    display: flex;
+    flex-direction: row;
+    height: 25vh;
+    justify-content: space-between;
+    align-items: center;
+    .sub-title {
+      margin-top: 5px;
+      font-size: 14px;
+      color: #888;
+      b {
+        font-size: 16px;
+        color: #444;
+      }
+    }
+  }
+  .hot-chart {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    margin-top: 5px;
+    .card {
+      flex: 2;
+    }
+    .news {
+      max-width: 25%;
+      flex: 1;
+    }
+    .user {
+      flex: 1;
+    }
+  }
+  .hot-mews-rank {
+    padding: 10px 2px 2px 2px;
+    font-size: 14px;
+    .hot-item {
+      display: flex;
+      flex-direction: row;
+      border-bottom: 1px dashed #ddd;
+      padding: 10px 0px;
+      // font-size: 20px;
+      .rank {
+        width: 28px;
+        // color: #0073bb;
+        &.top {
+          span {
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            border-radius: 100%;
+            background-color: #ff9900;
+            color: #fff;
+          }
+        }
+      }
+      .icon {
+        font-weight: bold;
+        width: 20px;
+        font-size: 12px;
+        color: #f00;
+      }
+      .title {
+        // max-width: 400px;
+        text-align: left;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #0073bb;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .acitve-user-rank {
+    padding: 10px 2px 2px 2px;
+    font-size: 14px;
+    .active-user-item {
+      display: flex;
+      flex-direction: row;
+      padding: 10px 15px 10px 0px;
+      border-bottom: 1px dashed #ddd;
+      // font-size: 20px;
+      .user-rank {
+        width: 28px;
+        // color: #0073bb;
+        &.top {
+          span {
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            border-radius: 100%;
+            background-color: #ff9900;
+            color: #fff;
+          }
+        }
+      }
+      .user-count {
+        width: 70px;
+        text-align: right;
+      }
+      .user-name {
+        flex: 1;
+        text-align: left;
+      }
+    }
+  }
+}
+
+@media (min-width: 1600px) {
+  .hot-item,
+  .active-user-item {
+    font-size: 20px;
+  }
+}

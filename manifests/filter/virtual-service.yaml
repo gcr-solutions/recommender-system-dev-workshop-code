@@ -1,0 +1,28 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: filter
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - front-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /filter
+    route:
+    - destination:
+        host: filter
+        port:
+          number: 5200
+    corsPolicy:
+      allowOrigins:
+        - regex: ".*"
+      allowMethods:
+        - POST
+        - GET
+      allowCredentials: true
+      allowHeaders:
+        - "*"
+      maxAge: "24h"

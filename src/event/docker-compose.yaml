@@ -1,0 +1,11 @@
+version: "3"
+services:
+  event-svc:
+    build:
+      dockerfile: Dockerfile
+      context: ./
+    ports:
+      - '5100:5100'
+    environment:
+      TEST: 'True'
+

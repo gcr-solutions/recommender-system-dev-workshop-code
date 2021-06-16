@@ -1,0 +1,360 @@
+swagger: "2.0"
+info:
+  description: This is a swagger description of the RESTful API for recommender system
+  version: '1.0'
+  title: Recommender system API
+  contact:
+    email: yonmzn@amazon.com
+  license:
+    name: Apache 2.0
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+# basePath: /api/v1
+tags:
+  - name: retrieve
+    description: Everything about retrieving recommended list
+  - name: event
+    description: Everything about event
+schemes:
+  - https
+  - http
+paths:
+  "/retrieve/{userId}":
+    get:
+      tags:
+        - retrieve
+      summary: Get the recommended list for user ID
+      description: Returns list of recommended items
+      produces:
+        - application/json
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
+        - name: regionId
+          in: header
+          description: region Id
+          type: string
+        - name: userId
+          in: path
+          description: ID of user
+          required: true
+          type: string
+        - name: curPage
+          in: query
+          description: current Page
+          required: false
+          type: integer
+          minimum: 0
+        - name: pageSize
+          in: query
+          description: Page size
+          required: false
+          type: integer
+          minimum: 0
+        - name: recommendType
+          in: query
+          description: recommend type
+          required: false
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            $ref: "#/definitions/RecommendList"
+        "400":
+          description: Invalid user ID supplied
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+        "404":
+          description: User ID not found
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+      security:
+        - api_key: []
+  "/event/portrait/{userId}":
+    post:
+      tags:
+        - event
+      summary: Trigger portrat update for the user ID
+      description: Trigger portrat update for the user ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
+        - name: regionId
+          in: header
+          description: region Id
+          type: string
+        - name: userId
+          in: path
+          description: ID of user
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: the clicked item info
+          required: true
+          schema:
+            $ref: "#/definitions/PortraitRequest"
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+        "400":
+          description: Invalid ID supplied
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+        "405":
+          description: Validation exception
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+      security:
+        - api_key: []
+  "/event/recall/{userId}":
+    post:
+      tags:
+        - event
+      summary: Trigger recall for the user ID
+      description: Trigger recall for the user ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
+        - name: regionId
+          in: header
+          description: region Id
+          type: string
+        - name: userId
+          in: path
+          description: ID of user
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: the clicked items info
+          required: true
+          schema:
+            $ref: "#/definitions/RecallRequest"
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+        "400":
+          description: Invalid ID supplied
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+        "404":
+          description: User not found
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+        "405":
+          description: Validation exception
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+      security:
+        - api_key: []
+  /event/start_train:
+    post:
+      tags:
+        - event
+      summary: start trainning model
+      description: Trigger starting trainning model
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
+        - name: regionId
+          in: header
+          description: region Id
+          type: string
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/StartTrainRequest"
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+        "400":
+          description: Invalid ID supplied
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+        "405":
+          description: Validation exception
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+      security:
+        - api_key: []
+  /event/batch_update:
+    post:
+      tags:
+        - event
+      summary: start batch updating
+      description: Trigger batch updating
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
+        - name: regionId
+          in: header
+          description: region Id
+          type: string
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/StartBatchRequest"
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+        "400":
+          description: Invalid ID supplied
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+        "405":
+          description: Validation exception
+          schema:
+            $ref: "#/definitions/SimpleResponse"
+      security:
+        - api_key: []
+securityDefinitions:
+  api_key:
+    type: apiKey
+    name: api_key
+    in: header
+definitions:
+  RecommendList:
+    type: object
+    required:
+      - version
+      - metadata
+      - content
+    properties:
+      version:
+        type: string
+      message:
+        type: string
+      content:
+        type: array
+        items:
+          $ref: "#/definitions/RSContentItem"
+      metadata:
+        $ref: "#/definitions/RSMetadata"
+      pagination:
+        $ref: "#/definitions/RSPagination"
+  PortraitRequest:
+    type: object
+    required:
+      - clicked_item
+    properties:
+      clicked_item:
+        $ref: "#/definitions/RSClickedItem"
+  RecallRequest:
+    type: object
+    required:
+      - clicked_items
+    properties:
+      clicked_items:
+        type: array
+        items:
+          $ref: "#/definitions/RSClickedItem"
+  StartTrainRequest:
+    type: object
+    required:
+      - change_type
+    properties:
+      change_type:
+        type: string
+        enum:
+          - MODEL
+  StartBatchRequest:
+    type: object
+    required:
+      - change_type
+    properties:
+      change_type:
+        type: string
+        enum:
+           - ACTION
+           - CONTENT
+  RSClickedItem:
+    type: object
+    required:
+      - id
+      - subtype
+    properties:
+      id:
+        type: string
+      subtype:
+        type: string
+  RSMetadata:
+    type: object
+    required:
+      - type
+    properties:
+      type:
+        type: string
+  RSContentItem:
+    type: object
+    required:
+      - id
+      - tags
+    properties:
+      id:
+        type: string
+      tags:
+        type: array
+        items:
+          type: string
+  RSPagination:
+    type: object
+    required:
+      - curPage
+      - totalPage
+      - pageSize
+      - totalCount
+    properties:
+      curPage:
+        type: integer
+      totalPage:
+        type: integer
+      pageSize:
+        type: integer
+      totalCount:
+        type: integer
+  SimpleResponse:
+    type: object
+    properties:
+      message:
+        type: string

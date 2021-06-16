@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rank
+spec: 
+  type: ClusterIP
+  selector:
+    app: rank
+  ports:
+  - name: http
+    port: 5400
+    targetPort: 5400
