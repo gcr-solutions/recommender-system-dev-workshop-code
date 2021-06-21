@@ -138,7 +138,8 @@ class ServiceImpl:
         # 根据最近阅读的历史做召回
         self.recall_by_popularity(news_ids, recall_wrap, recall_items, multiple_shot_record)
         # 根据用户画像做召回
-        self.recall_by_portrait(user_portrait, recall_wrap, recall_items, multiple_shot_record)
+        # comment for dev workshop
+        # self.recall_by_portrait(user_portrait, recall_wrap, recall_items, multiple_shot_record)
 
         # recall_merge_cnt = 100
         n_last_len = recall_wrap['config']['merge_cnt']
