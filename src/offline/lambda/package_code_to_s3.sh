@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 echo "------------------------------------------------ "
 pwd
@@ -19,7 +20,7 @@ if [[ -n $AWS_DEFAULT_REGION ]];then
 fi
 
 if [[ -z $REGION ]]; then
-  REGION='ap-southeast-1'
+  REGION='ap-northeast-1'
 fi
 
 echo "AWS_CMD: $AWS_CMD"
@@ -37,7 +38,7 @@ echo "BUCKET_BUILD=${BUCKET_BUILD}"
 echo "Create S3 Bucket: ${BUCKET_BUILD} if not exist"
 
 $AWS_CMD s3api --region $REGION create-bucket --bucket ${BUCKET_BUILD}  \
---create-bucket-configuration LocationConstraint=$REGION
+--create-bucket-configuration LocationConstraint=$REGION || true
 
 lambda_funcs=(
   precheck-lambda

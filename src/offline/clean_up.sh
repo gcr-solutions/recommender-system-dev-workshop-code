@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 #export PROFILE='rsops'
 #export REGION='ap-northeast-1'
@@ -21,7 +22,7 @@ if [[ -n $PROFILE ]]; then
 fi
 
 if [[ -z $REGION ]]; then
-  REGION='ap-southeast-1'
+  REGION='ap-northeast-1'
 fi
 AWS_REGION=$REGION
 

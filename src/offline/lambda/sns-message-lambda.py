@@ -109,15 +109,23 @@ def do_handler(event, context):
     msg_file_types = []
 
     for file_type in file_types:
-        if file_type == "action-new":
+        if file_type in ["action-new", "batch-update"]:
             msg_file_types.extend(["inverted-list"])
         elif file_type == "train-model":
-            msg_file_types.extend(
-                ["action-model", "embeddings", "vector-index"])
+            if message_type == 'news':
+                msg_file_types.extend(
+                    ["action-model"])
+            if message_type == 'movie':
+                msg_file_types.extend(
+                    ["action-model"])
         elif file_type == "item-new":
-            msg_file_types.extend(
-                ["inverted-list", "embeddings", "vector-index", "action-model"])
             msg_file_types.append("{}_records".format(message_type))
+            if message_type == 'news':
+                msg_file_types.extend(
+                    ["embeddings", "inverted-list"])
+            if message_type == 'movie':
+                msg_file_types.extend(
+                    ["embeddings", "inverted-list", "vector-index"])
         else:
             msg_file_types.append(file_type)
 
@@ -255,12 +263,12 @@ def get_message_dict(bucket_and_prefix, message_type):
         ],
         "action-model": [
             "{}/model/rank/action/deepfm/latest/deepfm_model.tar.gz".format(
-                bucket_and_prefix),
-            "{}/model/recall/youtubednn/user_embeddings.h5".format(
-                bucket_and_prefix),
+                bucket_and_prefix)
         ],
         "embeddings": [
             "{}/feature/action/ub_item_embeddings.npy".format(
+                bucket_and_prefix),
+            "{}/model/recall/youtubednn/user_embeddings.h5".format(
                 bucket_and_prefix),
         ],
 

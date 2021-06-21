@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+set -e
 
 echo "------------------------------------------------ "
 Stage=$1
@@ -14,7 +16,7 @@ if [[ -n $AWS_DEFAULT_REGION ]];then
 fi
 
 if [[ -z $REGION ]]; then
-  REGION='ap-southeast-1'
+  REGION='ap-northeast-1'
 fi
 
 echo "AWS_CMD: $AWS_CMD"

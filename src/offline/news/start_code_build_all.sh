@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -e
 
 # export PROFILE=rsops
 echo "------------------------------------------------ "
@@ -17,7 +18,7 @@ fi
 echo "AWS_CMD:$AWS_CMD"
 
 if [[ -z $REGION ]];then
-    REGION='ap-southeast-1'
+    REGION='ap-northeast-1'
 fi
 
 echo "PROFILE: $PROFILE"
@@ -43,34 +44,32 @@ build_codebuild_project () {
 
 }
 
-news_projects=(
-  "action-preprocessing"
-  "add-item-user-batch"
-  "dashboard"
-  "filter-batch"
-  "inverted-list"
-  "item-feature-update-batch"
-  "item-preprocessing"
-  "model-update-action"
-  "model-update-embedding"
-  "portrait-batch"
-  "rank-batch"
-  "recall-batch"
-  "weight-update-batch"
-  "assembled/data-preprocessing"
-  "assembled/train-model"
-  "step-funcs"
+projects_dir=(
+  "lambda"
+  "news/action-preprocessing"
+  "news/prepare-training-data"
+  "news/user-preprocessing"
+  "news/add-item-batch"
+  "news/add-user-batch"
+  "news/dashboard"
+  "news/filter-batch"
+  "news/inverted-list"
+  "news/item-feature-update-batch"
+  "news/item-preprocessing"
+  "news/model-update-action"
+  "news/model-update-embedding"
+  "news/portrait-batch"
+  "news/rank-batch"
+  "news/recall-batch"
+  "news/step-funcs"
 )
 
-for project in ${news_projects[@]}; do
-  projectName=$(echo $project | sed "s#/#-#g")
-  build_proj_name="rs-$Stage-offline-news-${projectName}-build"
+for project in ${projects_dir[@]}; do
+  build_name=$(echo ${project} | sed 's#/#-#g')
+  build_proj_name="rs-$Stage-offline-${build_name}-build"
+  app_path=${project}
   build_codebuild_project $build_proj_name
 done
-
-project="lambda"
-build_proj_name="rs-$Stage-offline-${project}-build"
-build_codebuild_project $build_proj_name
 
 
 

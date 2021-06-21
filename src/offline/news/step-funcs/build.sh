@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+
 echo "run $0 ..."
 pwd
 
@@ -22,7 +23,7 @@ if [[ -n $AWS_DEFAULT_REGION ]];then
 fi
 
 if [[ -z $REGION ]];then
-    REGION='ap-southeast-1'
+    REGION='ap-northeast-1'
 fi
 
 echo "AWS_CMD: $AWS_CMD"
@@ -34,7 +35,7 @@ AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Acc
 echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 
 BUCKET=aws-gcr-rs-sol-$Stage-${REGION}-${AWS_ACCOUNT_ID}
-S3Prefix=sample-data
+S3Prefix=sample-data-news
 
 PARAMETER_OVERRIDES="Bucket=$BUCKET S3Prefix=$S3Prefix Stage=$Stage"
 echo PARAMETER_OVERRIDES:$PARAMETER_OVERRIDES
@@ -42,11 +43,11 @@ echo PARAMETER_OVERRIDES:$PARAMETER_OVERRIDES
 all_stepfuncs=(
 steps
 dashboard
-action-new
+batch-update
+user-new
 item-new
 item-new-assembled
 train-model
-train-action-model
 overall
 )
 
@@ -58,6 +59,12 @@ do
     echo "----"
     echo "STACK_NAME: ${STACK_NAME}"
     echo "template_file: ${template_file}"
+    if [[ $name == 'steps' && $REGION =~ ^cn.* ]]; then
+      org_template_file=${template_file}
+      sed 's#.amazonaws.com/#.amazonaws.com.cn/#g' ${template_file} > tmp_${org_template_file}
+      template_file=tmp_${org_template_file}
+      echo "changed template_file: ${template_file}"
+    fi
 
     $AWS_CMD  cloudformation deploy --region ${REGION} \
     --template-file ${template_file} --stack-name ${STACK_NAME} \
@@ -71,6 +78,10 @@ do
      if [[ $? -ne 0 ]]; then
          echo "error!!!  ${StackStatus}"
          exit 1
+     fi
+
+     if [[ $name == 'steps' && $REGION =~ ^cn.* ]]; then
+       rm tmp_${org_template_file}
      fi
 
 done

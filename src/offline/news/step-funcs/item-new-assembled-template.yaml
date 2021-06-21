@@ -151,11 +151,11 @@ Resources:
           }
         }
 
-  AssIteNewStepFunc:
+  AssItemNewStepFunc:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-      StateMachineName: !Sub rs-${Stage}-News-AssIteNewStepFunc
+      StateMachineName: !Sub rs-${Stage}-News-AssItemNewStepFunc
       DefinitionString: !Sub |
         {
           "StartAt": "Data processing",
@@ -173,10 +173,10 @@ Resources:
                 "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-AssDataPreprocessingStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
-              "Next": "Train model",
+              "Next": "Train model (embedding)",
               "ResultPath": "$.AssDataPreprocessing"
             },
-            "Train model": {
+            "Train model (embedding)": {
               "Type": "Task",
               "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
               "Parameters": {

@@ -60,12 +60,9 @@ def s3_key_exists(bucket, key):
         return True
     return False
 
-
-default_bucket = 'aws-gcr-rs-sol-demo-ap-southeast-1-522244679887'
-default_prefix = 'sample-data'
 parser = argparse.ArgumentParser()
-parser.add_argument('--bucket', type=str, default=default_bucket)
-parser.add_argument('--prefix', type=str, default=default_prefix)
+parser.add_argument('--bucket', type=str)
+parser.add_argument('--prefix', type=str)
 args, _ = parser.parse_known_args()
 bucket = args.bucket
 prefix = args.prefix

@@ -13,6 +13,7 @@ RUN pip3 install --no-cache-dir dgl==0.4.3.post2
 #RUN pip3 install -e git+http://git@github.com/xiaotinghe/fastHan.git'#egg=fastHan'
 RUN pip3 install -e git+http://git@github.com/xiaotinghe/dgl-ke.git'#egg=dglke&subdirectory=python'
 
+COPY fasthan_base/* /opt/ml/fasthan_base/
 
 WORKDIR /opt/ml/processing/input/code/
 

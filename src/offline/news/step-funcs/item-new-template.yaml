@@ -60,10 +60,10 @@ Resources:
                 "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-ItemPreprocessingStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
-              "Next": "User processing",
+              "Next": "Add Item batch",
               "ResultPath": "$.ItemPreprocessing"
             },
-            "User processing": {
+            "Add Item batch": {
               "Type": "Task",
               "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
               "Parameters": {
@@ -72,25 +72,10 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-UserPreprocessingStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-AddItemBatchStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
-              "ResultPath": "$.UserProcessing",
-              "Next": "Add item user batch"
-            },
-            "Add item user batch": {
-              "Type": "Task",
-              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
-              "Parameters": {
-                "Input": {
-                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "Bucket.$": "$.Bucket",
-                  "S3Prefix.$": "$.S3Prefix"
-                },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-AddItemUserBatchStepFunc",
-                "Name.$": "States.Format('{}', $$.Execution.Name)"
-              },
-              "ResultPath": "$.AddItemUserBatch",
+              "ResultPath": "$.AddItemBatch",
               "Next": "Item feature update batch"
             },
             "Item feature update batch": {
@@ -105,8 +90,23 @@ Resources:
                 "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-${ItemFeatureUpdateBatchStepFuncName}",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
-              "Next": "Inverted list",
+              "Next": "Action processing for popularity",
               "ResultPath": "$.ItemFeatureUpdateBatch"
+            },
+            "Action processing for popularity": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-ActionPreprocessingForPopularityStepFunc",
+                "Name.$": "States.Format('{}', $$.Execution.Name)"
+              },
+              "ResultPath": "$.ActionProcessingForPop",
+              "Next": "Inverted list"
             },
             "Inverted list": {
               "Type": "Task",
@@ -136,22 +136,7 @@ Resources:
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
               "ResultPath": "$.ModelUpdateEmbedding",
-              "Next": "Model update (action)"
-            },
-            "Model update (action)": {
-              "Type": "Task",
-              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
-              "Parameters": {
-                "Input": {
-                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "Bucket.$": "$.Bucket",
-                  "S3Prefix.$": "$.S3Prefix"
-                },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-ModelUpdateActionStepFunc",
-                "Name.$": "States.Format('{}', $$.Execution.Name)"
-              },
-              "Next": "Send notification",
-              "ResultPath": "$.ModelUpdateAction"
+              "Next": "Send notification"
             },
             "Send notification": {
               "Type": "Task",

@@ -103,9 +103,7 @@ Resources:
                   "bucket.$": "$.Bucket",
                   "prefix.$": "$.S3Prefix",
                   "file_list": [
-                    "system/ingest-data/action/",
-                    "feature/content/inverted-list/news_id_news_feature_dict.pickle",
-                    "feature/action/raw_embed_user_mapping.pickle"
+                    "system/ingest-data/action/"
                   ]
                 }
               },
@@ -127,6 +125,100 @@ Resources:
                 },
                 "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-SMProcessingStepFunc",
                 "Name.$": "States.Format('Nactionpre{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  ActionPreprocessingForPopularityStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-News-ActionPreprocessingForPopularityStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/ingest-data/action/"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/news-action-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--only4popularity', '1')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-SMProcessingStepFunc",
+                "Name.$": "States.Format('Nactionact4pop{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  PrepareTrainingDataStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-News-PrepareTrainingDataStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/action-data/action.csv",
+                    "feature/content/inverted-list/news_id_news_feature_dict.pickle",
+                    "feature/action/raw_embed_user_mapping.pickle"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/news-prepare-training-data",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix)",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-SMProcessingStepFunc",
+                "Name.$": "States.Format('Npretraing{}', $.Precheck.Payload.UID)"
               },
               "End": true
             }
@@ -178,12 +270,12 @@ Resources:
             }
           }
         }
-  # news-add-item-user-batch
-  AddItemUserBatchStepFunc:
+  # news-add-item-batch
+  AddItemBatchStepFunc:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-      StateMachineName: !Sub rs-${Stage}-News-AddItemUserBatchStepFunc
+      StateMachineName: !Sub rs-${Stage}-News-AddItemBatchStepFunc
       DefinitionString: !Sub |
         {
           "StartAt": "Pre check",
@@ -197,7 +289,6 @@ Resources:
                   "bucket.$": "$.Bucket",
                   "prefix.$": "$.S3Prefix",
                   "file_list": [
-                   "system/user-data/user.csv",
                    "system/item-data/item.csv"
                   ]
                 }
@@ -214,17 +305,64 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-add-item-user-batch",
+                  "ImageName": "rs/news-add-item-batch",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix)",
                   "InstanceType": "ml.m5.xlarge"
                 },
                 "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-SMProcessingStepFunc",
-                "Name.$": "States.Format('Nadditemu{}', $.Precheck.Payload.UID)"
+                "Name.$": "States.Format('Nadditemb{}', $.Precheck.Payload.UID)"
               },
               "End": true
             }
           }
         }
+
+  # news-add-user-batch
+  AddUserBatchStepFunc:
+      Type: AWS::StepFunctions::StateMachine
+      Properties:
+        RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+        StateMachineName: !Sub rs-${Stage}-News-AddUserBatchStepFunc
+        DefinitionString: !Sub |
+          {
+            "StartAt": "Pre check",
+            "States": {
+              "Pre check": {
+                "Type": "Task",
+                "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+                "Parameters": {
+                  "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                  "Payload": {
+                    "bucket.$": "$.Bucket",
+                    "prefix.$": "$.S3Prefix",
+                    "file_list": [
+                     "system/user-data/user.csv"
+                    ]
+                  }
+                },
+                "ResultSelector": {
+                  "Payload.$": "$.Payload"
+                },
+                "ResultPath": "$.Precheck",
+                "Next": "Run processing"
+              },
+              "Run processing": {
+                "Type": "Task",
+                "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+                "Parameters": {
+                  "Input": {
+                    "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                    "ImageName": "rs/news-add-user-batch",
+                    "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix)",
+                    "InstanceType": "ml.m5.xlarge"
+                  },
+                  "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-SMProcessingStepFunc",
+                  "Name.$": "States.Format('Nadduserb{}', $.Precheck.Payload.UID)"
+                },
+                "End": true
+              }
+            }
+          }
 
   # news-inverted-list
   InvertedListStepFunc:

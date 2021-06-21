@@ -2,6 +2,7 @@ from __future__ import print_function
 
 # from tqdm import tqdm
 import argparse
+import glob
 import os
 import pickle
 
@@ -52,12 +53,9 @@ def write_str_to_s3(content, bucket, key):
     s3client.put_object(Body=str(content).encode(
         "utf8"), Bucket=bucket, Key=key, ACL='bucket-owner-full-control')
 
-
-default_bucket = 'aws-gcr-rs-sol-demo-ap-southeast-1-522244679887'
-default_prefix = 'sample-data'
 parser = argparse.ArgumentParser()
-parser.add_argument('--bucket', type=str, default=default_bucket)
-parser.add_argument('--prefix', type=str, default=default_prefix)
+parser.add_argument('--bucket', type=str)
+parser.add_argument('--prefix', type=str)
 args, _ = parser.parse_known_args()
 bucket = args.bucket
 prefix = args.prefix
@@ -175,7 +173,7 @@ for row in df_filter_item.iterrows():
     news_id_news_feature_dict[program_id] = program_dict
 
 # clean data for graph train
-# path = '/home/ec2-user/workplace/recommender-system-solution/src/offline/news/item-feature-update-batch/aws-gcr-rs-sol-demo-ap-southeast-1-522244679887/sample-data/model/meta_files'
+# path = '/home/ec2-user/workplace/recommender-system-solution/src/offline/news/item-feature-update-batch/aws-gcr-rs-sol-demo-ap-northeast-1-522244679887/sample-data/model/meta_files'
 path = "info"
 entities_dbpedia = os.path.join(path, 'entities_dbpedia.dict')
 relations_dbpedia = os.path.join(path, 'relations_dbpedia.dict')

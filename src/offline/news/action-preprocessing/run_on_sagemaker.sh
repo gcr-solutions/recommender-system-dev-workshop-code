@@ -1,10 +1,12 @@
+#!/usr/bin/env bash
+set -e
 
 if [[ -z $PROFILE ]]; then
   PROFILE='default'
 fi
 
 if [[ -z $REGION ]]; then
-  REGION='ap-southeast-1'
+  REGION='ap-northeast-1'
 fi
 
 
@@ -21,15 +23,15 @@ repo_name=rs/news-action-preprocessing
 
 JOB_NAME=${repo_name}-${TIMESTAMP}-${RANDOM}
 JOB_NAME=$(echo $JOB_NAME | sed 's/\//-/g')
-echo "JOB_NAME: ${JOB_NAME}"
+
 
 IMAGEURI=${account_id}.dkr.ecr.${AWS_REGION}.amazonaws.com/${repo_name}:latest
-SM_ROLE=arn:aws:iam::${account_id}:role/service-role/RSSMRole
+SM_ROLE=arn:aws:iam::${account_id}:role/service-role/rs-dev-SMRole-${AWS_REGION}
 
 echo "JOB_NAME: ${JOB_NAME}"
 
-bucket=aws-gcr-rs-sol-demo-${AWS_REGION}-${account_id}
-prefix=sample-data
+bucket=aws-gcr-rs-sol-dev-${AWS_REGION}-${account_id}
+prefix=sample-data-news
 
 aws sagemaker --profile ${AWS_PROFILE} --region  ${AWS_REGION}   create-processing-job \
 --processing-job-name ${JOB_NAME} \

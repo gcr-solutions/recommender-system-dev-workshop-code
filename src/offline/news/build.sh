@@ -1,7 +1,9 @@
+#!/usr/bin/env bash
+set -e
 
 #export PROFILE='rsops'
 #export REGION='ap-northeast-1'
-#export REGION='ap-southeast-1'
+#export REGION='ap-northeast-1'
 #export PUBLIC_IMAGEURI=1
 
 echo "------------------------------------------------ "
@@ -18,7 +20,7 @@ if [[ -n $PROFILE ]]; then
 fi
 
 if [[ -z $REGION ]]; then
-  REGION='ap-southeast-1'
+  REGION='ap-northeast-1'
 fi
 
 echo "AWS_CMD=$AWS_CMD"
@@ -36,19 +38,20 @@ echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
 steps=(
 action-preprocessing
+prepare-training-data
 user-preprocessing
 item-preprocessing
 inverted-list
 model-update-embedding
 rank-batch
-add-item-user-batch
+add-item-batch
+add-user-batch
 dashboard
 filter-batch
 item-feature-update-batch
 model-update-action
 portrait-batch
 recall-batch
-weight-update-batch
 assembled/data-preprocessing
 assembled/train-model
 step-funcs
@@ -57,8 +60,8 @@ build_dir=$(pwd)
 for t in ${steps[@]};
 do
    cd ${build_dir}/${t}
-   echo ">> Build ${t} ..."
-    ./build.sh
+   echo ">> [$Stage] Build ${t} ..."
+    ./build.sh $Stage
     if [[ $? -ne 0 ]]; then
     echo "error!!!"
     exit 1

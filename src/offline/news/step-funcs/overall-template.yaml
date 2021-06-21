@@ -49,37 +49,47 @@ Resources:
                 {
                   "Variable": "$.change_type",
                   "IsPresent": false,
-                  "Next": "Action new"
+                  "Next": "Batch update"
                 },
                 {
                   "Variable": "$.change_type",
                   "StringEquals": "ACTION",
-                  "Next": "Action new"
+                  "Next": "Batch update"
+                },
+               {
+                  "Variable": "$.change_type",
+                  "StringEquals": "BATCH",
+                  "Next": "Batch update"
+                },
+                {
+                  "Variable": "$.change_type",
+                  "StringEquals": "USER",
+                  "Next": "User new"
                 },
                 {
                   "Variable": "$.change_type",
                   "StringEquals": "CONTENT",
-                  "Next": "Content new"
+                  "Next": "Item new"
+                },
+                {
+                  "Variable": "$.change_type",
+                  "StringEquals": "ITEM",
+                  "Next": "Item new"
                 },
                 {
                   "Variable": "$.change_type",
                   "StringEquals": "CONTENT_ASS",
-                  "Next": "Content new(assembled)"
+                  "Next": "Item new(assembled)"
                 },
                 {
                   "Variable": "$.change_type",
                   "StringEquals": "MODEL",
                   "Next": "Train model"
-                },
-                {
-                  "Variable": "$.change_type",
-                  "StringEquals": "ACTION_MODEL",
-                  "Next": "Train action model"
                 }
               ],
-              "Default": "Action new"
+              "Default": "Batch update"
             },
-            "Action new": {
+            "Batch update": {
               "Type": "Task",
               "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
               "Parameters": {
@@ -88,12 +98,26 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-ActionNewStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-BatchUpdateStepFunc",
                 "Name.$": "States.Format('oa{}', $$.Execution.Name)"
               },
               "End": true
             },
-            "Content new": {
+            "User new": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-UserNewStepFunc",
+                "Name.$": "States.Format('ou{}', $$.Execution.Name)"
+              },
+              "End": true
+            },
+            "Item new": {
               "Type": "Task",
               "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
               "Parameters": {
@@ -107,7 +131,7 @@ Resources:
               },
               "End": true
             },
-            "Content new(assembled)": {
+            "Item new(assembled)": {
               "Type": "Task",
               "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
               "Parameters": {
@@ -116,7 +140,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-AssIteNewStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-AssItemNewStepFunc",
                 "Name.$": "States.Format('oc{}', $$.Execution.Name)"
               },
               "End": true
@@ -132,20 +156,6 @@ Resources:
                 },
                 "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-TrainModelStepFunc",
                 "Name.$": "States.Format('ot{}', $$.Execution.Name)"
-              },
-              "End": true
-            },
-            "Train action model": {
-              "Type": "Task",
-              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
-              "Parameters": {
-                "Input": {
-                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "Bucket.$": "$.Bucket",
-                  "S3Prefix.$": "$.S3Prefix"
-                },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-TrainActionModelStepFunc",
-                "Name.$": "States.Format('ota{}', $$.Execution.Name)"
               },
               "End": true
             }

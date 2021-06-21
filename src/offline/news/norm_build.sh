@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+set -e
 
 echo "------------------------------------------------ "
 echo $0
@@ -34,7 +36,7 @@ if [[ -n $AWS_DEFAULT_REGION ]];then
 fi
 
 if [[ -z $REGION ]]; then
-  REGION='ap-southeast-1'
+  REGION='ap-northeast-1'
 fi
 
 echo "AWS_CMD:'$AWS_CMD'"
@@ -67,7 +69,7 @@ create_repo () {
   $AWS_CMD ecr create-repository  \
   --repository-name $name \
   --image-scanning-configuration scanOnPush=true \
-  --region $region >/dev/null 2>&1
+  --region $region >/dev/null 2>&1 || true
 
   if [[ $public_access -eq '1' ]]; then
        $AWS_CMD ecr set-repository-policy  --repository-name $name --region $region --policy-text \
@@ -115,6 +117,7 @@ echo ${IMAGEURI}
 
 $AWS_CMD ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${account_ecr_uri}
 
+echo ">> push ${IMAGEURI}"
 docker push ${IMAGEURI}
 
 if [[ $? != 0 ]]; then
@@ -124,6 +127,7 @@ fi
 
 if [[ $tag == 'dev' ]]; then
   docker tag $repoName ${LATEST_IMAGEURI}
+  echo ">> push ${LATEST_IMAGEURI}"
   docker push ${LATEST_IMAGEURI}
   if [[ $? != 0 ]];then
        echo "Error docker push"
@@ -131,6 +135,11 @@ if [[ $tag == 'dev' ]]; then
   fi
 fi
 
+version_id=$(git rev-parse HEAD)
+VERSION_IMAGE=${account_ecr_uri}/$repoName:$version_id
+docker tag ${repoName} ${VERSION_IMAGE}
+echo ">> push ${VERSION_IMAGE}"
+docker push ${VERSION_IMAGE}
 
 
 AWS_ECR_PUB_REGION='ap-northeast-1'
@@ -147,6 +156,7 @@ if [[ (${AWS_REGION} != ${AWS_ECR_PUB_REGION}) && (${RELEASE_TO_PUBLIC} == '1') 
     PUBLIC_IMAGEURI=${public_ecr_uri}/$repoName:latest
     echo "PUBLIC_IMAGEURI: $PUBLIC_IMAGEURI"
     docker tag $repoName ${PUBLIC_IMAGEURI}
+    echo ">> push ${PUBLIC_IMAGEURI}"
     docker push ${PUBLIC_IMAGEURI}
     if [[ $? != 0 ]];then
        echo "Error docker push"

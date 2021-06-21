@@ -75,7 +75,7 @@ with SparkSession.builder.appName("Spark App - item preprocessing").getOrCreate(
     df_input = spark.read.text(input_file)
     # 6552418723179790856_!_102_!_news_entertainment_!_谢娜三喜临门何炅送祝福吴昕送祝福只有沈梦辰不一样_!_杜海涛,谢娜,何炅,沈梦辰,吴昕,快本_!_3_!_0
     df_input = df_input.selectExpr("split(value, '_!_') as row").where(
-        size(col("row")) > 5).selectExpr("row[0] as id",
+        size(col("row")) > 6).selectExpr("row[0] as id",
                                          "row[1] as item_type_code",
                                          "row[2] as item_type",
                                          "row[3] as title_raw",

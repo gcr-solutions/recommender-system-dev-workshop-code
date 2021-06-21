@@ -53,12 +53,9 @@ def write_str_to_s3(content, bucket, key):
     s3client.put_object(Body=str(content).encode(
         "utf8"), Bucket=bucket, Key=key, ACL='bucket-owner-full-control')
 
-
-default_bucket = 'aws-gcr-rs-sol-demo-ap-southeast-1-522244679887'
-default_prefix = 'sample-data'
 parser = argparse.ArgumentParser()
-parser.add_argument('--bucket', type=str, default=default_bucket)
-parser.add_argument('--prefix', type=str, default=default_prefix)
+parser.add_argument('--bucket', type=str)
+parser.add_argument('--prefix', type=str)
 args, _ = parser.parse_known_args()
 bucket = args.bucket
 prefix = args.prefix
@@ -79,7 +76,7 @@ if not os.path.exists(local_folder):
     os.makedirs(local_folder)
 # 行为/物品数据同步
 file_name_list = ['action.csv']
-s3_folder = '{}/system/action-data'.format(prefix)
+s3_folder = '{}/system/popularity-action-data'.format(prefix)
 run_as_init = 0
 
 try:
@@ -88,6 +85,8 @@ try:
 except Exception as e:
     run_as_init = 1
 
+
+print("run_as_init:", run_as_init)
 
 file_name_list = ['item.csv']
 s3_folder = '{}/system/item-data'.format(prefix)
@@ -98,7 +97,7 @@ df_filter_item = pd.read_csv('info/item.csv', sep='_!_', names=[
 
 
 if run_as_init:
-    df_item_stats = df_filter_item['news_id']
+    df_item_stats = df_filter_item[['news_id']]
     df_item_stats['action_type'] = 1
     df_item_stats['action'] = 1
 else:

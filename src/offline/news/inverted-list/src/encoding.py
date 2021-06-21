@@ -57,7 +57,8 @@ class encoding:
         # self.output_bucket = output_bucket
         self.trie = marisa_trie.Trie(list(kg.entity_industry))
         self.vocab = Vocab(env['GRAPH_BUCKET'], env['KG_VOCAB_KEY'])
-        self.model=FastHan()
+        print("Load fasthan from /opt/ml/fasthan_base/")
+        self.model = FastHan(url='/opt/ml/fasthan_base/')
     def __getitem__(self, text):
         seg, ner_gen, ner_indu, ner_bert = self.word_parser(text)
         return self.get_encoding(seg, ner_gen, ner_indu, ner_bert)
