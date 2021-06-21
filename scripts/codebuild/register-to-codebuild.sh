@@ -32,7 +32,7 @@ do
     aws codebuild create-webhook \
         --project-name gcr-rs-dev-workshop-${project}-build \
         --filter-groups '[
-            [{"type": "EVENT", "pattern": "PUSH", "excludeMatchedPattern": false},{"type":"FILE_PATH","pattern": "src/'${project}'", "excludeMatchedPattern": false}],
+            [{"type": "EVENT", "pattern": "PUSH", "excludeMatchedPattern": false},{"type":"FILE_PATH","pattern": "src/'${project}'", "excludeMatchedPattern": false}]
         ]'
     echo "Done." 
 done
