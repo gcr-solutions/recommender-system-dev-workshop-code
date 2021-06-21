@@ -4,7 +4,7 @@ set -e
 echo "------------------------------------------------ "
 Stage=$1
 if [[ -z $Stage ]];then
-  Stage='dev'
+  Stage='dev-workshop'
 fi
 AWS_CMD="aws"
 if [[ -n $PROFILE ]]; then

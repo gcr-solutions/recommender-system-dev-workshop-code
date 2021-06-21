@@ -6,7 +6,7 @@ pwd
 
 Stage=$1
 if [[ -z $Stage ]];then
-  Stage='dev'
+  Stage='dev-workshop'
 fi
 
 echo "Stage=$Stage"
