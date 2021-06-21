@@ -27,11 +27,18 @@ if [[ -z $REGION ]]; then
 fi
 echo "REGION:$REGION"
 
+AWS_ACCOUNT_ID=$($AWS_CMD  sts get-caller-identity --region ${REGION} --query Account --output text)
+if [[ $? -ne 0 ]]; then
+  echo "error!!! can not get your AWS_ACCOUNT_ID"
+  exit 1
+fi
+
+echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
 roleArn=$(cat role.arn) ||  roleArn=''
 if [[ -z $roleArn ]]; then
   #echo "ERROR: cannot read file role.arn, please set your codebuild role in file: 'role.arn' or run ./create-iam-role.sh firstly"
-  roleArn='arn:aws:iam::522244679887:role/rs-codebuild-role'
+  roleArn='arn:aws:iam::${AWS_ACCOUNT_ID}:role/rs-codebuild-role'
   #exit 1
 fi
 echo "roleArn: $roleArn"
@@ -135,7 +142,9 @@ for project in ${projects_dir[@]}; do
   fi
 done
 
-
-
-
+echo "Please check result in codebuild:"
+echo "search 'rs-$Stage-offline-'"
+echo "https://$REGION.console.aws.amazon.com/codesuite/codebuild/projects?region=$REGION"
+echo ""
+echo "Done"
 
