@@ -51,11 +51,13 @@ rs/news-user-preprocessing
 
 curr_dir=$(pwd)
 
+echo "1. Delete step-funcs"
 cd $curr_dir/step-funcs
 ./clean_up.sh
 
 cd $curr_dir
 
+echo "2. Delete ECR repositories ..."
 for repo_name in ${repo_names[@]}
 do
   echo "Delete repo: '$repo_name ...'"

@@ -36,5 +36,4 @@ echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
 
 ./lambda/clean_up.sh $Stage
-./news/step-funcs/clean_up.sh $Stage
-./movie/step-funcs/clean_up.sh $Stage
+./news/clean_up.sh $Stage
