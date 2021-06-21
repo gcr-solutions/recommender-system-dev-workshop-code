@@ -3,13 +3,20 @@ set -e
 
 curr_dir=$(pwd)
 
+Stage=$1
+if [[ -z $Stage ]];then
+  Stage='dev-workshop'
+fi
+
+echo "Stage=$Stage"
+
 echo "==== Clean sample data in S3 ===="
 cd ${curr_dir}/../sample-data/
 ./clean_up.sh
 
 echo "==== DELETE all codebuild projects ===="
 cd ${curr_dir}/codebuild
-./register-to-codebuild-offline.sh dev DELETE
+./register-to-codebuild-offline.sh $Stage DELETE
 
 echo "==== DELETE all Step funcs and ECR repos ===="
 cd ${curr_dir}/../src/offline/

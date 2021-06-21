@@ -2,5 +2,5 @@
 set -e
 
 cd ./codebuild
-./register-to-codebuild-offline.sh dev
+./register-to-codebuild-offline.sh
 
