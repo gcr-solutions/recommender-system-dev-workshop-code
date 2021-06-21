@@ -67,6 +67,24 @@
         "secretsmanager:GetSecretValue"
       ],
       "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Resource": "*",
+      "Action": [
+        "s3:*",
+        "lambda:*",
+        "sns:*",
+        "ecr:*",
+        "sagemaker:*",
+        "eks:*",
+        "states:*",
+        "cloudformation:*",
+        "iam:*",
+        "codecommit:*",
+        "codebuild:*",
+        "events:*"
+      ]
     }
   ]
 }
