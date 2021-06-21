@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: __EFS-PV__
-spec:
-  csi:
-    # replace to your file system ID, like: fs-b2ab7ef2
-    volumeHandle: fs-b2ab7ef2

@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: __ESK-NAMESPACE__
-  labels:
-    istio-injection: enabled

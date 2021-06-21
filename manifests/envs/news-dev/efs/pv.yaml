@@ -12,4 +12,3 @@ spec:
   storageClassName: efs-sc-news-dev
   csi:
     driver: efs.csi.aws.com
-    # volumeHandle: fs-b2ab7ef2

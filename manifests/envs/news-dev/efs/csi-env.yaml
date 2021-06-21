@@ -5,4 +5,4 @@ metadata:
 spec:
   csi:
     # replace to your file system ID, like: fs-b2ab7ef2
-    volumeHandle: fs-b2ab7ef2
+    volumeHandle: FILE_SYSTEM_ID
