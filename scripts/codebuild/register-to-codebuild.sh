@@ -20,7 +20,7 @@ do
     sleep 5
 
     echo "Re-creating ${project} into CodeBuild ..."
-    sed -e "s|__app_name__|$project|g;s|__github_repo_link__|$GITHUB_REPO_LINK|g" ./codebuild-template.json > ./${project}-codebuild.json
+    sed -e "s|__app_name__|$project|g;s|__GITHUB_USER_NAME__|$GITHUB_USER|g" ./codebuild-template.json > ./${project}-codebuild.json
     aws codebuild create-project \
         --cli-input-json file://${project}-codebuild.json \
         --service-role ${roleArn}

@@ -2,7 +2,7 @@
     "name": "gcr-rs-workshop-__app_name__-build",
     "source": {
         "type": "GITHUB",
-        "location": "__github_repo_link__",
+        "location": "https://github.com/__GITHUB_USER_NAME__/recommender-system-dev-workshop-code.git",
         "gitCloneDepth": 0,
         "gitSubmodulesConfig": {
             "fetchSubmodules": true
