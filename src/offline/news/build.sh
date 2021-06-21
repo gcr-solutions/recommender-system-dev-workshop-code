@@ -52,8 +52,6 @@ item-feature-update-batch
 model-update-action
 portrait-batch
 recall-batch
-assembled/data-preprocessing
-assembled/train-model
 step-funcs
 )
 build_dir=$(pwd)

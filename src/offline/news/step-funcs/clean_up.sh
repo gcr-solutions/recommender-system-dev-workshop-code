@@ -36,11 +36,10 @@ echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 all_stepfuncs=(
 steps
 dashboard
-action-new
+batch-update
+user-new
 item-new
-item-new-assembled
 train-model
-train-action-model
 overall
 )
 
