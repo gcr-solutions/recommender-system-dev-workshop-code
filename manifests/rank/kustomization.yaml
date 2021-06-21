@@ -9,9 +9,6 @@ resources:
 - rank-service.yaml
 - virtual-service.yaml
 
-# # namespace to deploy all resources to
-# namespace: rs-beta
-
 
 commonLabels:
   author: mingtong
