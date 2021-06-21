@@ -15,7 +15,7 @@ projects[8]="ui"
 for project in ${projects[@]}
 do 
     echo "Deleting ${project} from CodeBuild ..."
-    aws codebuild delete-project --name gcr-rs-workshop-${project}-build || true
+    aws codebuild delete-project --name gcr-rs-dev-workshop-${project}-build || true
     echo "Done."
     sleep 5
 
@@ -30,7 +30,7 @@ do
 
     echo "Activing webhook on Github with all events ..."
     aws codebuild create-webhook \
-        --project-name gcr-rs-workshop-${project}-build \
+        --project-name gcr-rs-dev-workshop-${project}-build \
         --filter-groups '[
             [{"type": "EVENT", "pattern": "PUSH", "excludeMatchedPattern": false},{"type":"FILE_PATH","pattern": "src/'${project}'", "excludeMatchedPattern": false}],
         ]'
