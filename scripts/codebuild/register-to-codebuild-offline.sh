@@ -103,7 +103,8 @@ create_codebuild_project () {
      $AWS_CMD codebuild --region $REGION create-webhook \
            --project-name $build_proj_name \
            --filter-groups '[
-               [{"type": "EVENT", "pattern": "PUSH", "excludeMatchedPattern": false},{"type":"FILE_PATH","pattern": "src/offline/'${app_path}'", "excludeMatchedPattern": false}],
+               [{"type": "EVENT", "pattern": "PUSH", "excludeMatchedPattern": false},
+                {"type":"FILE_PATH", "pattern": "src/offline/'${app_path}'", "excludeMatchedPattern": false}]
            ]'
   fi
 }
