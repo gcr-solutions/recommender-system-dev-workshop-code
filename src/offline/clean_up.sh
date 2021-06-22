@@ -34,6 +34,10 @@ fi
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
+curr_dir=$(pwd)
 
-./lambda/clean_up.sh $Stage
-./news/clean_up.sh $Stage
+cd ${curr_dir}/lambda/
+./clean_up.sh $Stage
+
+cd ${curr_dir}/news/
+./clean_up.sh $Stage
