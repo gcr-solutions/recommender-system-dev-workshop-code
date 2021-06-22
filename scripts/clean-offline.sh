@@ -8,7 +8,7 @@ if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
 
-export REGION='ap-northeast-1'
+#export REGION='ap-northeast-1'
 
 echo "Stage=$Stage"
 echo "REGION=$REGION"
