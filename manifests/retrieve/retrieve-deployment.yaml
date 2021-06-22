@@ -14,8 +14,8 @@ spec:
     spec:
       terminationGracePeriodSeconds: 5
       containers:
-      - name: rs-retrieve
-        image:  rs/retrieve:latest
+      - name: rs-dev-workshop-retrieve
+        image:  rs-dev-workshop/retrieve:latest
         ports:
           - name: http
             containerPort: 5600

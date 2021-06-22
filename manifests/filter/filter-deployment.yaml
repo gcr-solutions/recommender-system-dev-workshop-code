@@ -14,8 +14,8 @@ spec:
     spec:
       terminationGracePeriodSeconds: 5
       containers:
-      - name: rs-filter
-        image:  rs/filter:latest
+      - name: rs-dev-workshop-filter
+        image:  rs-dev-workshop/filter:latest
         ports:
           - name: http
             containerPort: 5200
@@ -33,8 +33,8 @@ spec:
             value: $(MESSGE_BROKER_REDIS_PORT)
           - name: FILTER_PORT
             value: "5200"
-      - name: rs-filter-plugin
-        image:  rs/filter-plugin:latest
+      - name: rs-dev-workshop-filter-plugin
+        image:  rs-dev-workshop/filter-plugin:latest
         ports:
           - name: http
             containerPort: 50051

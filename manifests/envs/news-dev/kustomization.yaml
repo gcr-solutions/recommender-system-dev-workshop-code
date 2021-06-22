@@ -45,7 +45,7 @@ images:
 - name: rs-dev-workshop/rank
   newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/rank
   newTag: 7dbbfb61ec7d529f496c7040bb82ffe15272a86b
-- name: rs/rank-plugin
+- name: rs-dev-workshop/rank-plugin
   newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/rank-plugin
   newTag: news-7dbbfb61ec7d529f496c7040bb82ffe15272a86b
 - name: rs-dev-workshop/recall

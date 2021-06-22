@@ -14,8 +14,8 @@ spec:
     spec:
       terminationGracePeriodSeconds: 5
       containers:
-      - name: rs-rank
-        image:  rs/rank:latest
+      - name: rs-dev-workshop-rank
+        image:  rs-dev-workshop/rank:latest
         ports:
           - name: http
             containerPort: 5400
@@ -33,8 +33,8 @@ spec:
             value: $(MESSGE_BROKER_REDIS_PORT)
           - name: RANK_PORT
             value: "5400"
-      - name: rs-rank-plugin
-        image:  rs/rank-plugin:latest
+      - name: rs-dev-workshop-rank-plugin
+        image:  rs-dev-workshop/rank-plugin:latest
         ports:
           - name: http
             containerPort: 50051
