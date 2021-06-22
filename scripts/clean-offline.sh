@@ -19,7 +19,7 @@ sleep 3
 
 echo "==== Clean sample data in S3 ===="
 cd ${curr_dir}/../sample-data/
-./clean_up.sh
+./clean_up.sh $Stage
 
 echo "==== DELETE all codebuild projects ===="
 cd ${curr_dir}/codebuild
@@ -27,7 +27,7 @@ cd ${curr_dir}/codebuild
 
 echo "==== DELETE all Step funcs and ECR repos ===="
 cd ${curr_dir}/../src/offline/
-./clean_up.sh
+./clean_up.sh $Stage
 
 echo "All offline resources were deleted"
 

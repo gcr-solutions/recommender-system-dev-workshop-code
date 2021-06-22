@@ -20,9 +20,9 @@ sleep 3
 
 echo "1. ========= sync sample data to S3 =============="
 cd ${curr_dir}/../sample-data
-./sync_data_to_s3.sh
+./sync_data_to_s3.sh $Stage
 
 echo "2. ========= Create codebuild =============="
 cd ${curr_dir}/codebuild
-./register-to-codebuild-offline.sh
+./register-to-codebuild-offline.sh $Stage
 
