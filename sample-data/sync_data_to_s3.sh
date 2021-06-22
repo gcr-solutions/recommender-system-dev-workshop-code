@@ -40,10 +40,6 @@ if [[ -z $REGION ]];then
     REGION='ap-northeast-1'
 fi
 
-if [[ -z $LOC_REGION ]];then
-    LOC_REGION=$REGION
-fi
-
 Yellow_print "REGION: $REGION"
 
 AWS_ACCOUNT_ID=$($AWS_CMD  sts get-caller-identity  --o text | awk '{print $1}')
@@ -58,9 +54,7 @@ echo "Create S3 Bucket: ${BUCKET_BUILD} if not exist"
 #$AWS_CMD  s3 mb s3://${BUCKET_BUILD}  >/dev/null 2>&1 || true
 
 $AWS_CMD s3api --region $REGION create-bucket --bucket ${BUCKET_BUILD}  \
---create-bucket-configuration LocationConstraint=$LOC_REGION || true
-
-#$AWS_CMD s3api --region $REGION create-bucket --bucket ${BUCKET_BUILD} || true
+--create-bucket-configuration LocationConstraint=$REGION || true
 
 echo "########################################################"
 Blue_print "aws  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/"
