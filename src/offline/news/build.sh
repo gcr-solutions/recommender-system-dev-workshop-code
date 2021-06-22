@@ -61,9 +61,10 @@ do
    echo ">> [$Stage] Build ${t} ..."
     ./build.sh $Stage
     if [[ $? -ne 0 ]]; then
-    echo "error!!!"
-    exit 1
-fi
+       echo "error!!!"
+       exit 1
+    fi
+    sleep 5
 done
 
 echo "Done."
