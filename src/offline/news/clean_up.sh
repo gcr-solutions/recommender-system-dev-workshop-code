@@ -60,8 +60,13 @@ cd $curr_dir
 echo "2. Delete ECR repositories ..."
 for repo_name in ${repo_names[@]}
 do
-  echo "Delete repo: '$repo_name ...'"
-  $AWS_CMD ecr delete-repository  --repository-name $repo_name --region ${REGION} --force || true
+  if [[ "$AWS_ACCOUNT_ID" != '522244679887' ]]; then
+       echo "Delete repo: '$repo_name ...'"
+       $AWS_CMD ecr delete-repository  --repository-name $repo_name --region ${REGION} --force || true
+  else
+      # our test  account: 522244679887
+      echo "skip deleting repo: '$repo_name ...'"
+  fi
 done
 
 echo "Done"
