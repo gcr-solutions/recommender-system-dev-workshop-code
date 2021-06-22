@@ -6,9 +6,9 @@ env:
     PLUGIN_NAME: "recall-plugin"
     SCENARIOS: "news movie"
   secrets-manager:
-    GITHUB_USER: github-rs:githubUser
-    ACCESS_TOKEN: github-rs:accessToken
-    APP_CONF_REPO: github-rs:appConfRepo
+    GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
+    ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken
+    APP_CONF_REPO: gcr-rs-dev-workshop-github:appConfRepo
 
 phases:
     install:
