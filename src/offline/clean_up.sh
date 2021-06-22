@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+#set -e
 
 #export PROFILE='rsops'
 #export REGION='ap-northeast-1'
