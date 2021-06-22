@@ -38,7 +38,7 @@ echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 roleArn=$(cat role.arn) ||  roleArn=''
 if [[ -z $roleArn ]]; then
   #echo "ERROR: cannot read file role.arn, please set your codebuild role in file: 'role.arn' or run ./create-iam-role.sh firstly"
-  roleArn='arn:aws:iam::${AWS_ACCOUNT_ID}:role/rs-codebuild-role'
+  roleArn="arn:aws:iam::${AWS_ACCOUNT_ID}:role/rs-codebuild-role"
   #exit 1
 fi
 echo "roleArn: $roleArn"
