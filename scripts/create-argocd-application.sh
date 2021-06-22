@@ -18,7 +18,7 @@ echo "update-lambda-env"
 ./update-lambda-env.sh
 
 # 3 Create argocd application
-argocd app create gcr-recommender-system-news-dev --repo https://github.com/__GITHUB_USER_NAME__/recommender-system-dev-workshop-code.git --path manifests/envs/news-dev --dest-namespace \
+argocd app create gcr-recommender-system-news-dev --repo https://${ACCESS_TOKEN}@github.com/${GITHUB_USER}/recommender-system-dev-workshop-code.git --path manifests/envs/news-dev --dest-namespace \
 rs-news-dev-ns --dest-server https://kubernetes.default.svc --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1
 
 sleep 20
