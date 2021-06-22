@@ -58,11 +58,4 @@ spec:
         - name: persistent-storage
           persistentVolumeClaim:
             claimName: efs-claim
-      nodeSelector:
-        alpha.eksctl.io/nodegroup-name: "rs-cpu-ng-1"
-      tolerations:
-      - key: "feaster"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
            

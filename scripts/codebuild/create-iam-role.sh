@@ -6,7 +6,7 @@ ROLE_POLICY=gcr-rs-dev-workshop-codebuild-policy
 
 echo "Start to create codebuild role"
 ROLE_NAMES=$(aws iam list-roles | jq '.[][] | select(.RoleName=="gcr-rs-dev-workshop-codebuild-role")')
-if [ ${error} ]
+if [ "$ROLE_NAMES" == "" ]
 then
     echo "Nothing has been done and all clear."
 else
