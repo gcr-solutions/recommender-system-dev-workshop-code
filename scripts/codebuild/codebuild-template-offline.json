@@ -2,7 +2,7 @@
   "name": "__app_name__",
   "source": {
     "type": "GITHUB",
-    "location": "https://github.com/gcr-solutions/recommender-system.git",
+    "location": "https://github.com/gcr-solutions/recommender-system-dev-workshop-code.git",
     "gitCloneDepth": 0,
     "gitSubmodulesConfig": {
       "fetchSubmodules": true
