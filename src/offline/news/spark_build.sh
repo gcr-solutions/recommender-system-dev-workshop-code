@@ -33,7 +33,7 @@ if [[ -n $AWS_DEFAULT_REGION ]];then
 fi
 
 if [[ -z $REGION ]]; then
-  REGION='ap-northeast-1'
+  REGION='ap-southeast-1'
 fi
 
 echo "AWS_CMD:'$AWS_CMD'"
@@ -102,7 +102,7 @@ elif [[ $AWS_REGION == 'ap-northeast-1' ]]; then
   registry_uri=411782140378.dkr.ecr.${AWS_REGION}.amazonaws.com
 elif [[ $AWS_REGION == 'ap-northeast-2' ]]; then
   registry_uri=860869212795.dkr.ecr.${AWS_REGION}.amazonaws.com
-elif [[ $AWS_REGION == 'ap-northeast-1' ]]; then
+elif [[ $AWS_REGION == 'ap-southeast-1' ]]; then
   registry_uri=759080221371.dkr.ecr.${AWS_REGION}.amazonaws.com
 elif [[ $AWS_REGION == 'ap-east-1' ]]; then
   registry_uri=732049463269.dkr.ecr.${AWS_REGION}.amazonaws.com
