@@ -55,7 +55,7 @@ echo "Create S3 Bucket: ${BUCKET_BUILD} if not exist"
 #$AWS_CMD s3api --region $REGION create-bucket --bucket ${BUCKET_BUILD}  \
 #--create-bucket-configuration LocationConstraint=$REGION || true
 
-$AWS_CMD s3api --region $REGION create-bucket --bucket ${BUCKET_BUILD}
+$AWS_CMD s3api --region $REGION create-bucket --bucket ${BUCKET_BUILD} || true
 
 echo "########################################################"
 Blue_print "aws  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/"
