@@ -9,7 +9,7 @@ metadata:
 nodeGroups:
   - name: rs-cpu-ng
     labels: { role: rs-cpu-ng }
-    instanceType: r5.2xlarge
+    instanceType: r5.4xlarge
     minSize: 2
     maxSize: 4
     volumeSize: 80
