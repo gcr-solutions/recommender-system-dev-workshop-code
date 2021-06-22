@@ -8,7 +8,13 @@ if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
 
+export REGION='ap-northeast-1'
+
 echo "Stage=$Stage"
+echo "REGION=$REGION"
+
+sleep 3
+
 
 echo "1. ========= sync sample data to S3 =============="
 cd ${curr_dir}/../sample-data
