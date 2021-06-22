@@ -4,7 +4,8 @@ set -e
 ROLE_NAME=gcr-rs-dev-workshop-codebuild-role
 ROLE_POLICY=gcr-rs-dev-workshop-codebuild-policy
 
-aws iam get-role --role-name ${ROLE_NAME} || error=true
+echo "Start to create codebuild role"
+ROLE_NAMES=$(aws iam list-roles | jq '.[][] | select(.RoleName=="gcr-rs-dev-workshop-codebuild-role")')
 if [ ${error} ]
 then
     echo "Nothing has been done and all clear."
@@ -63,3 +64,4 @@ then
 fi
 
 echo ${roleArn}>role.arn
+echo "Create codebuild role successfully"

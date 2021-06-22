@@ -15,12 +15,12 @@ projects[8]="ui"
 for project in ${projects[@]}
 do 
     echo "Deleting ${project} from CodeBuild ..."
-    aws codebuild delete-project --name gcr-rs-workshop-${project}-build || true
+    aws codebuild delete-project --name gcr-rs-dev-workshop-${project}-build || true
     echo "Done."
     sleep 5
 
     echo "Re-creating ${project} into CodeBuild ..."
-    sed -e "s|__app_name__|$project|g;s|__github_repo_link__|$GITHUB_REPO_LINK|g" ./codebuild-template.json > ./${project}-codebuild.json
+    sed -e "s|__app_name__|$project|g;s|__GITHUB_USER_NAME__|$GITHUB_USER|g" ./codebuild-template.json > ./${project}-codebuild.json
     aws codebuild create-project \
         --cli-input-json file://${project}-codebuild.json \
         --service-role ${roleArn}
@@ -30,9 +30,9 @@ do
 
     echo "Activing webhook on Github with all events ..."
     aws codebuild create-webhook \
-        --project-name gcr-rs-workshop-${project}-build \
+        --project-name gcr-rs-dev-workshop-${project}-build \
         --filter-groups '[
-            [{"type": "EVENT", "pattern": "PUSH", "excludeMatchedPattern": false},{"type":"FILE_PATH","pattern": "src/'${project}'", "excludeMatchedPattern": false}],
+            [{"type": "EVENT", "pattern": "PUSH", "excludeMatchedPattern": false},{"type":"FILE_PATH","pattern": "src/'${project}'", "excludeMatchedPattern": false}]
         ]'
     echo "Done." 
 done
