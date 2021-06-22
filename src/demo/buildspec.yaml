@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     APP_NAME: "demo"
-    SCENARIOS: "news movie"
+    SCENARIOS: "news"
 
   secrets-manager:
     GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
