@@ -61,7 +61,7 @@ echo "2. Delete ECR repositories ..."
 for repo_name in ${repo_names[@]}
 do
   echo "Delete repo: '$repo_name ...'"
-  $AWS_CMD ecr delete-repository  --repository-name $repo_name --force || true
+  $AWS_CMD ecr delete-repository  --repository-name $repo_name --region ${REGION} --force || true
 done
 
 echo "Done"
