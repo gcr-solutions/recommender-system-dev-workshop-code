@@ -54,11 +54,7 @@ Parameters:
 Mappings:
   LoaderConfigMap:
     NewsOnlineLoaderURL:
-      dev: adf45c54cf8734c0f9c14f4adfecae86-234454018.ap-northeast-1.elb.amazonaws.com
-      demo: a08ee0a80c43b4cf8af229bf3c70c995-1967456171.ap-northeast-1.elb.amazonaws.com
-    MovieOnlineLoaderURL:
-      dev: a4fb68ded64b0495f90bbaa36c7773cd-1545468192.ap-northeast-1.elb.amazonaws.com
-      demo: a30667949998643caa071da69f042c8f-448313425.ap-northeast-1.elb.amazonaws.com
+      dev-workshop: ''
 
 Resources:
   RSOfflineSNS:
@@ -101,4 +97,3 @@ Resources:
         Variables:
           SNS_TOPIC_ARN: !Ref RSOfflineSNS
           NEWS_ONLINE_LOADER_URL: !FindInMap [ LoaderConfigMap, NewsOnlineLoaderURL, !Ref Stage ]
-          MOVIE_ONLINE_LOADER_URL: !FindInMap [ LoaderConfigMap, MovieOnlineLoaderURL, !Ref Stage ]
