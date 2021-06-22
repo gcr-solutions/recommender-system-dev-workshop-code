@@ -8,7 +8,7 @@ export EKS_CLUSTER=gcr-rs-dev-workshop-cluster
 eksctl create cluster -f ./eks/nodes-config.yaml
 
 # # 1.2 Create EKS cluster namespace
-kubectl apply -f ../manifests/envs/news-dev/rs-ns.yaml
+kubectl apply -f ../manifests/envs/news-dev/ns.yaml
 
 # 2. Install Istio with default profile
 curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.9.1 TARGET_ARCH=x86_64 sh -
