@@ -2,7 +2,7 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: gcr-rs-workshop-cluster
+  name: gcr-rs-dev-workshop-cluster
   region: ap-northeast-1
   version: "1.19"
 
@@ -37,4 +37,4 @@ nodeGroups:
         cloudWatch: true
     tags:
       k8s.io/cluster-autoscaler/enabled: "true"
-      k8s.io/cluster-autoscaler/gcr-rs-workshop-cluster: "owned"
+      k8s.io/cluster-autoscaler/gcr-rs-dev-workshop-cluster: "owned"
