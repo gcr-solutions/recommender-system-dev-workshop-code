@@ -54,7 +54,7 @@ Parameters:
 Mappings:
   LoaderConfigMap:
     NewsOnlineLoaderURL:
-      dev-workshop: ''
+      devworkshop: ''
 
 Resources:
   RSOfflineSNS:
@@ -96,4 +96,4 @@ Resources:
       Environment:
         Variables:
           SNS_TOPIC_ARN: !Ref RSOfflineSNS
-          NEWS_ONLINE_LOADER_URL: !FindInMap [ LoaderConfigMap, NewsOnlineLoaderURL, !Ref Stage ]
+          NEWS_ONLINE_LOADER_URL: !FindInMap [ LoaderConfigMap, NewsOnlineLoaderURL, 'devworkshop' ]
