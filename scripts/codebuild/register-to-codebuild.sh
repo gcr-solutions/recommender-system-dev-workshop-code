@@ -36,7 +36,7 @@ do
         ]'
     echo "Done." 
 
-    sleep 10
+    sleep 30
     echo "Start build!"
     aws codebuild start-build --project-name gcr-rs-dev-workshop-${project}-build
 done
