@@ -50,7 +50,10 @@ PREFIX=sample-data-news
 
 echo "BUCKET_BUILD=${BUCKET_BUILD}"
 echo "Create S3 Bucket: ${BUCKET_BUILD} if not exist"
-$AWS_CMD  s3 mb s3://${BUCKET_BUILD}  >/dev/null 2>&1 || true
+#$AWS_CMD  s3 mb s3://${BUCKET_BUILD}  >/dev/null 2>&1 || true
+
+$AWS_CMD s3api --region $REGION create-bucket --bucket ${BUCKET_BUILD}  \
+--create-bucket-configuration LocationConstraint=$REGION || true
 
 echo "########################################################"
 Blue_print "aws  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/"

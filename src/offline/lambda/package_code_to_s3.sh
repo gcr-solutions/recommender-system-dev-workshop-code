@@ -37,9 +37,6 @@ PREFIX=ops-data
 echo "BUCKET_BUILD=${BUCKET_BUILD}"
 echo "Create S3 Bucket: ${BUCKET_BUILD} if not exist"
 
-$AWS_CMD s3api --region $REGION create-bucket --bucket ${BUCKET_BUILD}  \
---create-bucket-configuration LocationConstraint=$REGION || true
-
 lambda_funcs=(
   precheck-lambda
   s3-util-lambda
