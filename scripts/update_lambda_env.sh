@@ -55,9 +55,6 @@ dns_name=$($AWS_CMD elb describe-load-balancers --load-balancer-name $ingressgat
 
 echo "dns_name: $dns_name"
 
-loader_url="http://$dns_name/loader/notice"
-echo $loader_url
-
 botoConfig='{"user_agent_extra": "AwsSolution/SO8010/0.1.0"}'
 SNS_TOPIC_ARN="arn:aws:sns:${REGION}:${account_id}:rs-$Stage-offline-sns"
 echo $SNS_TOPIC_ARN
@@ -66,6 +63,6 @@ echo $SNS_TOPIC_ARN
 # aws --profile rsops lambda get-function-configuration  --function-name rs-dev-SNSMessageLambda | jq .Environment.Variables | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")| .[]'
 
 $AWS_CMD lambda   update-function-configuration  --function-name rs-$Stage-SNSMessageLambda \
---environment "Variables={NEWS_ONLINE_LOADER_URL=${loader_url},botoConfig='${botoConfig}',SNS_TOPIC_ARN='${SNS_TOPIC_ARN}'}" >/dev/null
+--environment "Variables={NEWS_ONLINE_LOADER_URL=${dns_name},botoConfig='${botoConfig}',SNS_TOPIC_ARN='${SNS_TOPIC_ARN}'}" >/dev/null
 
 
