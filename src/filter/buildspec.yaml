@@ -4,7 +4,7 @@ env:
   variables:
     APP_NAME: "filter"
     PLUGIN_NAME: "filter-plugin"
-    SCENARIOS: "news movie"
+    SCENARIOS: "news"
   secrets-manager:
     GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
     ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken

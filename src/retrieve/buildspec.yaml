@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     APP_NAME: "retrieve"
-    SCENARIOS: "news movie"
+    SCENARIOS: "news"
 
   secrets-manager:
     GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
