@@ -21,6 +21,10 @@ if [[ -z $GITHUB_USER ]]; then
 fi
 echo "GITHUB_USER: ${GITHUB_USER}"
 
+AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Account --output text)
+
+echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
+
 sleep 3
 
 echo "1. ========= sync sample data to S3 =============="
@@ -31,3 +35,12 @@ echo "2. ========= Create codebuild =============="
 cd ${curr_dir}/codebuild
 ./register-to-codebuild-offline.sh $Stage
 
+echo "Offline resources are created successfully"
+echo "You can run your step-funcs with below input"
+
+echo '{
+  "Bucket": "aws-gcr-rs-sol-'${Stage}'-'${REGION}'-'${AWS_ACCOUNT_ID}'",
+  "S3Prefix": "sample-data-news",
+  "change_type": "ITEM|BATCH|USER|MODEL"
+}'
+echo ""
