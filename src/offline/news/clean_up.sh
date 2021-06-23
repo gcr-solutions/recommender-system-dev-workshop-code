@@ -32,8 +32,6 @@ repo_names=(
 rs/news-action-preprocessing
 rs/news-add-item-batch
 rs/news-add-user-batch
-rs/news-assembled-data-preprocessing
-rs/news-assembled-train-model-gpu
 rs/news-dashboard
 rs/news-filter-batch
 rs/news-inverted-list
