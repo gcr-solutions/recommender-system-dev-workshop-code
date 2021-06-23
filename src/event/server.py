@@ -328,13 +328,13 @@ def init():
 def get_step_funcs_name():
     namespace = MANDATORY_ENV_VARS['POD_NAMESPACE']
     known_mappings = {
-        'rs-news-dev-ns': 'rs-dev-News-OverallStepFunc',
+        'rs-news-dev-ns': 'rs-dev-workshop-News-OverallStepFunc',
         'rs-movie-dev-ns': 'rs-dev-Movie-OverallStepFunc',
         'rs-news-demo-ns': 'rs-demo-News-OverallStepFunc',
         'rs-movie-demo-ns': 'rs-demo-Movie-OverallStepFunc',
         'rs-beta': 'rsdemo-News-OverallStepFunc'
     }
-    step_funcs_name = known_mappings.get(namespace, 'rsdemo-News-OverallStepFunc')
+    step_funcs_name = known_mappings.get(namespace, 'rs-dev-workshop-News-OverallStepFunc')
     logging.info("get_step_funcs_name return: namespace: {}, step funcs name: {}".format(namespace, step_funcs_name))
     return step_funcs_name
 
