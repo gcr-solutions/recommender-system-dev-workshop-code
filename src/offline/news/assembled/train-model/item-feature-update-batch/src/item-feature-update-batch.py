@@ -173,7 +173,7 @@ for row in df_filter_item.iterrows():
     news_id_news_feature_dict[program_id] = program_dict
 
 # clean data for graph train
-# path = '/home/ec2-user/workplace/recommender-system-solution/src/offline/news/item-feature-update-batch/aws-gcr-rs-sol-demo-ap-southeast-1-522244679887/sample-data/model/meta_files'
+# path = '/home/ec2-user/workplace/recommender-system-solution/src/offline/news/item-feature-update-batch/aws-gcr-rs-sol-demo-ap-northeast-1-522244679887/sample-data/model/meta_files'
 path = "info"
 entities_dbpedia = os.path.join(path, 'entities_dbpedia.dict')
 relations_dbpedia = os.path.join(path, 'relations_dbpedia.dict')
