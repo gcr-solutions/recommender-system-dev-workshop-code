@@ -29,12 +29,12 @@ if [[ $? -ne 0 ]]; then
 fi
 
 repo_names=(
+rs/news-inverted-list
 rs/news-action-preprocessing
 rs/news-add-item-batch
 rs/news-add-user-batch
 rs/news-dashboard
 rs/news-filter-batch
-rs/news-inverted-list
 rs/news-item-feature-update-batch
 rs/news-item-preprocessing
 rs/news-model-update-action-gpu
@@ -44,7 +44,6 @@ rs/news-prepare-training-data
 rs/news-rank-batch
 rs/news-recall-batch
 rs/news-user-preprocessing
-#rs/news-weight-update-batch
 )
 
 curr_dir=$(pwd)
@@ -60,7 +59,7 @@ for repo_name in ${repo_names[@]}
 do
   if [[ "$AWS_ACCOUNT_ID" != '522244679887' ]]; then
        echo "Delete repo: '$repo_name ...'"
-       $AWS_CMD ecr delete-repository  --repository-name $repo_name --region ${REGION} --force || true
+       $AWS_CMD ecr delete-repository  --repository-name $repo_name --region ${REGION} --force  > /dev/null 2>&1 || true
   else
       # our test  account: 522244679887
       echo "skip deleting repo: '$repo_name ...'"
