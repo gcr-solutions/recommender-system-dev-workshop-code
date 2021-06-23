@@ -21,44 +21,44 @@ resources:
 
 # all with following *kustomization*
 images:
-- name: rs-dev-workshop/demo
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/demo
+- name: rs/demo
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/demo
   newTag: 2e02247dc42f72949dddc3a1ff21af981b7bd33e
-- name: rs-dev-workshop/event
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/event
+- name: rs/event
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/event
   newTag: 2e02247dc42f72949dddc3a1ff21af981b7bd33e
-- name: rs-dev-workshop/filter
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/filter
+- name: rs/filter
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/filter
   newTag: dc503692b98eb06562334fb3ccf0075d00505d33
-- name: rs-dev-workshop/filter-plugin
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/filter-plugin
+- name: rs/filter-plugin
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/filter-plugin
   newTag: news-dc503692b98eb06562334fb3ccf0075d00505d33
-- name: rs-dev-workshop/loader
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/loader
+- name: rs/loader
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/loader
   newTag: 0388ebf7f56110b9a8350c903668bd07a77b1836
-- name: rs-dev-workshop/portrait
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/portrait
+- name: rs/portrait
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/portrait
   newTag: 0388ebf7f56110b9a8350c903668bd07a77b1836
-- name: rs-dev-workshop/portrait-plugin
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/portrait-plugin
+- name: rs/portrait-plugin
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/portrait-plugin
   newTag: news-0388ebf7f56110b9a8350c903668bd07a77b1836
-- name: rs-dev-workshop/rank
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/rank
+- name: rs/rank
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/rank
   newTag: 7dbbfb61ec7d529f496c7040bb82ffe15272a86b
-- name: rs-dev-workshop/rank-plugin
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/rank-plugin
+- name: rs/rank-plugin
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/rank-plugin
   newTag: news-7dbbfb61ec7d529f496c7040bb82ffe15272a86b
-- name: rs-dev-workshop/recall
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/recall
+- name: rs/recall
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/recall
   newTag: 7dbbfb61ec7d529f496c7040bb82ffe15272a86b
-- name: rs-dev-workshop/recall-plugin
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/recall-plugin
+- name: rs/recall-plugin
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/recall-plugin
   newTag: news-7dbbfb61ec7d529f496c7040bb82ffe15272a86b
-- name: rs-dev-workshop/retrieve
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/retrieve
+- name: rs/retrieve
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/retrieve
   newTag: 91dbff74deb9e108128d47c8fac154bae0a0c648
-- name: rs-dev-workshop/ui
-  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs-dev-workshop/ui
+- name: rs/ui
+  newName: 522244679887.dkr.ecr.ap-southeast-1.amazonaws.com/rs/ui
   newTag: 79961c0f22916dff4d3f3a779dfdfe5da7428c67
 
 

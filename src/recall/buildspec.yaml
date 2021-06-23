@@ -29,7 +29,7 @@ phases:
           - IMAGE_TAG=$CODEBUILD_RESOLVED_SOURCE_VERSION
           - |
             echo "-------------------pre_build app------------------------------------------------"
-            APP_IMAGE=rs-dev-workshop/$APP_NAME
+            APP_IMAGE=rs/$APP_NAME
             APP_REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$APP_IMAGE
             aws ecr create-repository \
               --repository-name $APP_IMAGE \
@@ -38,7 +38,7 @@ phases:
             echo "--------------------------------------------------------------------------------"
           - |
             echo "-------------------pre_build plugin---------------------------------------------"
-            PLUGIN_IMAGE=rs-dev-workshop/$PLUGIN_NAME
+            PLUGIN_IMAGE=rs/$PLUGIN_NAME
             PLUGIN_REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$PLUGIN_IMAGE
             aws ecr create-repository \
               --repository-name $PLUGIN_IMAGE \
@@ -99,8 +99,8 @@ phases:
             for SCENARIO in $SCENARIOS
             do
               cd $SCENARIO-dev
-              kustomize edit set image rs-dev-workshop/$APP_NAME=$APP_REPOSITORY_URI:$IMAGE_TAG
-              kustomize edit set image rs-dev-workshop/$PLUGIN_NAME=$PLUGIN_REPOSITORY_URI:$SCENARIO-$IMAGE_TAG
+              kustomize edit set image rs/$APP_NAME=$APP_REPOSITORY_URI:$IMAGE_TAG
+              kustomize edit set image rs/$PLUGIN_NAME=$PLUGIN_REPOSITORY_URI:$SCENARIO-$IMAGE_TAG
               cat kustomization.yaml
               cd ../
             done

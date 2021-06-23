@@ -14,8 +14,8 @@ spec:
     spec:
       terminationGracePeriodSeconds: 5
       containers:
-      - name: rs-dev-workshop-recall
-        image:  rs-dev-workshop/recall:latest
+      - name: rs-recall
+        image:  rs/recall:latest
         ports:
           - name: http
             containerPort: 5500
@@ -33,8 +33,8 @@ spec:
             value: $(MESSGE_BROKER_REDIS_PORT)
           - name: RECALL_PORT
             value: "5500"
-      - name: rs-dev-workshop-recall-plugin
-        image:  rs-dev-workshop/recall-plugin:latest
+      - name: rs-recall-plugin
+        image:  rs/recall-plugin:latest
         ports:
           - name: http
             containerPort: 50051

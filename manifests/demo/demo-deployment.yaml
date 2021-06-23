@@ -14,8 +14,8 @@ spec:
     spec:
       terminationGracePeriodSeconds: 5
       containers:
-      - name: rs-dev-workshop-demo
-        image:  rs-dev-workshop/demo:latest
+      - name: rs-demo
+        image:  rs/demo:latest
         ports:
           - name: http
             containerPort: 5900

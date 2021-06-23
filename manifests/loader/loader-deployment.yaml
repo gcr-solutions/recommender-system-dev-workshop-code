@@ -14,8 +14,8 @@ spec:
     spec:
       terminationGracePeriodSeconds: 5
       containers:
-        - name: rs-dev-workshop-loader
-          image: rs-dev-workshop/loader:latest
+        - name: rs-loader
+          image: rs/loader:latest
           ports:
             - name: http
               containerPort: 5000

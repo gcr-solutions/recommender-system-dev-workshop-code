@@ -14,8 +14,8 @@ spec:
     spec:
       terminationGracePeriodSeconds: 5
       containers:
-      - name: rs-dev-workshop-portrait
-        image:  rs-dev-workshop/portrait:latest
+      - name: rs-portrait
+        image:  rs/portrait:latest
         ports:
           - name: http
             containerPort: 5300
@@ -33,8 +33,8 @@ spec:
             value: $(MESSGE_BROKER_REDIS_PORT)
           - name: PORTRAIT_PORT
             value: "5300"
-      - name: rs-dev-workshop-portrait-plugin
-        image:  rs-dev-workshop/portrait-plugin:latest
+      - name: rs-portrait-plugin
+        image:  rs/portrait-plugin:latest
         ports:
           - name: http
             containerPort: 50051

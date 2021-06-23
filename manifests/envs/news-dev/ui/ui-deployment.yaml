@@ -14,8 +14,8 @@ spec:
     spec:
       terminationGracePeriodSeconds: 5
       containers:
-      - name: rs-dev-workshop-ui
-        image:  rs-dev-workshop/ui:latest
+      - name: rs-ui
+        image:  rs/ui:latest
         ports:
           - name: http
             containerPort: 80
