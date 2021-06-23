@@ -85,7 +85,7 @@ create_codebuild_project () {
 #  echo ""
 #  cat codebuild.json
 #  echo ""
-  echo "------------------------------------"
+#  echo "------------------------------------"
 
   $AWS_CMD codebuild --region $REGION create-project \
     --cli-input-json file://codebuild.json \
