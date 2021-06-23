@@ -136,6 +136,8 @@ projects_dir=(
   "news/recall-batch"
   "news/rank-batch"
   "news/filter-batch"
+  "news/assembled/data-preprocessing"
+  "news/assembled/train-model"
   "news"
   "lambda"
   "news/step-funcs"

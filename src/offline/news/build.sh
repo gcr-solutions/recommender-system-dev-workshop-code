@@ -53,6 +53,8 @@ portrait-batch
 recall-batch
 rank-batch
 filter-batch
+assembled/data-preprocessing
+assembled/train-model
 )
 
 total_size=${#steps[*]}

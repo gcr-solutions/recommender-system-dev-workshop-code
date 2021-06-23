@@ -46,6 +46,7 @@ dashboard
 batch-update
 user-new
 item-new
+item-new-assembled
 train-model
 overall
 )
