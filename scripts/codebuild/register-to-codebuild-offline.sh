@@ -33,14 +33,8 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-if [[ -z $GITHUB_USER ]]; then
-   echo "error!!! can not get your $GITHUB_USER"
-   exit 1
-fi
-
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
-echo "GITHUB_USER: ${GITHUB_USER}"
 
 roleArn=$(cat role.arn) ||  roleArn=''
 if [[ -z $roleArn ]]; then
@@ -67,6 +61,13 @@ delete_codebuild_project () {
 create_codebuild_project () {
   build_proj_name=$1
   app_path=$2
+
+  if [[ -z $GITHUB_USER ]]; then
+     echo "error!!! can not get your $GITHUB_USER"
+     exit 1
+  fi
+  echo "GITHUB_USER: ${GITHUB_USER}"
+
   echo "========== $build_proj_name ==============="
   echo "app_path:$app_path"
   echo "Deleting $build_proj_name from CodeBuild ..."
