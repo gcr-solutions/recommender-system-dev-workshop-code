@@ -63,7 +63,7 @@ create_codebuild_project () {
   app_path=$2
 
   if [[ -z $GITHUB_USER ]]; then
-     echo "error!!! can not get your $GITHUB_USER"
+     echo "error!!! can not get your GITHUB_USER"
      exit 1
   fi
   echo "GITHUB_USER: ${GITHUB_USER}"
