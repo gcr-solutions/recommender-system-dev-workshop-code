@@ -8,10 +8,14 @@ export APP_CONF_REPO=recommender-system-dev-workshop-code
 
 input=$1
 
-if [ $input = "codebuild" ]
+if [ $input = "online-codebuild" ]
 then
     echo "start create online codebuild project!"
     ./online-code-build-setup.sh
+elif [ $input = "deploy-offline" ]
+then
+    echo "start create offline codebuild project!"
+    ./create-offline.sh    
 elif [ $input = "infra" ]
 then
     echo "start create online infrastructure!"
