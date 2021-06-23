@@ -4,7 +4,7 @@ set -e
 cd ../manifests
 echo "################ start clean istio and argocd resources ################ "
 
-kubectl delete -f istio-deployment.yaml
+kubectl delete -f istio-ingress-gateway.yaml
 
 kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
