@@ -101,7 +101,7 @@ create_codebuild_project () {
   rm -f codebuild.json
   rm -f tmp-codebuild*.json
 
-  if [[ $app_path != 'news' &&  $app_path != '.' ]]; then
+  if [[ $app_path == 'news' ||  $app_path == 'lambda' ]]; then
       echo "Start build: ${build_proj_name}"
       $AWS_CMD codebuild start-build --region $REGION --project-name ${build_proj_name} > /dev/null
       if [[ $? != 0 ]];then
@@ -123,6 +123,7 @@ echo "----------------projects-------------------------"
 
 projects_dir=(
   "lambda"
+  "news"
   "news/action-preprocessing"
   "news/prepare-training-data"
   "news/user-preprocessing"
@@ -139,7 +140,6 @@ projects_dir=(
   "news/rank-batch"
   "news/recall-batch"
   "news/step-funcs"
-  "news"
 )
 
 for project in ${projects_dir[@]}; do
