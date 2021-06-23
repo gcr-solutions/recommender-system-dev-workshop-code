@@ -153,17 +153,21 @@ for project in ${projects_dir[@]}; do
   fi
 done
 
-
-if [[ $DELETE_FLAG != 'DELETE' ]];then
-   build_proj_name="rs-$Stage-offline-build"
-   app_path="."
+build_proj_name="rs-$Stage-offline-build"
+app_path="."
+if [[ $DELETE_FLAG == 'DELETE' ]];then
+    delete_codebuild_project $build_proj_name $app_path
+else
    create_codebuild_project $build_proj_name $app_path
+   echo ""
+   echo "Please check result in codebuild:"
+   echo "search 'rs-$Stage-offline-'"
+   echo "https://$REGION.console.aws.amazon.com/codesuite/codebuild/projects?region=$REGION"
+   echo ""
 fi
 
-
-echo "Please check result in codebuild:"
-echo "search 'rs-$Stage-offline-'"
-echo "https://$REGION.console.aws.amazon.com/codesuite/codebuild/projects?region=$REGION"
-echo ""
 echo "Done"
+
+
+
 
