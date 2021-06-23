@@ -37,7 +37,6 @@ echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
 
 steps=(
-step-funcs
 item-preprocessing
 add-item-batch
 item-feature-update-batch

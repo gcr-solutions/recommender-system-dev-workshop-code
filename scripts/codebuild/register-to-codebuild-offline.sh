@@ -101,7 +101,7 @@ create_codebuild_project () {
   rm -f codebuild.json
   rm -f tmp-codebuild*.json
   # if [[ $app_path != 'news' &&  $app_path != '.' ]]; then
-  if [[ $app_path == 'news' ||  $app_path == 'lambda' ]]; then
+  if [[ $app_path == 'news' ||  $app_path == 'lambda' || $app_path == 'news/step-funcs' ]]; then
       echo "Start build: ${build_proj_name}"
       $AWS_CMD codebuild start-build --region $REGION --project-name ${build_proj_name} > /dev/null
       if [[ $? != 0 ]];then
