@@ -21,6 +21,11 @@ if [[ -z $GITHUB_USER ]]; then
 fi
 echo "GITHUB_USER: ${GITHUB_USER}"
 
+AWS_CMD="aws"
+if [[ -n $PROFILE ]]; then
+  AWS_CMD="aws --profile $PROFILE"
+fi
+
 AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Account --output text)
 
 echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
