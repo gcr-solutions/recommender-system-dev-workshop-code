@@ -15,13 +15,6 @@ fi
 echo "Stage=$Stage"
 echo "REGION=$REGION"
 
-if [[ -z $GITHUB_USER ]]; then
-     echo "error!!! can not get your GITHUB_USER, please set it use 'export GITHUB_USER=<your username>'"
-     exit 1
-fi
-
-echo "GITHUB_USER: ${GITHUB_USER}"
-
 sleep 3
 
 echo "==== Clean sample data in S3 ===="

@@ -15,8 +15,13 @@ fi
 echo "Stage=$Stage"
 echo "REGION=$REGION"
 
-sleep 3
+if [[ -z $GITHUB_USER ]]; then
+     echo "error!!! can not get your GITHUB_USER, please set it use 'export GITHUB_USER=<your github username>'"
+     exit 1
+fi
+echo "GITHUB_USER: ${GITHUB_USER}"
 
+sleep 3
 
 echo "1. ========= sync sample data to S3 =============="
 cd ${curr_dir}/../sample-data
