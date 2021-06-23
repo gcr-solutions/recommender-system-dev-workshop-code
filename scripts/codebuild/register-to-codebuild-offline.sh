@@ -156,9 +156,10 @@ done
 build_proj_name="rs-$Stage-offline-build"
 app_path="."
 if [[ $DELETE_FLAG == 'DELETE' ]];then
-    delete_codebuild_project $build_proj_name $app_path
+    # delete_codebuild_project $build_proj_name $app_path
+    echo ""
 else
-   create_codebuild_project $build_proj_name $app_path
+   # create_codebuild_project $build_proj_name $app_path
    echo ""
    echo "Please check result in codebuild:"
    echo "search 'rs-$Stage-offline-'"
