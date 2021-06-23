@@ -37,22 +37,22 @@ echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
 
 steps=(
-action-preprocessing
-prepare-training-data
-user-preprocessing
+step-funcs
 item-preprocessing
+add-item-batch
+item-feature-update-batch
 inverted-list
 model-update-embedding
-rank-batch
-add-item-batch
-add-user-batch
-dashboard
-filter-batch
-item-feature-update-batch
+prepare-training-data
 model-update-action
+dashboard
+action-preprocessing
+user-preprocessing
+add-user-batch
 portrait-batch
 recall-batch
-step-funcs
+rank-batch
+filter-batch
 )
 
 total_size=${#steps[*]}
