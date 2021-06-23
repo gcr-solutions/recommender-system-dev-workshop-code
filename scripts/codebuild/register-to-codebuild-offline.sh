@@ -101,7 +101,7 @@ create_codebuild_project () {
   rm -f codebuild.json
   rm -f tmp-codebuild*.json
 
-  if [[ $app_path != 'news' &&  $app_path != 'movie' ]]; then
+  if [[ $app_path != 'news' &&  $app_path != '.' ]]; then
       echo "Start build: ${build_proj_name}"
       $AWS_CMD codebuild start-build --region $REGION --project-name ${build_proj_name} > /dev/null
       if [[ $? != 0 ]];then
@@ -152,6 +152,14 @@ for project in ${projects_dir[@]}; do
       create_codebuild_project $build_proj_name $app_path
   fi
 done
+
+
+if [[ $DELETE_FLAG != 'DELETE' ]];then
+   build_proj_name="rs-$Stage-offline-build"
+   app_path="."
+   create_codebuild_project $build_proj_name $app_path
+fi
+
 
 echo "Please check result in codebuild:"
 echo "search 'rs-$Stage-offline-'"

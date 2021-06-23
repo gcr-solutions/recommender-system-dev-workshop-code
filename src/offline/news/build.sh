@@ -54,17 +54,22 @@ portrait-batch
 recall-batch
 step-funcs
 )
+
+total_size=${#steps[*]}
+n=0
+
 build_dir=$(pwd)
 for t in ${steps[@]};
 do
    cd ${build_dir}/${t}
-   echo ">> [$Stage] Build ${t} ..."
+   echo ">> ${n}/${total_size} [$Stage] Build ${t} ..."
     ./build.sh $Stage
     if [[ $? -ne 0 ]]; then
        echo "error!!!"
        exit 1
     fi
     sleep 5
+    n=$(( n + 1 ))
 done
 
 echo "Done."
