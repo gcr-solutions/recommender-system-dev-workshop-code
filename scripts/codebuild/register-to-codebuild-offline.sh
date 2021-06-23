@@ -33,7 +33,14 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
+if [[ -z $GITHUB_USER ]]; then
+   echo "error!!! can not get your $GITHUB_USER"
+   exit 1
+fi
+
+
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
+echo "GITHUB_USER: ${GITHUB_USER}"
 
 roleArn=$(cat role.arn) ||  roleArn=''
 if [[ -z $roleArn ]]; then
@@ -70,7 +77,9 @@ create_codebuild_project () {
   echo "Re-creating $build_proj_name into CodeBuild ..."
   sed -e 's/__app_name__/'${build_proj_name}'/g' ./codebuild-template-offline.json >./tmp-codebuild.json
   sed -e 's#__app_path__#'${app_path}'#g' ./tmp-codebuild.json > tmp-codebuild_2.json
-  sed -e 's#__Stage__#'${Stage}'#g' ./tmp-codebuild_2.json > ./codebuild.json
+  sed -e 's#__Stage__#'${Stage}'#g' ./tmp-codebuild_2.json > ./tmp-codebuild_3.json
+  sed -e 's#__GITHUB_USER_NAME__#'${GITHUB_USER}'#g' ./tmp-codebuild_3.json > ./codebuild.json
+
   echo "------------------------------------"
   echo ""
   cat codebuild.json
