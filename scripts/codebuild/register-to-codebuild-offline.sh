@@ -122,13 +122,9 @@ create_codebuild_project () {
 echo "----------------projects-------------------------"
 
 projects_dir=(
-  "lambda"
-  "news"
-  "news/step-funcs"
   "news/item-preprocessing"
   "news/add-item-batch"
   "news/item-feature-update-batch"
-  "news/inverted-list"
   "news/model-update-embedding"
   "news/prepare-training-data"
   "news/model-update-action"
@@ -140,6 +136,10 @@ projects_dir=(
   "news/recall-batch"
   "news/rank-batch"
   "news/filter-batch"
+  "news"
+  "lambda"
+  "news/step-funcs"
+  "news/inverted-list"
 )
 
 for project in ${projects_dir[@]}; do
