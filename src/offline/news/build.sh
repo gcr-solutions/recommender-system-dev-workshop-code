@@ -56,7 +56,7 @@ step-funcs
 )
 
 total_size=${#steps[*]}
-n=0
+n=1
 
 build_dir=$(pwd)
 for t in ${steps[@]};
