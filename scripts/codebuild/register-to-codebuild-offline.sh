@@ -82,9 +82,9 @@ create_codebuild_project () {
   sed -e 's#__GITHUB_USER_NAME__#'${GITHUB_USER}'#g' ./tmp-codebuild_3.json > ./codebuild.json
 
   echo "------------------------------------"
-  echo ""
-  cat codebuild.json
-  echo ""
+#  echo ""
+#  cat codebuild.json
+#  echo ""
   echo "------------------------------------"
 
   $AWS_CMD codebuild --region $REGION create-project \
