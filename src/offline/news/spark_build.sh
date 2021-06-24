@@ -167,7 +167,7 @@ if [[ (${AWS_REGION} != ${AWS_ECR_PUB_REGION}) && (${RELEASE_TO_PUBLIC} == '1') 
 
     $AWS_CMD ecr get-login-password  --region ${AWS_ECR_PUB_REGION} | docker login --username AWS --password-stdin ${public_ecr_uri}
 
-    PUBLIC_IMAGEURI=${public_ecr_uri}/$repoName:latest
+    PUBLIC_IMAGEURI=${public_ecr_uri}/$repoName:$Stage
     echo "PUBLIC_IMAGEURI: $PUBLIC_IMAGEURI"
     docker tag $repoName ${PUBLIC_IMAGEURI}
     echo ">> push ${PUBLIC_IMAGEURI}"
