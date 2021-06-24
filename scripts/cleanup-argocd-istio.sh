@@ -14,7 +14,7 @@ echo "start check istio ingress gateway security group"
 i=1
 ISTIO_SG_ID=""
 while true; do
-  ISTIO_SG_ID=$(aws ec2 describe-security-groups --filter Name=tag:kubernetes.io/cluster/gcr-rs-dev-workshop-cluster,Values=owned Name=description,Values=*istio-system/istio-ingressgateway* --query "SecurityGroups[*].[GroupId]" --output text)
+  ISTIO_SG_ID=$(aws ec2 describe-security-groups --filter Name=tag:kubernetes.io/cluster/gcr-rs-dev-workshop-cluster,Values=owned Name=description,Values=*istio-system/istio-ingressgateway-news-dev* --query "SecurityGroups[*].[GroupId]" --output text)
   if [ "$ISTIO_SG_ID" == "" ]; then
     echo "delete istio security group successfully!"
     break

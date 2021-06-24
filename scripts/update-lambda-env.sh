@@ -28,31 +28,7 @@ account_id=$($AWS_CMD  sts get-caller-identity --query Account --output text)
 
 echo "account_id: $account_id"
 
-elb_names=($($AWS_CMD elb describe-load-balancers --output text | grep LOADBALANCERDESCRIPTIONS |  awk '{print $6 }'))
-
-echo "find $#elb_names elbs"
-
-ingressgateway_elb=''
-for elb in ${elb_names[@]};
-do
-  echo "check elb $elb ..."
-  $AWS_CMD elb describe-tags --load-balancer-name $elb --output text  | grep 'istio-ingressgateway'
-  if [[ $? -eq '0' ]];then
-     echo "find ingressgateway $elb"
-     ingressgateway_elb=$elb
-     break
-  fi
-done
-
-echo "ingressgateway_elb: $ingressgateway_elb"
-
-if [[ -z $ingressgateway_elb ]];then
-  echo "Error: cannot find istio ingress gateway"
-  exit 1
-fi
-
-dns_name=$($AWS_CMD elb describe-load-balancers --load-balancer-name $ingressgateway_elb --output text | grep LOADBALANCERDESCRIPTIONS | awk '{print $2 }')
-
+dns_name=$(kubectl get svc istio-ingressgateway-news-dev -n istio-system -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 echo "dns_name: $dns_name"
 
 botoConfig='{"user_agent_extra": "AwsSolution/SO8010/0.1.0"}'

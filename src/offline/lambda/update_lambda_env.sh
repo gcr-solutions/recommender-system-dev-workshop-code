@@ -36,7 +36,7 @@ ingressgateway_elb=''
 for elb in ${elb_names[@]};
 do
   echo "check elb $elb ..."
-  $AWS_CMD elb describe-tags --load-balancer-name $elb --output text  | grep 'istio-ingressgateway'
+  $AWS_CMD elb describe-tags --load-balancer-name $elb --output text  | grep 'istio-ingressgateway-news-dev'
   if [[ $? -eq '0' ]];then
      echo "find ingressgateway $elb"
      ingressgateway_elb=$elb
