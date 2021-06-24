@@ -31,11 +31,6 @@ Parameters:
     Type: String
     Default: SNSMessageLambda
 
-  ItemFeatureUpdateBatchStepFuncName:
-    Type: String
-    Default: News-ItemFeatureUpdateBatchStepFunc
-    #Default: News-NoOpStepFunc  # for demo
-
 
 Resources:
   ItemNewStepFunc:
@@ -87,7 +82,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-${ItemFeatureUpdateBatchStepFuncName}",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-ItemFeatureUpdateBatchStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
               "Next": "Action processing for popularity",
