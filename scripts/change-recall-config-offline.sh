@@ -28,6 +28,7 @@ PREFIX=sample-data-news
 ls -l ../sample-data/notification/inverted-list/recall_config_v2.pickle
 
 $AWS_CMD s3 cp ../sample-data/notification/inverted-list/recall_config_v2.pickle s3://${BUCKET}/${PREFIX}/notification/inverted-list/recall_config.pickle
+$AWS_CMD s3 cp ../sample-data/notification/inverted-list/recall_config_v2.pickle s3://${BUCKET}/${PREFIX}/feature/content/inverted-list/recall_config.pickle
 
 echo "Start notifying online service"
 
