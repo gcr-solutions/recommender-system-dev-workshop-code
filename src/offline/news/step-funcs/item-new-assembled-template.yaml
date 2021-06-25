@@ -30,7 +30,10 @@ Parameters:
   SNSMessageLambda:
     Type: String
     Default: SNSMessageLambda
-
+  
+  ECRPrefix:
+    Type: String
+    Default: 522244679887.dkr.ecr.ap-northeast-1.amazonaws.com
 
 Resources:
   AssDataPreprocessingStepFunc:
@@ -113,7 +116,7 @@ Resources:
               "Resource": "arn:${AWS::Partition}:states:::sagemaker:createTrainingJob.sync",
               "Parameters": {
                 "AlgorithmSpecification": {
-                  "TrainingImage": "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/rs/news-assembled-train-model-gpu:${Stage}",
+                  "TrainingImage": "${ECRPrefix}/rs/news-assembled-train-model-gpu:${Stage}",
                   "TrainingInputMode": "File",
                   "MetricDefinitions": [
                     {

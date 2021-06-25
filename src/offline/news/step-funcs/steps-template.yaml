@@ -31,12 +31,60 @@ Parameters:
     Type: String
     Default: SNSMessageLambda
     
-#  ECRPrefix:
-#    Type: String
-#    Default: 522244679887.dkr.ecr.ap-northeast-1.amazonaws.com
+  ECRPrefix:
+    Type: String
+    Default: 522244679887.dkr.ecr.ap-northeast-1.amazonaws.com
 
 Resources:
   SMProcessingStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-News-SMProcessingStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Run processing",
+          "States": {
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::sagemaker:createProcessingJob.sync",
+              "Parameters": {
+                "AppSpecification": {
+                  "ImageUri.$": "States.Format('${ECRPrefix}/{}:${Stage}', $.ImageName)",
+                  "ContainerArguments.$": "$.ContainerArguments"
+                },
+                "ProcessingResources": {
+                  "ClusterConfig": {
+                    "InstanceCount": 1,
+                    "InstanceType.$": "$.InstanceType",
+                    "VolumeSizeInGB": 5
+                  }
+                },
+                "RoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/service-role/rs-${Stage}-${SagemakerRoleName}-${AWS::Region}",
+                "ProcessingJobName.$": "States.Format('{}', $$.Execution.Name)"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "ThrottlingException",
+                    "SageMaker.AmazonSageMakerException"
+                  ],
+                  "IntervalSeconds": 4,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2
+                }
+              ],
+              "ResultSelector": {
+                "ProcessingJobName.$": "$.ProcessingJobName",
+                "ProcessingJobStatus.$": "$.ProcessingJobStatus"
+              },
+              "ResultPath": "$.RunProcessing",
+              "End": true
+            }
+          }
+        }
+
+  SMProcessingLocalAccountStepFunc:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
@@ -83,7 +131,6 @@ Resources:
             }
           }
         }
-
 
   ActionPreprocessingStepFunc:
     Type: AWS::StepFunctions::StateMachine
@@ -407,7 +454,7 @@ Resources:
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-SMProcessingStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-SMProcessingLocalAccountStepFunc",
                 "Name.$": "States.Format('Ninverted{}', $.Precheck.Payload.UID)"
               },
               "End": true
@@ -814,7 +861,7 @@ Resources:
               "Resource": "arn:${AWS::Partition}:states:::sagemaker:createTrainingJob.sync",
               "Parameters": {
                 "AlgorithmSpecification": {
-                  "TrainingImage": "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/rs/news-model-update-embedding-gpu:${Stage}",
+                  "TrainingImage": "${ECRPrefix}/rs/news-model-update-embedding-gpu:${Stage}",
                   "TrainingInputMode": "File",
                   "MetricDefinitions": [
                     {
@@ -882,7 +929,7 @@ Resources:
               "Resource": "arn:${AWS::Partition}:states:::sagemaker:createTrainingJob.sync",
               "Parameters": {
                 "AlgorithmSpecification": {
-                  "TrainingImage": "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/rs/news-model-update-action-gpu:${Stage}",
+                  "TrainingImage": "${ECRPrefix}/rs/news-model-update-action-gpu:${Stage}",
                   "TrainingInputMode": "File",
                   "MetricDefinitions": [
                     {
