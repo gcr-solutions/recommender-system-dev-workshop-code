@@ -30,7 +30,7 @@ Parameters:
   SNSMessageLambda:
     Type: String
     Default: SNSMessageLambda
-    
+
   ECRPrefix:
     Type: String
     Default: 522244679887.dkr.ecr.ap-northeast-1.amazonaws.com
@@ -366,50 +366,50 @@ Resources:
 
   # news-add-user-batch
   AddUserBatchStepFunc:
-      Type: AWS::StepFunctions::StateMachine
-      Properties:
-        RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-        StateMachineName: !Sub rs-${Stage}-News-AddUserBatchStepFunc
-        DefinitionString: !Sub |
-          {
-            "StartAt": "Pre check",
-            "States": {
-              "Pre check": {
-                "Type": "Task",
-                "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
-                "Parameters": {
-                  "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
-                  "Payload": {
-                    "bucket.$": "$.Bucket",
-                    "prefix.$": "$.S3Prefix",
-                    "file_list": [
-                     "system/user-data/user.csv"
-                    ]
-                  }
-                },
-                "ResultSelector": {
-                  "Payload.$": "$.Payload"
-                },
-                "ResultPath": "$.Precheck",
-                "Next": "Run processing"
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-News-AddUserBatchStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                   "system/user-data/user.csv"
+                  ]
+                }
               },
-              "Run processing": {
-                "Type": "Task",
-                "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
-                "Parameters": {
-                  "Input": {
-                    "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                    "ImageName": "rs/news-add-user-batch",
-                    "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix)",
-                    "InstanceType": "ml.m5.xlarge"
-                  },
-                  "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-SMProcessingStepFunc",
-                  "Name.$": "States.Format('Nadduserb{}', $.Precheck.Payload.UID)"
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/news-add-user-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix)",
+                  "InstanceType": "ml.m5.xlarge"
                 },
-                "End": true
-              }
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-SMProcessingStepFunc",
+                "Name.$": "States.Format('Nadduserb{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
             }
           }
+        }
 
   # news-inverted-list
   InvertedListStepFunc:
@@ -983,10 +983,10 @@ Resources:
           }
         }
 
-######################################
-######################################
+  ######################################
+  #######################################
 
- NotificationStepFunc:
+  NotificationStepFunc:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
