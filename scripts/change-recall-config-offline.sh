@@ -37,7 +37,7 @@ NOTIFY_STEP_FUNC=arn:aws:states:${REGION}:${AWS_ACCOUNT_ID}:stateMachine:rs-dev-
 echo "start-execution ${NOTIFY_STEP_FUNC} ..."
 
 $AWS_CMD stepfunctions start-execution --state-machine-arn ${NOTIFY_STEP_FUNC} \
---input "{ \"change_type\": \"item-new\", \"Bucket\":  \"${BUCKET}\", \"S3Prefix\": \"${PREFIX}\" }"
+--input "{ \"file_type\": \"item-new\", \"Bucket\":  \"${BUCKET}\", \"S3Prefix\": \"${PREFIX}\" }"
 
 echo "Done"
 
