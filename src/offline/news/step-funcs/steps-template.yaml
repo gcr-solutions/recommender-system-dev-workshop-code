@@ -956,7 +956,7 @@ Resources:
                     "Parameters": {
                         "FunctionName": "rs-${Stage}-${SNSMessageLambda}",
                         "Payload": {
-                            "file_type": "$.file_type",
+                            "file_type.$": "$.file_type",
                             "message_type": "news",
                             "Bucket.$": "$.Bucket",
                             "S3Prefix.$": "$.S3Prefix"
