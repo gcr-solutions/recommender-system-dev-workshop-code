@@ -158,3 +158,4 @@ build
 .idea
 admin.txt
 test.json
+sync_code.sh

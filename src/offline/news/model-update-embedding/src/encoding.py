@@ -49,7 +49,11 @@ class Vocab:
     
 class encoding:
     # def __init__(self, kg, input_bucket, output_bucket=None):
-    def __init__(self, kg, env):
+    def __init__(self, kg, env, region=None):
+        if region:
+            boto3.setup_default_session(region_name=region)
+            global s3client
+            s3client = boto3.client('s3')
         self.kg = kg
         self.bert_entity_to_idx = {}
         self.bert_idx_to_entity = {}

@@ -63,7 +63,14 @@ def s3_key_exists(bucket, key):
 parser = argparse.ArgumentParser()
 parser.add_argument('--bucket', type=str)
 parser.add_argument('--prefix', type=str)
+parser.add_argument("--region", type=str, help="aws region")
 args, _ = parser.parse_known_args()
+print("args:", args)
+
+if args.region:
+    print("region:", args.region)
+    boto3.setup_default_session(region_name=args.region)
+
 bucket = args.bucket
 prefix = args.prefix
 
@@ -74,6 +81,7 @@ print("bucket={}".format(bucket))
 print("prefix='{}'".format(prefix))
 
 s3client = boto3.client('s3')
+
 local_folder = 'info'
 if not os.path.exists(local_folder):
     os.makedirs(local_folder)

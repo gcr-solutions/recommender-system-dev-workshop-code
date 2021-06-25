@@ -24,8 +24,6 @@ s3client = boto3.client('s3')
 ########################################
 # 从s3同步数据
 ########################################
-s3client = boto3.client('s3')
-
 
 def sync_s3(file_name_list, s3_folder, local_folder):
     for f in file_name_list:
@@ -57,7 +55,14 @@ def write_str_to_s3(content, bucket, key):
 parser = argparse.ArgumentParser()
 parser.add_argument('--bucket', type=str)
 parser.add_argument('--prefix', type=str)
+parser.add_argument("--region", type=str, help="aws region")
 args, _ = parser.parse_known_args()
+print("args:", args)
+
+if args.region:
+    print("region:", args.region)
+    boto3.setup_default_session(region_name=args.region)
+
 bucket = args.bucket
 prefix = args.prefix
 
@@ -66,6 +71,8 @@ if prefix.endswith("/"):
 
 print("bucket={}".format(bucket))
 print("prefix='{}'".format(prefix))
+
+s3client = boto3.client('s3')
 
 out_s3_path = "s3://{}/{}/feature/content/inverted-list".format(bucket, prefix)
 

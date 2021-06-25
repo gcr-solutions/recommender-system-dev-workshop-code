@@ -40,9 +40,14 @@ parser.add_argument("--prefix", type=str,
 parser.add_argument("--only4popularity", type=str, default='0',
                     help="only4popularity")
 
-args = parser.parse_args()
-
+parser.add_argument("--region", type=str, help="aws region")
+args, _ = parser.parse_known_args()
 print("args:", args)
+
+if args.region:
+    print("region:", args.region)
+    boto3.setup_default_session(region_name=args.region)
+
 bucket = args.bucket
 prefix = args.prefix
 only4popularity = False

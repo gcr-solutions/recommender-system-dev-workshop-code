@@ -5,6 +5,7 @@ import boto3
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, size, regexp_replace, expr
 
+
 def list_s3_by_prefix(bucket, prefix, filter_func=None):
     print(f"list_s3_by_prefix bucket: {bucket}, prefix: {prefix}")
     s3_bucket = boto3.resource('s3').Bucket(bucket)
@@ -33,9 +34,13 @@ parser.add_argument("--bucket", type=str, help="s3 bucket")
 parser.add_argument("--prefix", type=str,
                     help="s3 input key prefix")
 
-args = parser.parse_args()
-
+parser.add_argument("--region", type=str, help="aws region")
+args, _ = parser.parse_known_args()
 print("args:", args)
+
+if args.region:
+    print("region:", args.region)
+    boto3.setup_default_session(region_name=args.region)
 
 bucket = args.bucket
 prefix = args.prefix
@@ -135,7 +140,6 @@ emr_output_file_key = list_s3_by_prefix(
 print("emr_output_file_key:", emr_output_file_key)
 s3_copy(bucket, emr_output_file_key, output_file_key)
 print("output file:", output_file_key)
-
 
 #
 # user file

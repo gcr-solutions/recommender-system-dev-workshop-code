@@ -1,5 +1,7 @@
 import argparse
 import subprocess
+import os
+import json
 
 
 def run_script(cmds_arr):
@@ -12,18 +14,34 @@ def run_script(cmds_arr):
         raise Exception(out_msg)
 
 
-parser = argparse.ArgumentParser(description="app inputs and outputs")
-parser.add_argument("--bucket", type=str, help="s3 bucket")
-parser.add_argument("--prefix", type=str,
-                    help="s3 input key prefix")
+param_path = os.path.join('/opt/ml/', 'input/config/hyperparameters.json')
+parser = argparse.ArgumentParser()
+region = None
+if os.path.exists(param_path):
+    print("load param from {}".format(param_path))
+    with open(param_path) as f:
+        hp = json.load(f)
+        print("hyperparameters:", hp)
+        bucket = hp['bucket']
+        prefix = hp['prefix']
+        region = hp.get('region')
+else:
+    # running processing job
+    parser.add_argument('--bucket', type=str)
+    parser.add_argument('--prefix', type=str)
+    parser.add_argument("--region", type=str, help="aws region")
+    args, _ = parser.parse_known_args()
+    bucket = args.bucket
+    prefix = args.prefix
+    if args.region:
+        region = args.region
 
-args = parser.parse_args()
-
-print("args:", args)
-bucket = args.bucket
-prefix = args.prefix
 if prefix.endswith("/"):
     prefix = prefix[:-1]
 
-print(f"bucket:{bucket}, prefix:{prefix}")
-run_script([f"./run.sh {bucket} {prefix}"])
+print(f"bucket:{bucket}, prefix:{prefix}, region:{region}")
+
+if region:
+   run_script([f"./run.sh {bucket} {prefix} {region}"])
+else:
+   run_script([f"./run.sh {bucket} {prefix}"])

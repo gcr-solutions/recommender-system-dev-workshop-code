@@ -8,7 +8,12 @@ s3client = boto3.client('s3')
 # Bucket = 'autorec-1'
 class Kg:
     #def __init__(self, kg_folder=None, input_bucket=None, output_bucket=None):
-    def __init__(self, env=None):
+    def __init__(self, env=None, region=None):
+        if region:
+            boto3.setup_default_session(region_name=region)
+            global s3client
+            s3client = boto3.client('s3')
+
         self.load_path(env)
         self.entity_to_idx = {} # 记录全部实体（通用+行业）
         self.idx_to_entity = []

@@ -19,9 +19,6 @@ import boto3
 # tqdm_notebook().pandas()
 
 
-s3client = boto3.client('s3')
-
-
 ########################################
 # 从s3同步数据
 ########################################
@@ -68,6 +65,7 @@ parser = argparse.ArgumentParser()
 model_dir = None
 training_dir = None
 validation_dir = None
+region = None
 
 if os.path.exists(param_path):
     # running training job
@@ -78,6 +76,7 @@ if os.path.exists(param_path):
         print("hyperparameters:", hp)
         bucket = hp['bucket']
         prefix = hp['prefix']
+        region = hp.get('region')
     # parser.add_argument('--bucket', type=str)
     # parser.add_argument('--prefix', type=str)
     parser.add_argument('--model_dir', type=str,
@@ -105,15 +104,27 @@ else:
     # running processing job
     parser.add_argument('--bucket', type=str)
     parser.add_argument('--prefix', type=str)
+    parser.add_argument("--region", type=str, help="aws region")
     args, _ = parser.parse_known_args()
+    print("args:", args)
+
+    if args.region:
+        region = args.region
     bucket = args.bucket
     prefix = args.prefix
+
+if region:
+    print("region:", region)
+    boto3.setup_default_session(region_name=region)
 
 if prefix.endswith("/"):
     prefix = prefix[:-1]
 
 print("bucket={}".format(bucket))
 print("prefix='{}'".format(prefix))
+
+s3client = boto3.client('s3')
+
 
 model_s3_key = "{}/model/rank/action/dkn/latest/model.tar.gz".format(prefix)
 # os.chdir("/opt/ml/code/")

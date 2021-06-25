@@ -8,7 +8,12 @@ s3client = boto3.client('s3')
 # Bucket = 'autorec-1'
 class Kg:
     #def __init__(self, kg_folder=None, input_bucket=None, output_bucket=None):
-    def __init__(self, env=None):
+    def __init__(self, env=None, region=None):
+        if region:
+            boto3.setup_default_session(region_name=region)
+            global s3client
+            s3client = boto3.client('s3')
+
         self.load_path(env)
         self.entity_to_idx = {} # 记录全部实体（通用+行业）
         self.idx_to_entity = []
@@ -171,7 +176,7 @@ class Kg:
             for k in self.p:
                 f.write(k)
 #     def train(self, output_dir = 'kg_embedding', hidden_dim=128, max_step=320000):
-    def train(self, output_dir = '/opt/ml/model', hidden_dim=128, max_step=320000, method='RotatE', upload_context=True):
+    def train(self, output_dir = '/opt/ml/model', hidden_dim=128, max_step=200, method='RotatE', upload_context=True):
         self.check_parent_dir('.',self.train_output_key)
         dglke_train.main(['--dataset',self.kg_folder,
                   '--model_name', method,
@@ -183,7 +188,7 @@ class Kg:
                   '--hidden_dim', str(hidden_dim//2), # RotatE模型传入的是1/2 hidden_dim的
                   '-adv',
                   '--regularization_coef','1.00E-09',
-                  '--gpu','0',
+                 '--gpu','0',
                   '--double_ent',
                   '--mix_cpu_gpu',
                   '--save_path',self.train_output_key,
@@ -215,7 +220,7 @@ class Kg:
         generate_context_name = self.kg_folder+'_'+method+'_context.npy'
         generate_relation_name = self.kg_folder+'_'+method+'_relation.npy'
         upload_entity_name = "dkn_entity_embedding.npy"
-        upload_context_name = "dkn_context_embeddings.npy"
+        upload_context_name = "dkn_context_embedding.npy"
         upload_relation_name = "dkn_relation_embedding.npy"
         kg_embedding = np.load(os.path.join(self.train_output_key, generate_entity_name))
         context_embeddings = np.zeros([kg_embedding.shape[0], hidden_dim], dtype="float32")

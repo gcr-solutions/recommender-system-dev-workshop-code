@@ -15,6 +15,7 @@ import json
 import logging
 import re
 import dglke
+
 # tqdm.pandas()
 # pandarallel.initialize(progress_bar=True)
 # bucket = os.environ.get("BUCKET_NAME", " ")
@@ -22,8 +23,8 @@ import dglke
 # logger = logging.getLogger()
 # logger.setLevel(logging.INFO)
 # tqdm_notebook().pandas()
-s3client = boto3.client('s3')
 print("dglke version:", dglke.__version__)
+
 
 ########################################
 # 从s3同步数据
@@ -56,6 +57,7 @@ def write_str_to_s3(content, bucket, key):
         "utf8"), Bucket=bucket, Key=key, ACL='bucket-owner-full-control')
 
 
+region = None
 param_path = os.path.join('/opt/ml/', 'input/config/hyperparameters.json')
 
 if os.path.exists(param_path):
@@ -64,19 +66,29 @@ if os.path.exists(param_path):
         hp = json.load(f)
         bucket = hp['bucket']
         prefix = hp['prefix']
+        region = hp.get("region")
 else:
     parser = argparse.ArgumentParser()
     parser.add_argument('--bucket', type=str)
     parser.add_argument('--prefix', type=str)
+    parser.add_argument("--region", type=str, help="aws region")
     args, _ = parser.parse_known_args()
     bucket = args.bucket
     prefix = args.prefix
+    if args.region:
+        region = args.region
+
+if region:
+    print("region:", region)
+    boto3.setup_default_session(region_name=region)
 
 if prefix.endswith("/"):
     prefix = prefix[:-1]
 
 print("bucket={}".format(bucket))
 print("prefix='{}'".format(prefix))
+
+s3client = boto3.client('s3')
 
 out_s3_path = "s3://{}/{}/feature/content/inverted-list".format(bucket, prefix)
 
@@ -132,7 +144,7 @@ env = {
 }
 
 print("Kg env: {}".format(env))
-graph = kg.Kg(env)  # Where we keep the model when it's loaded
+graph = kg.Kg(env, region=region)  # Where we keep the model when it's loaded
 # model = encoding.encoding(graph, env)
 graph.train()
 # graph.train(max_step=2000)

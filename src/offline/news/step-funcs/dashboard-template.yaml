@@ -76,7 +76,7 @@ Resources:
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
                   "ImageName": "rs/news-dashboard",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix)",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
                 "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-SMProcessingStepFunc",
@@ -92,7 +92,7 @@ Resources:
     Type: AWS::Events::Rule
     Properties:
       Name: !Sub rs-${Stage}-News-DashboardScheduledRule
-      ScheduleExpression: "cron(0/30 * ? * MON-FRI *)"
+      ScheduleExpression: "cron(0/10 * ? * MON-FRI *)"
       State: "ENABLED"
       Targets:
         - Arn: !Ref DashboardStepFunc

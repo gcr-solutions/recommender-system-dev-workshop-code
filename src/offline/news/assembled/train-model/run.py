@@ -16,6 +16,7 @@ def run_script(cmds_arr):
 
 param_path = os.path.join('/opt/ml/', 'input/config/hyperparameters.json')
 parser = argparse.ArgumentParser()
+region = None
 if os.path.exists(param_path):
     print("load param from {}".format(param_path))
     with open(param_path) as f:
@@ -23,16 +24,24 @@ if os.path.exists(param_path):
         print("hyperparameters:", hp)
         bucket = hp['bucket']
         prefix = hp['prefix']
+        region = hp.get('region')
 else:
     # running processing job
     parser.add_argument('--bucket', type=str)
     parser.add_argument('--prefix', type=str)
+    parser.add_argument("--region", type=str, help="aws region")
     args, _ = parser.parse_known_args()
     bucket = args.bucket
     prefix = args.prefix
+    if args.region:
+        region = args.region
 
 if prefix.endswith("/"):
     prefix = prefix[:-1]
 
-print(f"bucket:{bucket}, prefix:{prefix}")
-run_script([f"./run.sh {bucket} {prefix}"])
+print(f"bucket:{bucket}, prefix:{prefix}, region:{region}")
+
+if region:
+   run_script([f"./run.sh {bucket} {prefix} {region}"])
+else:
+   run_script([f"./run.sh {bucket} {prefix}"])

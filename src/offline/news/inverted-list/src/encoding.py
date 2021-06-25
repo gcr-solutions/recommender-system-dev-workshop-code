@@ -49,7 +49,11 @@ class Vocab:
     
 class encoding:
     # def __init__(self, kg, input_bucket, output_bucket=None):
-    def __init__(self, kg, env):
+    def __init__(self, kg, env, region=None):
+        if region:
+            boto3.setup_default_session(region_name=region)
+            global s3client
+            s3client = boto3.client('s3')
         self.kg = kg
         self.bert_entity_to_idx = {}
         self.bert_idx_to_entity = {}
@@ -88,11 +92,11 @@ class encoding:
 
     def finditer(self, string_candidate, string):
         last_p = -1
-        # print("string candiate is {}".format(string_candidate))
-        # print("string is {}".format(string))
+#         print("string candiate is {}".format(string_candidate))
+#         print("string is {}".format(string))
         sub_string = string_candidate
         while len(string):
-            # print("sub_string is {}".format(sub_string))
+#             print("sub_string is {}".format(sub_string))
             if sub_string in string:
                 p = string.index(sub_string)
                 string = string[p+1:]
@@ -113,7 +117,7 @@ class encoding:
 #         print("ner pre is {} with type {}".format(ner_pre, type(ner_pre)))
         for n in ner_pre:
 #             n = str(n).replace('*','\*')
-            # print("loop {}".format(n))
+#             print("loop {}".format(n))
 #             for j in re.finditer('%r'%n, ''.join(seg)):
 #             for j in self.finditer('%s'%n, ''.join(seg)):
             for j in self.finditer(n[0], ''.join(seg)):

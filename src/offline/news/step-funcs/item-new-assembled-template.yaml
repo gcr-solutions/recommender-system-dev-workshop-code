@@ -31,9 +31,6 @@ Parameters:
     Type: String
     Default: SNSMessageLambda
 
-  ECRPrefix:
-    Type: String
-    Default: 522244679887.dkr.ecr.ap-northeast-1.amazonaws.com
 
 Resources:
   AssDataPreprocessingStepFunc:
@@ -72,7 +69,7 @@ Resources:
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
                   "ImageName": "rs/news-assembled-data-preprocessing",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix)",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
                 "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-SMProcessingStepFunc",
@@ -116,7 +113,7 @@ Resources:
               "Resource": "arn:${AWS::Partition}:states:::sagemaker:createTrainingJob.sync",
               "Parameters": {
                 "AlgorithmSpecification": {
-                  "TrainingImage": "${ECRPrefix}/rs/news-assembled-train-model-gpu:${Stage}",
+                  "TrainingImage": "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/rs/news-assembled-train-model-gpu:${Stage}",
                   "TrainingInputMode": "File",
                   "MetricDefinitions": [
                     {
@@ -139,7 +136,8 @@ Resources:
                 "RoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/service-role/rs-${Stage}-${SagemakerRoleName}-${AWS::Region}",
                 "HyperParameters": {
                   "bucket.$": "$.Bucket",
-                  "prefix.$": "$.S3Prefix"
+                  "prefix.$": "$.S3Prefix",
+                  "region": "${AWS::Region}"
                 },
                 "TrainingJobName.$": "States.Format('Ntrainemodel-{}', $.Precheck.Payload.UID)"
               },
@@ -206,18 +204,16 @@ Resources:
             },
             "Send notification": {
               "Type": "Task",
-              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
               "Parameters": {
-                "FunctionName": "rs-${Stage}-${SNSMessageLambda}",
-                "Payload": {
-                  "file_type": "item-new",
-                  "message_type": "news",
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
                   "Bucket.$": "$.Bucket",
-                  "S3Prefix.$": "$.S3Prefix"
-                }
-              },
-              "ResultSelector": {
-                "Payload.$": "$.Payload"
+                  "S3Prefix.$": "$.S3Prefix",
+                  "file_type": "item-new"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-NotificationStepFunc",
+                "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
               "Next": "Succeed",
               "ResultPath": "$.Notification"

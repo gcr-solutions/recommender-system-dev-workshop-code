@@ -20,7 +20,6 @@ import kg
 # logger = logging.getLogger()
 # logger.setLevel(logging.INFO)
 # tqdm_notebook().pandas()
-s3client = boto3.client('s3')
 
 
 ########################################
@@ -56,12 +55,23 @@ def write_str_to_s3(content, bucket, key):
 parser = argparse.ArgumentParser()
 parser.add_argument('--bucket', type=str)
 parser.add_argument('--prefix', type=str)
+parser.add_argument("--region", type=str, help="aws region")
 args, _ = parser.parse_known_args()
+print("args:", args)
+region = None
+if args.region:
+    region = args.region
+    print("region:", args.region)
+    boto3.setup_default_session(region_name=args.region)
+
 bucket = args.bucket
 prefix = args.prefix
 
 print("bucket={}".format(bucket))
 print("prefix='{}'".format(prefix))
+
+s3client = boto3.client('s3')
+
 
 out_s3_path = "s3://{}/{}/feature/content/inverted-list".format(bucket, prefix)
 
@@ -137,8 +147,8 @@ env = {
 }
 
 print("Kg env: {}".format(env))
-graph = kg.Kg(env)  # Where we keep the model when it's loaded
-model = encoding.encoding(graph, env)
+graph = kg.Kg(env, region=region)  # Where we keep the model when it's loaded
+model = encoding.encoding(graph, env, region=region)
 
 news_id_news_feature_dict = {}
 map_words = {}
@@ -173,7 +183,7 @@ for row in df_filter_item.iterrows():
     news_id_news_feature_dict[program_id] = program_dict
 
 # clean data for graph train
-# path = '/home/ec2-user/workplace/recommender-system-solution/src/offline/news/item-feature-update-batch/aws-gcr-rs-sol-demo-ap-northeast-1-522244679887/sample-data/model/meta_files'
+# path = '/home/ec2-user/workplace/recommender-system-solution/src/offline/news/item-feature-update-batch/aws-gcr-rs-sol-demo-ap-southeast-1-522244679887/sample-data/model/meta_files'
 path = "info"
 entities_dbpedia = os.path.join(path, 'entities_dbpedia.dict')
 relations_dbpedia = os.path.join(path, 'relations_dbpedia.dict')

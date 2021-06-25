@@ -38,9 +38,14 @@ parser.add_argument("--bucket", type=str, help="s3 bucket")
 parser.add_argument("--prefix", type=str,
                     help="s3 input key prefix")
 
-args = parser.parse_args()
-
+parser.add_argument("--region", type=str, help="aws region")
+args, _ = parser.parse_known_args()
 print("args:", args)
+
+if args.region:
+    print("region:", args.region)
+    boto3.setup_default_session(region_name=args.region)
+
 bucket = args.bucket
 prefix = args.prefix
 if prefix.endswith("/"):
