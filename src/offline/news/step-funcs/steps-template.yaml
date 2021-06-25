@@ -88,7 +88,7 @@ Resources:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-      StateMachineName: !Sub rs-${Stage}-News-SMProcessingStepFunc
+      StateMachineName: !Sub rs-${Stage}-News-SMProcessingLocalAccountStepFunc
       DefinitionString: !Sub |
         {
           "StartAt": "Run processing",
