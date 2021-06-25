@@ -982,3 +982,32 @@ Resources:
             }
           }
         }
+
+######################################
+######################################
+
+ NotificationStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-News-NotificationStepFunc
+      DefinitionString: !Sub |
+        {
+            "StartAt": "Send notification",
+            "States": {
+                "Send notification": {
+                    "Type": "Task",
+                    "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+                    "Parameters": {
+                        "FunctionName": "rs-${Stage}-${SNSMessageLambda}",
+                        "Payload": {
+                            "file_type": "$.change_type",
+                            "message_type": "news",
+                            "Bucket.$": "$.Bucket",
+                            "S3Prefix.$": "$.S3Prefix"
+                        }
+                    },
+                "End": true
+                }
+            }
+        }
