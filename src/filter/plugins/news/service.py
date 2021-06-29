@@ -372,7 +372,7 @@ class Filter(service_pb2_grpc.FilterServicer):
             logging.info('need hot topic news')
             hot_topic_news_list = []
             # comment for dev workshop
-            # hot_topic_news_list = self.get_hot_topic_news_list(user_id, hot_topic_count, present_recommend_news_id_list, recommended_news_list)
+            hot_topic_news_list = self.get_hot_topic_news_list(user_id, hot_topic_count, present_recommend_news_id_list, recommended_news_list)
             new_recommend_list = hot_topic_news_list + new_recommend_list
 
         logging.info('present_recommend_record_list {}'.format(present_recommend_news_id_list))
