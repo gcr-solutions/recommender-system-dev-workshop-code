@@ -124,7 +124,7 @@ def retrieve_get_v2(user_id: str, curPage: int = 0, pageSize: int = 20, regionId
         .format(host, port, user_id, recommendType)
     logging.info("svc_url:{}".format(svc_url))
 
-
+    logging.info("current time")
     item_list = get_data_request(svc_url, lambda json_data: json_data['data'])
 
 
