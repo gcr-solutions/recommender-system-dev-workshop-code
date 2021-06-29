@@ -223,12 +223,12 @@ class Filter(service_pb2_grpc.FilterServicer):
         
 
         print("---------time before trigger get_filter_recommend_result:")
-        print(datetime.datetime.now())
+        print(datetime.now())
     
         recommend_result = self.get_filter_recommend_result(user_id, recommend_type)
         
         print("---------time after trigger get_filter_recommend_result:")
-        print(datetime.datetime.now())
+        print(datetime.now())
 
 #        logging.info("recommend result {}".format(recommend_result))
 
@@ -255,12 +255,12 @@ class Filter(service_pb2_grpc.FilterServicer):
                 filtered_data = []
                 
                 print("---------time before  get_data_from_hash:")
-                print(datetime.datetime.now())
+                print(datetime.now())
     
                 filtered_data_redis = rCache.get_data_from_hash(user_id_filter_dict, user_id)
                 
                 print("---------time after  get_data_from_hash:")
-                print(datetime.datetime.now())
+                print(datetime.now())
                 
                 if filtered_data_redis:
                     # [{timestamp: [{"6554153017963184647": "recommend"}...]}, {timestamp: [{"6554153017963184647": "recommend"}...]}]
@@ -289,7 +289,7 @@ class Filter(service_pb2_grpc.FilterServicer):
             recommend_list = self.generate_news_list_by_type(news_id_list)
 
         print("---------time finish get_filter_recommend_result :")
-        print(datetime.datetime.now())
+        print(datetime.now())
                 
         return recommend_list
 
