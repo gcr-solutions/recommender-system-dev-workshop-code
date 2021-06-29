@@ -74,7 +74,7 @@ def get_recommend_data(userId: str, recommendType: str):
     logging.info('Invoke plugin to get recommend data...')
     
     print("---------time before trigger getFilterData:")
-    print(datetime.datetime.now())
+    print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
 
     getFilterDataRequest = service_pb2.GetFilterDataRequest(apiVersion='v1', metadata='Filter', type='RecommendResult')
     getFilterDataRequest.requestBody.Pack(request)
@@ -84,7 +84,7 @@ def get_recommend_data(userId: str, recommendType: str):
 
 
     print("---------time after trigger getFilterData:")
-    print(datetime.datetime.now())
+    print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
     
     
     
@@ -93,7 +93,7 @@ def get_recommend_data(userId: str, recommendType: str):
     resultJson = json.loads(results.value, encoding='utf-8')   
 
     print("---------time finish filter:")
-    print(datetime.datetime.now())
+    print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
     
     if response.code == 0:
         return {
