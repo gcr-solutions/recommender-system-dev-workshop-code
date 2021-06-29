@@ -222,11 +222,15 @@ class Filter(service_pb2_grpc.FilterServicer):
         logging.info('recommend_type -> {}'.format(recommend_type))
         
 
+        print("---------time before trigger get_filter_recommend_result:")
+        print(datetime.datetime.now())
+    
         recommend_result = self.get_filter_recommend_result(user_id, recommend_type)
         
+        print("---------time after trigger get_filter_recommend_result:")
+        print(datetime.datetime.now())
 
-
-        logging.info("recommend result {}".format(recommend_result))
+#        logging.info("recommend result {}".format(recommend_result))
 
         getFilterDataResponseValue = {
             'data': recommend_result
@@ -250,10 +254,14 @@ class Filter(service_pb2_grpc.FilterServicer):
                 # get filtered data from filter redis cache
                 filtered_data = []
                 
-
+                print("---------time before  get_data_from_hash:")
+                print(datetime.datetime.now())
+    
                 filtered_data_redis = rCache.get_data_from_hash(user_id_filter_dict, user_id)
                 
-
+                print("---------time after  get_data_from_hash:")
+                print(datetime.datetime.now())
+                
                 if filtered_data_redis:
                     # [{timestamp: [{"6554153017963184647": "recommend"}...]}, {timestamp: [{"6554153017963184647": "recommend"}...]}]
                     filtered_data = json.loads(filtered_data_redis, encoding='utf-8')
@@ -280,6 +288,9 @@ class Filter(service_pb2_grpc.FilterServicer):
             news_id_list = self.news_type_news_ids_dict[recommend_type]
             recommend_list = self.generate_news_list_by_type(news_id_list)
 
+        print("---------time finish get_filter_recommend_result :")
+        print(datetime.datetime.now())
+                
         return recommend_list
 
     def generate_cold_start_data(self, user_id):
@@ -368,7 +379,7 @@ class Filter(service_pb2_grpc.FilterServicer):
             hot_topic_news_list = self.get_hot_topic_news_list(user_id, hot_topic_count, present_recommend_news_id_list, recommended_news_list)
             new_recommend_list = hot_topic_news_list + new_recommend_list
 
-        logging.info('present_recommend_record_list {}'.format(present_recommend_news_id_list))
+    #    logging.info('present_recommend_record_list {}'.format(present_recommend_news_id_list))
         recommended_data.append({str(calendar.timegm(time.gmtime())): present_recommend_news_id_list})
 
         if rCache.load_data_into_hash(user_id_recommended_dict, user_id, json.dumps(recommended_data).encode('utf-8')):

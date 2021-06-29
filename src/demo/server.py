@@ -221,8 +221,16 @@ def get_recommend_news(userId: str, type: str, curPage: str, pageSize: str):
         return mock_news_retrieve_response()
     logging.info('recommend news list to user')
     # get from retrieve
+    
+    logging.info("---------time before trigger retrieve:")
+    logging.info(datetime.datetime.now())
+    
     httpResp = requests.get(MANDATORY_ENV_VARS['RETRIEVE_SERVICE_ENDPOINT'] +
                             '/api/v1/retrieve/'+user_id+'?recommendType='+recommend_type)
+                            
+    logging.info("---------time after trigger retrieve:")
+    logging.info(datetime.datetime.now())
+    
     if httpResp.status_code != 200:
         return response_failed({
             "message": "Not support news type"
@@ -233,6 +241,9 @@ def get_recommend_news(userId: str, type: str, curPage: str, pageSize: str):
     refresh_user_click_data(user_id, news_recommend_list, '1', recommend_type, 'news')
 
     retrieve_response = generate_news_retrieve_response(news_recommend_list)
+    
+    logging.info("---------time finish /news:")
+    logging.info(datetime.datetime.now())
 
     return retrieve_response
 
