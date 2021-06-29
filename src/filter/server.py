@@ -86,6 +86,8 @@ def get_recommend_data(userId: str, recommendType: str):
     print("---------time after trigger getFilterData:")
     print(datetime.datetime.now())
     
+    
+    
     results = any_pb2.Any()
     response.results.Unpack(results)
     resultJson = json.loads(results.value, encoding='utf-8')   
