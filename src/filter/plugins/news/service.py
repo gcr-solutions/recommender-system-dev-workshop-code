@@ -220,8 +220,13 @@ class Filter(service_pb2_grpc.FilterServicer):
         recommend_type = reqData['recommend_type']
         logging.info('user_id -> {}'.format(user_id))
         logging.info('recommend_type -> {}'.format(recommend_type))
+        
+        logging.info("current time of before trigger get_filter_recommend_result:{}", datetime.datetime.now())
 
         recommend_result = self.get_filter_recommend_result(user_id, recommend_type)
+        
+        logging.info("current time of after trigger get_filter_recommend_result:{}", datetime.datetime.now())
+
 
         logging.info("recommend result {}".format(recommend_result))
 
@@ -235,6 +240,9 @@ class Filter(service_pb2_grpc.FilterServicer):
         getFilterDataResponse.results.Pack(getFilterDataResponseAny)        
 
         logging.info("get filter data complete") 
+        
+        logging.info("current time of finishing trigger getFilterData:{}", datetime.datetime.now())
+
         return getFilterDataResponse 
 
     def get_filter_recommend_result(self, user_id, recommend_type):
@@ -244,7 +252,13 @@ class Filter(service_pb2_grpc.FilterServicer):
                 logging.info('recommend news list to user')
                 # get filtered data from filter redis cache
                 filtered_data = []
+                
+                logging.info("current time of before trigger get_data_from_hash:{}", datetime.datetime.now())
+
                 filtered_data_redis = rCache.get_data_from_hash(user_id_filter_dict, user_id)
+                
+                logging.info("current time of after trigger get_data_from_hash:{}", datetime.datetime.now())
+
                 if filtered_data_redis:
                     # [{timestamp: [{"6554153017963184647": "recommend"}...]}, {timestamp: [{"6554153017963184647": "recommend"}...]}]
                     filtered_data = json.loads(filtered_data_redis, encoding='utf-8')
@@ -253,10 +267,16 @@ class Filter(service_pb2_grpc.FilterServicer):
                     logging.info('start coldstart process!')
                     filtered_data = self.generate_cold_start_data(user_id)
 
-                logging.info('filtered_data {}'.format(filtered_data))
+                # logging.info('filtered_data {}'.format(filtered_data))
                 # generate new recommend data, store them into cache
+                
+                logging.info("current time of before trigger generate_new_recommend_data:{}", datetime.datetime.now())
+
                 recommend_list = self.generate_new_recommend_data(user_id, filtered_data)
-                logging.info('recommend_list {}'.format(recommend_list))
+                
+                logging.info("current time of after trigger generate_new_recommend_data:{}", datetime.datetime.now())
+
+                # logging.info('recommend_list {}'.format(recommend_list))
         else:
             logging.info('get news list by news type {}'.format(recommend_type))
             if recommend_type not in self.lCfgCompleteType:

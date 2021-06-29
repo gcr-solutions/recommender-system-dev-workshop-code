@@ -61,7 +61,7 @@ def ping():
 def get_recommend_data(userId: str, recommendType: str):
     logging.info('user_id -> %s', userId)
     logging.info('recommend_type -> %s', recommendType)
-
+    
     logging.info('start get_recommend_data')
 
     request = any_pb2.Any()
@@ -71,15 +71,22 @@ def get_recommend_data(userId: str, recommendType: str):
     }).encode('utf-8') 
 
     logging.info('Invoke plugin to get recommend data...')
+    
+    logging.info("current time of before trigger getFilterData:{}", datetime.datetime.now())
+
     getFilterDataRequest = service_pb2.GetFilterDataRequest(apiVersion='v1', metadata='Filter', type='RecommendResult')
     getFilterDataRequest.requestBody.Pack(request)
     channel = grpc.insecure_channel('localhost:50051')
     stub = service_pb2_grpc.FilterStub(channel)
     response = stub.GetFilterData(getFilterDataRequest)
 
+    logging.info("current time of after trigger getFilterData:{}", datetime.datetime.now())
+
     results = any_pb2.Any()
     response.results.Unpack(results)
     resultJson = json.loads(results.value, encoding='utf-8')   
+
+    logging.info("current time of finishing trigger filter:{}", datetime.datetime.now())
 
     if response.code == 0:
         return {
