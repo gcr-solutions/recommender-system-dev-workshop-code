@@ -22,8 +22,8 @@ resources:
 # all with following *kustomization*
 images:
 - name: rs/demo
-  newName: public.ecr.aws/t8u1z3c8/rs/demo
-  newTag: latest
+  newName: 466154167985.dkr.ecr.ap-northeast-1.amazonaws.com/rs/demo
+  newTag: b12a28de6431d2bea29f7cf6e6b4c91953716b23
 - name: rs/event
   newName: public.ecr.aws/t8u1z3c8/rs/event
   newTag: latest
