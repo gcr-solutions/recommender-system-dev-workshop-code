@@ -27,6 +27,7 @@ from requests import ConnectTimeout
 from typing import Optional
 from fastapi.responses import JSONResponse
 
+import datetime
 
 class LoginRequest(BaseModel):
     userId: str
@@ -276,8 +277,14 @@ def click_post(clickRequest: ClickRequest):
     item_id = clickRequest.itemId
     logging.info("user_id:{}, item_id:{}".format(user_id, item_id))
     user_click_count = add_user_click_info(user_id, item_id)
+    logging.info("---------time start:")
+    logging.info(datetime.datetime.now())
     click_one_to_portrait(user_id, item_id)
+    logging.info("---------time after portrait:")
+    logging.info(datetime.datetime.now())
     click_hist_to_recall(user_id, item_id, user_click_count)
+    logging.info("---------time after recall:")
+    logging.info(datetime.datetime.now())
     return response_success({
         "message": "clicked item_id: {}".format(item_id)
     })
