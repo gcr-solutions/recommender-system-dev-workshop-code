@@ -29,10 +29,10 @@ images:
   newTag: latest
 - name: rs/filter
   newName: 466154167985.dkr.ecr.ap-northeast-1.amazonaws.com/rs/filter
-  newTag: bd08d06e05b969e95b7065b61ee8b830228b37f5
+  newTag: a9a3a30c105333aa5a43e12421d1dcf6a7d98d67
 - name: rs/filter-plugin
   newName: 466154167985.dkr.ecr.ap-northeast-1.amazonaws.com/rs/filter-plugin
-  newTag: news-bd08d06e05b969e95b7065b61ee8b830228b37f5
+  newTag: news-a9a3a30c105333aa5a43e12421d1dcf6a7d98d67
 - name: rs/loader
   newName: public.ecr.aws/t8u1z3c8/rs/loader
   newTag: latest
