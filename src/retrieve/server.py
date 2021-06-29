@@ -124,11 +124,11 @@ def retrieve_get_v2(user_id: str, curPage: int = 0, pageSize: int = 20, regionId
         .format(host, port, user_id, recommendType)
     logging.info("svc_url:{}".format(svc_url))
 
-    logging.info("current time of before trigger filter: " + datetime.datetime.now())
+#    logging.info("current time of before trigger filter: " + datetime.datetime.now())
 
     item_list = get_data_request(svc_url, lambda json_data: json_data['data'])
 
-    logging.info("current time of after trigger filter: " + datetime.datetime.now())
+#    logging.info("current time of after trigger filter: " + datetime.datetime.now())
 
     it_list = [RSItem(id=str(it['id']), description=str(it['description']), tags=str(it["tag"]).split(" ")) for it in item_list]
     it_list_paged = it_list[curPage * pageSize: (curPage + 1) * pageSize]
@@ -147,7 +147,7 @@ def retrieve_get_v2(user_id: str, curPage: int = 0, pageSize: int = 20, regionId
 
     logging.info("rs_list: {}".format(rs_list))
     
-    logging.info("current time of finishing trigger retrieve: " + datetime.datetime.now())
+#    logging.info("current time of finishing trigger retrieve: " + datetime.datetime.now())
 
     return rs_list
 
