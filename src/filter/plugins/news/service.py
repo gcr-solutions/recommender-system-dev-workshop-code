@@ -85,7 +85,7 @@ class Filter(service_pb2_grpc.FilterServicer):
         file_type = requestMessageJson['file_type']
         file_list = eval(requestMessageJson['file_list'])
         logging.info('file_type -> {}'.format(file_type))
-        logging.info('file_list -> {}'.format(file_list)) 
+    #    logging.info('file_list -> {}'.format(file_list)) 
 
         self.check_files_ready(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list, 0)
         if file_type == pickle_type:
@@ -189,12 +189,12 @@ class Filter(service_pb2_grpc.FilterServicer):
         rank_result = requestMessageJson['rank_result']
         recall_result = requestMessageJson['recall_result']
         logging.info('user_id -> {}'.format(user_id))
-        logging.info('rank_result -> {}'.format(rank_result))
-        logging.info('recall_result -> {}'.format(recall_result))
+  #      logging.info('rank_result -> {}'.format(rank_result))
+   #     logging.info('recall_result -> {}'.format(recall_result))
 
         filter_result = self.generate_filter_result(user_id, recall_result, rank_result)
 
-        logging.info("filter result {}".format(rank_result))
+   #     logging.info("filter result {}".format(rank_result))
 
         filterProcessResponseValue = {
             'user_id': user_id,
@@ -316,7 +316,7 @@ class Filter(service_pb2_grpc.FilterServicer):
             calendar.timegm(time.gmtime()): coldstart_item_list
         })
 
-        logging.info('coldstart filter record {}'.format(new_filter_record))
+ #       logging.info('coldstart filter record {}'.format(new_filter_record))
             
         if rCache.load_data_into_hash(user_id_filter_dict, user_id, json.dumps(new_filter_record).encode('utf-8')):
             logging.info('Save filter data into Redis with key : %s ', user_id) 
@@ -399,7 +399,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                     recommended_time_min = int(k)
                     if expire_timestamp > recommended_time_min/60:
                         recommended_data.remove(element)
-        logging.info('recommended_data {} for user {}'.format(recommended_data, user_id))    
+  #      logging.info('recommended_data {} for user {}'.format(recommended_data, user_id))    
         return recommended_data 
 
     def get_recommended_news_id_list(self, recommended_data):
@@ -413,12 +413,12 @@ class Filter(service_pb2_grpc.FilterServicer):
 
     def is_cold_start_data(self, filtered_data):
         for element in filtered_data:
-            logging.info('filtered_data element {}'.format(element))
+    #        logging.info('filtered_data element {}'.format(element))
             # k is timestamp
             # v is result
             for k, v in element.items():
                 for item_id, item_content in v.items():
-                    logging.info('filtered_data first item recommend type {}'.format(item_content[1]))
+    #                logging.info('filtered_data first item recommend type {}'.format(item_content[1]))
                     if item_content[1] == tColdstart:
                         return True
         # for k,v in filtered_data[0].items():
@@ -454,7 +454,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                             remain_count = remain_count + 1
         item_lacking_count = item_list_count - len(present_recommend_item_id_list)
         if item_lacking_count > 0:
-            logging.info('complement item list, count {}'.format(str(item_lacking_count)))
+   #         logging.info('complement item list, count {}'.format(str(item_lacking_count)))
             complement_item_recommend_list = []
             complement_present_recommend_item_id_list = []
 
@@ -464,7 +464,7 @@ class Filter(service_pb2_grpc.FilterServicer):
         return item_recommend_list, present_recommend_item_id_list, remain_count                                                           
 
     def get_complement_item_recommend_list(self, user_id, present_recommend_news_id_list, news_lacking_count, isColdStart):
-        logging.info('get_complement_item_recommend_list start')
+ #       logging.info('get_complement_item_recommend_list start')
         complement_news_recommend_list = []
         complement_present_recommend_news_id_list = []
         count = 0
@@ -475,12 +475,12 @@ class Filter(service_pb2_grpc.FilterServicer):
             return complement_news_recommend_list, complement_present_recommend_news_id_list
         user_portrait = httpResp.json()          
          
-        logging.info('user_portrait: {}'.format(user_portrait))
+ #       logging.info('user_portrait: {}'.format(user_portrait))
         if user_portrait['results'] == {}:
             sort_type = lCfgCompleteType
         else:
             sort_type = user_portrait['results']['type']['recent'][0][::-1]
-        logging.info('sort_type {}'.format(sort_type))
+ #       logging.info('sort_type {}'.format(sort_type))
 
         while count < news_lacking_count:
             try_count = 0
@@ -489,7 +489,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                 try_count = try_count + 1
                 news_id = self.sample_by_type(sort_type[sort_type_count])
                 if (news_id not in present_recommend_news_id_list and news_id not in complement_present_recommend_news_id_list and news_id != ''):
-                    logging.info("get hot topic news id {}".format(news_id))
+      #              logging.info("get hot topic news id {}".format(news_id))
                     if isColdStart:
                         complement_news_recommend_list.append({
                             'id': news_id,
@@ -506,7 +506,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                     count = count + 1
                     sort_type_count = sort_type_count + 1
                 if try_count > 3 * count:
-                    logging.error(
+      #              logging.error(
                         "fail to find enough candidate, need to find {} but only find {}".format(news_lacking_count,
                                                                                                         count))
                     break
@@ -529,7 +529,7 @@ class Filter(service_pb2_grpc.FilterServicer):
         return complement_news_recommend_list, complement_present_recommend_news_id_list        
 
     def get_diversity_news_id(self, present_recommend_news_id_list, complement_present_recommend_news_id_list):
-        logging.info('get_diversity_news_id start')
+  #      logging.info('get_diversity_news_id start')
         while True:
             news_type = self.lCfgCompleteType[random.randint(0,len(self.lCfgCompleteType) -1)]
             news_id = self.sample_by_type(news_type)
@@ -549,7 +549,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                 return news_list
             index = index + 1                
             if news_id not in recommended_news_list and news_id not in present_recommend_news_id_list: 
-                logging.info("get hot topic news id {}".format(news_id))
+       #         logging.info("get hot topic news id {}".format(news_id))
                 present_recommend_news_id_list.append(news_id)
                 news_list.append({
                     'id': news_id,
@@ -557,7 +557,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                     'description': "online_hot_topic|{}".format(hot_topic_type[0])
                 })
                 count = count + 1
-        logging.info('hot topic list {}'.format(news_list))
+    #    logging.info('hot topic list {}'.format(news_list))
         return news_list
 
        
@@ -567,7 +567,7 @@ class Filter(service_pb2_grpc.FilterServicer):
         if httpResp.status_code != 200:
             return ''
         user_portrait = httpResp.json()
-        logging.info('user_portrait: {}'.format(user_portrait))
+  #      logging.info('user_portrait: {}'.format(user_portrait))
 
         user_portrait_result = user_portrait['results']
 
@@ -576,30 +576,30 @@ class Filter(service_pb2_grpc.FilterServicer):
             if item_type != 'recent':
                 sort_type.append((item_type, kwsc['score']))
         sort_type.sort(key = lambda x: x[1], reverse = True)
-        logging.info('sort_type {}'.format(sort_type))
+   #     logging.info('sort_type {}'.format(sort_type))
 
         hot_topic_type = sort_type[0]
-        logging.info('hot_topic_type {}'.format(hot_topic_type))
+  #      logging.info('hot_topic_type {}'.format(hot_topic_type))
         return hot_topic_type               
 
     def generate_filter_result(self, user_id, recall_result, rank_result):
-        logging.info('generate_filter_result start')
+  #      logging.info('generate_filter_result start')
            
-        logging.info('recall_result: {}'.format(recall_result))
+  #      logging.info('recall_result: {}'.format(recall_result))
                    
-        logging.info('rank_result: {}'.format(rank_result))  
+  #      logging.info('rank_result: {}'.format(rank_result))  
 
         httpResp = requests.get(MANDATORY_ENV_VARS['PORTRAIT_SERVICE_ENDPOINT']+'/portrait/userid/'+user_id)
         if httpResp.status_code != 200:
             return service_pb2.FilterProcessResponse(code=-1, description=('Failed to get portrait for -> {}').format(user_id))
         user_portrait = httpResp.json()          
          
-        logging.info('user_portrait: {}'.format(user_portrait))  
+ #       logging.info('user_portrait: {}'.format(user_portrait))  
 
         user_portrait_result = user_portrait['results']   
         
         existed_filter_record_redis = rCache.get_data_from_hash(user_id_filter_dict, user_id)
-        logging.info('existed_filter_record {}'.format(existed_filter_record_redis))
+ #       logging.info('existed_filter_record {}'.format(existed_filter_record_redis))
         existed_filter_record = []
         # check if there is coldstart data, remove them:
         if existed_filter_record_redis:
@@ -614,14 +614,14 @@ class Filter(service_pb2_grpc.FilterServicer):
                         break
 
         new_filter_record = self.generate_new_filter_record({str(user_id):recall_result}, {str(user_id):rank_result})
-        logging.info('new_filter_record {}'.format(new_filter_record))
+   #     logging.info('new_filter_record {}'.format(new_filter_record))
 
         existed_filter_record.insert(0, {calendar.timegm(time.gmtime()): new_filter_record[str(user_id)]})
 
         if rCache.load_data_into_hash(user_id_filter_dict, user_id, json.dumps(existed_filter_record).encode('utf-8')):
             logging.info('Save filter data into Redis with key : %s ', user_id)
-        logging.info('final existed_filter_record {}'.format(existed_filter_record))
-        logging.info('filter_process completed')
+  #      logging.info('final existed_filter_record {}'.format(existed_filter_record))
+   #     logging.info('filter_process completed')
 
     def get_dict_pos(self, key, dict_var):
         return list(dict_var.keys()).index(key)
@@ -774,7 +774,7 @@ class Filter(service_pb2_grpc.FilterServicer):
         ########################################
         hot_type, cold_type, filter_type = self.analyze_portrait(user_portrait)
         recall_multiple_id = self.analyze_recall(recall_result)
-        logging.info('recall_multiple_id {}'.format(recall_multiple_id))
+ #       logging.info('recall_multiple_id {}'.format(recall_multiple_id))
 
         # judge cold start logic
         filter_result = []
@@ -882,9 +882,9 @@ class Filter(service_pb2_grpc.FilterServicer):
         return filter_list 
 
     def sample_by_type(self, item_type):
-        logging.info('sample_by_type start, type {}'.format(item_type))
+  #      logging.info('sample_by_type start, type {}'.format(item_type))
         if not bool(self.news_type_news_ids_dict):
-            logging.info('news_type_news_ids_dict is empty')
+ #           logging.info('news_type_news_ids_dict is empty')
             return None
         # logging.info(news_type_news_ids_dict)
         news_id_list_by_type = self.news_type_news_ids_dict[item_type]
@@ -893,13 +893,13 @@ class Filter(service_pb2_grpc.FilterServicer):
         return news_id_list_by_type[index] 
  
     def get_hot_topic_item(self, item_type, index):
-        logging.info('get_hot_topic_item start, type {}'.format(item_type))
+ #       logging.info('get_hot_topic_item start, type {}'.format(item_type))
         if not bool(self.news_type_news_ids_dict):
             logging.info('news_type_news_ids_dict is empty')
             return ''
         news_id_list_by_type = self.news_type_news_ids_dict[item_type]            
         if index < 0 or index >= len(news_id_list_by_type):
-            logging.info('index is not in the range of news_id_list_by_type {}'.format(news_id_list_by_type))
+#            logging.info('index is not in the range of news_id_list_by_type {}'.format(news_id_list_by_type))
             return ''
         return news_id_list_by_type[index]                           
 
@@ -907,7 +907,7 @@ def init():
     # Check out environments
     for var in MANDATORY_ENV_VARS:
         if var not in os.environ:
-            logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
+  #          logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
             MANDATORY_ENV_VARS[var]=os.environ.get(var)
     
@@ -923,9 +923,9 @@ def serve(plugin_name):
         reflection.SERVICE_NAME,
     )
     reflection.enable_server_reflection(SERVICE_NAMES, server)
-    logging.info('Plugin - %s is listening at 50051...', plugin_name)
+#    logging.info('Plugin - %s is listening at 50051...', plugin_name)
     server.add_insecure_port('[::]:50051')
-    logging.info('Plugin - %s is ready to serve...', plugin_name)
+#    logging.info('Plugin - %s is ready to serve...', plugin_name)
     server.start()
     server.wait_for_termination()
 

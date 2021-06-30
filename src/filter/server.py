@@ -116,15 +116,15 @@ def poll_rank_notice_to_filter():
         try:        
             message_redis = rCache.lpop_data_from_list(rank_notice_to_filter)
             if message_redis:
-                logging.info('get message {} from {}'.format(message_redis, rank_notice_to_filter))
+           #     logging.info('get message {} from {}'.format(message_redis, rank_notice_to_filter))
                 message = json.loads(message_redis, encoding='utf-8')
                 user_id = message['user_id']
                 rank_result = message['rank_result']
                 recall_result = message['recall_result']
                 logging.info('start filter_process in poll_rank_notice_to_filter')
                 logging.info('user_id {}'.format(user_id))
-                logging.info('rank_result {}'.format(rank_result))
-                logging.info('recall_result {}'.format(recall_result))
+       #         logging.info('rank_result {}'.format(rank_result))
+       #        logging.info('recall_result {}'.format(recall_result))
 
                 reqDicts = any_pb2.Any()
                 reqDicts.value = json.dumps({
@@ -181,7 +181,7 @@ def handle_stream_message(stream_message):
     logging.info('start reload data process in handle_stream_message')
     logging.info('file_type {}'.format(file_type))
     logging.info('file_path {}'.format(file_path))
-    logging.info('file_list {}'.format(file_list))
+#    logging.info('file_list {}'.format(file_list))
 
     reqDicts = any_pb2.Any()
     reqDicts.value = json.dumps({
