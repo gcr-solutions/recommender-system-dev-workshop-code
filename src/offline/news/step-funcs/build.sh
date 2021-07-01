@@ -46,7 +46,7 @@ dashboard
 batch-update
 user-new
 item-new
-item-new-assembled
+#item-new-assembled
 train-model
 overall
 )
@@ -61,8 +61,9 @@ do
     echo "template_file: ${template_file}"
     if [[ $name == 'steps' && $REGION =~ ^cn.* ]]; then
       org_template_file=${template_file}
-      sed 's#.amazonaws.com/#.amazonaws.com.cn/#g' ${template_file} > tmp_${org_template_file}
-      template_file=tmp_${org_template_file}
+      sed 's#.amazonaws.com/#.amazonaws.com.cn/#g' ${template_file} > tmp_1_${org_template_file}
+      sed 's#522244679887.dkr.ecr.ap-northeast-1#'${AWS_ACCOUNT_ID}'.dkr.ecr.'${REGION}'#g' tmp_1_${org_template_file}  > tmp_2_${org_template_file}
+      template_file=tmp_2_${org_template_file}
       echo "changed template_file: ${template_file}"
     fi
 
@@ -81,7 +82,7 @@ do
      fi
 
      if [[ $name == 'steps' && $REGION =~ ^cn.* ]]; then
-       rm tmp_${org_template_file}
+       rm tmp_*.yaml
      fi
 
 done
