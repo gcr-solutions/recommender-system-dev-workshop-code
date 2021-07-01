@@ -1,0 +1,25 @@
+{
+  "type": "record",
+  "name": "Items",
+  "namespace": "com.amazonaws.personalize.schema",
+  "fields": [
+    {
+      "name": "ITEM_ID",
+      "type": "string"
+    },
+    {
+      "name": "CATEGORY",
+      "type": "string"
+    },
+    {
+      "name": "KEYWORD",
+      "type": "string",
+      "categorical": true
+    },
+    {
+      "name": "CREATION_TIMESTAMP",
+      "type": "long"
+    }
+  ],
+  "version": "1.0"
+}
