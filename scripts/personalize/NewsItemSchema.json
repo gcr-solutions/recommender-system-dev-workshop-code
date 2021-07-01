@@ -15,10 +15,6 @@
       "name": "KEYWORD",
       "type": "string",
       "categorical": true
-    },
-    {
-      "name": "CREATION_TIMESTAMP",
-      "type": "long"
     }
   ],
   "version": "1.0"
