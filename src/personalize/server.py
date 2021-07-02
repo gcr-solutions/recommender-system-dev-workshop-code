@@ -1,23 +1,16 @@
+import uvicorn
+from fastapi import FastAPI
+import grpc
+import sys
+import service_pb2
+import service_pb2_grpc
+import boto3
 import json
 import logging
 import os
 import time
-import uuid
 from threading import Thread
-
-import boto3
-import grpc
-import pandas as pd
-from fastapi import FastAPI
 from google.protobuf import any_pb2
-from pydantic import BaseModel
-
-from src.portrait.plugins.default.test_cache import rCache
-
-
-class ProcessItem(BaseModel):
-    user_id: str
-    clicked_item_ids: list = []
 
 app = FastAPI()
 
@@ -32,31 +25,27 @@ MANDATORY_ENV_VARS = {
 sleep_interval = 10 #second
 
 
-## TODO
-# dataset_group_arn = ''
-# userpersonalization_campaign_arn = ''
-
 def xasync(f):
     def wrapper(*args, **kwargs):
         thr = Thread(target = f, args = args, kwargs = kwargs)
         thr.start()
     return wrapper
 
-@app.get('/personalize/status', tags=["monitoring"])
-def status():
-    logging.info('Collecting status information from server & plugin...')
-    channel = grpc.insecure_channel('localhost:50051')
-    stub = service_pb2_grpc.PersonalizeStub(channel)
-    response = stub.Status(service_pb2.google_dot_protobuf_dot_empty__pb2.Empty())
-    statusAny = any_pb2.Any()
-    response.status.Unpack(statusAny)
-
-    pStatus = json.loads(statusAny.value.decode('utf-8'))
-    return {
-        'env': MANDATORY_ENV_VARS,
-        'redis': rCache.connection_status(),
-        'plugin_status': pStatus
-    }
+# @app.get('/personalize/status', tags=["monitoring"])
+# def status():
+#     logging.info('Collecting status information from server & plugin...')
+#     channel = grpc.insecure_channel('localhost:50051')
+#     stub = service_pb2_grpc.PersonalizeStub(channel)
+#     response = stub.Status(service_pb2.google_dot_protobuf_dot_empty__pb2.Empty())
+#     statusAny = any_pb2.Any()
+#     response.status.Unpack(statusAny)
+#
+#     pStatus = json.loads(statusAny.value.decode('utf-8'))
+#     return {
+#         'env': MANDATORY_ENV_VARS,
+#         'redis': rCache.connection_status(),
+#         'plugin_status': pStatus
+#     }
 
 @app.get('/ping', tags=["monitoring"])
 def ping():
@@ -67,23 +56,26 @@ def ping():
 session_dict = {}
 @app.post("/personalize/click", tags=["personalize_click"])
 def personalize_click(user_id: str, item_id: int, event_type: str):
-    try:
-        session_ID = session_dict[str(user_id)]
-    except:
-        session_dict[str(user_id)] = str(uuid.uuid1())
-        session_ID = session_dict[str(user_id)]
+    #     try:
+    #         session_ID = session_dict[str(user_id)]
+    #     except:
+    #         session_dict[str(user_id)] = str(uuid.uuid1())
+    #         session_ID = session_dict[str(user_id)]
+
+    #   暂时用 userID 替代为 sessionID
+    session_ID = user_id
 
     event = str(item_id)
     event_json = json.dumps(event)
 
     personalize_events.put_events(
-        trackingId = TRACKING_ID,
-        userId = str(user_id),
-        sessionID = session_ID,
-        eventList = [{
+        trackingId=tracking_id,
+        userId=str(user_id),
+        sessionId=session_ID,
+        eventList=[{
             'sentAt': int(time.time()),
             'eventType': str(event_type),
-            'properties': event_json
+            'itemId': item_id
         }]
     )
 
@@ -105,6 +97,41 @@ def personalize_get_recommendations(user_id: str):
     return recommendation_list
 
 
+def get_dataset_group_arn():
+    response = personalize.list_dataset_groups()
+    return response["datasetGroups"][0]["datasetGroupArn"]
+
+
+def get_userpersonalization_campaign_arn():
+    solution_Arn = ''
+    response = personalize.list_solutions(
+        datasetGroupArn=dataset_group_arn
+    )
+    for solution in response["solutions"]:
+        if solution['name'] == 'personalize-poc-userpersonalization':
+            solution_Arn = solution["solutionArn"]
+
+    response = personalize.list_campaigns(
+        solutionArn=solution_Arn
+    )
+    return response["campaigns"][0]["campaignArn"]
+
+
+def get_event_tracker_arn():
+    response_dataset_group = personalize.list_event_trackers(
+        datasetGroupArn=dataset_group_arn
+    )
+    eventTracker = response_dataset_group["eventTrackers"][0]
+    return eventTracker["eventTrackerArn"]
+
+
+def get_tracking_id():
+    response_event_tracker = personalize.describe_event_tracker(
+        eventTrackerArn=event_tracker_arn
+    )
+    return response_event_tracker["eventTracker"]["trackingId"]
+
+
 
 def init():
     # Check out environments
@@ -115,30 +142,37 @@ def init():
             MANDATORY_ENV_VARS[var] = os.environ.get(var)
 
     ## 建立与 Personalize 的连接
+    global personalize
+    global personalize_runtime
+    global personalize_events
     personalize = boto3.client('personalize')
     personalize_runtime = boto3.client('personalize-runtime')
     personalize_events = boto3.client(service_name='personalize-events')
 
     global dataset_group_arn
+    dataset_group_arn = get_dataset_group_arn()
+
     global userpersonalization_campaign_arn
-    dataset_group_arn = personalize.list_dataset_groups()
-    print(dataset_group_arn)
+    userpersonalization_campaign_arn = get_userpersonalization_campaign_arn()
 
-    # initial personalize connection
-    response = personalize.create_event_tracker(
-        name='tracker',
-        datasetGroupArn=dataset_group_arn
-    )
-
-    global TRACKING_ID
     global event_tracker_arn
-    TRACKING_ID = response['trackingId']
-    event_tracker_arn = response['eventTrackerArn']
+    event_tracker_arn = get_event_tracker_arn()
 
+    global tracking_id
+    tracking_id = get_tracking_id()
+
+    print(dataset_group_arn)
+    print()
+    print(tracking_id)
+    print(event_tracker_arn)
 
 
 if __name__ == '__main__':
+    print('server start')
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     init()
+    uvicorn.run(app, host="0.0.0.0", port=MANDATORY_ENV_VARS['PERSONALIZE_PORT'])
+
 
 
 
