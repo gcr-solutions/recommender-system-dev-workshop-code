@@ -3,7 +3,7 @@ set -e
 
 export SECRET_NAME=gcr-rs-dev-workshop-github
 export GITHUB_USER=jjin-2019
-export ACCESS_TOKEN=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
+export ACCESS_TOKEN=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
 export APP_CONF_REPO=recommender-system-dev-workshop-code
 
 input=$1
