@@ -104,65 +104,64 @@ echo "Check if your personalize role arn is equal to the PERSONALIZE_ROLE_BUILD.
 #   --role-arn ${PERSONALIZE_ROLE_BUILD} \
 #   --output text)
   
-interaction_dataset_import_job_arn=$(aws personalize create-dataset-import-job \
-  --job-name NewsInteractionImportJob \
-  --dataset-arn ${interaction_dataset_arn} \
-  --data-source dataLocation=s3://${BUCKET_BUILD}/sample-data-news/system/personalize-data/personalize_interactions.csv \
-  --role-arn ${PERSONALIZE_ROLE_BUILD} \
-  --output text)
+# interaction_dataset_import_job_arn=$(aws personalize create-dataset-import-job \
+#   --job-name NewsInteractionImportJob \
+#   --dataset-arn ${interaction_dataset_arn} \
+#   --data-source dataLocation=s3://${BUCKET_BUILD}/sample-data-news/system/personalize-data/personalize_interactions.csv \
+#   --role-arn ${PERSONALIZE_ROLE_BUILD} \
+#   --output text)
  
   
-#for test
-user_dataset_import_job_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-import-job/NewsUserImportJob"
-item_dataset_import_job_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-import-job/NewsItemImportJob"
+# #for test
+# user_dataset_import_job_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-import-job/NewsUserImportJob"
+# item_dataset_import_job_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-import-job/NewsItemImportJob"
 
-#monitor import job
-echo "Data Importing... It will takes no longer than 10 min..."
-MAX_TIME=10*60 # 10 min
-CURRENT_TIME=0
-while(( ${CURRENT_TIME} < ${MAX_TIME} )) 
-do
-    user_dataset_import_job_status=$(aws personalize describe-dataset-import-job \
-                --dataset-import-job-arn ${user_dataset_import_job_arn} | jq '.datasetImportJob.status')
-    item_dataset_import_job_status=$(aws personalize describe-dataset-import-job \
-                --dataset-import-job-arn ${item_dataset_import_job_arn} | jq '.datasetImportJob.status')
-    interaction_dataset_import_job_status=$(aws personalize describe-dataset-import-job \
-                --dataset-import-job-arn ${interaction_dataset_import_job_arn} | jq '.datasetImportJob.status')
+# #monitor import job
+# echo "Data Importing... It will takes no longer than 10 min..."
+# MAX_TIME=10*60 # 10 min
+# CURRENT_TIME=0
+# while(( ${CURRENT_TIME} < ${MAX_TIME} )) 
+# do
+#     user_dataset_import_job_status=$(aws personalize describe-dataset-import-job \
+#                 --dataset-import-job-arn ${user_dataset_import_job_arn} | jq '.datasetImportJob.status')
+#     item_dataset_import_job_status=$(aws personalize describe-dataset-import-job \
+#                 --dataset-import-job-arn ${item_dataset_import_job_arn} | jq '.datasetImportJob.status')
+#     interaction_dataset_import_job_status=$(aws personalize describe-dataset-import-job \
+#                 --dataset-import-job-arn ${interaction_dataset_import_job_arn} | jq '.datasetImportJob.status')
 
-    echo "user_dataset_import_job_status: ${user_dataset_import_job_status}"
-    echo "item_dataset_import_job_status: ${item_dataset_import_job_status}"
-    echo "interaction_dataset_import_job_status: ${interaction_dataset_import_job_status}"
+#     echo "user_dataset_import_job_status: ${user_dataset_import_job_status}"
+#     echo "item_dataset_import_job_status: ${item_dataset_import_job_status}"
+#     echo "interaction_dataset_import_job_status: ${interaction_dataset_import_job_status}"
     
-    if [[ $user_dataset_import_job_status = "CREATE FAILED" || $item_dataset_import_job_status = "CREATE FAILED" || $interaction_dataset_import_job_status = "CREATE FAILED" ]]
-    then
-        echo "!!!Dataset Import Job Failed!!!"
-        echo "!!!Personalize Service Create Failed!!!"
-        exit 8
-    elif [[ $user_dataset_import_job_status = "ACTIVE" && $item_dataset_import_job_status = "ACTIVE" && $interaction_dataset_import_job_status = "ACTIVE" ]]
-    then
-        echo "Import Job finishing successfully!"
-        break
-    fi
+#     if [[ $user_dataset_import_job_status = "CREATE FAILED" || $item_dataset_import_job_status = "CREATE FAILED" || $interaction_dataset_import_job_status = "CREATE FAILED" ]]
+#     then
+#         echo "!!!Dataset Import Job Failed!!!"
+#         echo "!!!Personalize Service Create Failed!!!"
+#         exit 8
+#     elif [[ $user_dataset_import_job_status = "ACTIVE" && $item_dataset_import_job_status = "ACTIVE" && $interaction_dataset_import_job_status = "ACTIVE" ]]
+#     then
+#         echo "Import Job finishing successfully!"
+#         break
+#     fi
     
-    CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
-    echo "wait for 1 min..."
-    sleep 60
+#     CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+#     echo "wait for 1 min..."
+#     sleep 60
 
-done
+# done
 
-if [ $CURRENT_TIME -ge $MAX_TIME ]
-then
-    echo "Import Job Time exceed 10 min, please delete import job and try again!"
-    exit 8
-fi
+# if [ $CURRENT_TIME -ge $MAX_TIME ]
+# then
+#     echo "Import Job Time exceed 10 min, please delete import job and try again!"
+#     exit 8
+# fi
 
 
 #create solution
 userPersonalize_solution_arn=$(aws personalize create-solution \
-        --name gcr-rs-dev-workshop-news-solution \
+        --name userPersonalizeSolution \
         --dataset-group-arn ${datasetGroupArn} \
-        --recipe-arn arn:aws:personalize:::recipe/aws-user-personalization
-        --output text)
+        --recipe-arn arn:aws:personalize:::recipe/aws-user-personalization --output text)
 
 
 #monitor solution
@@ -176,17 +175,16 @@ do
     
     echo "userPersonalize_solution_status: ${userPersonalize_solution_status}"
     
-    if [[ $userPersonalize_solution_status = "CREATE FAILED" ]]
+    if [ "$userPersonalize_solution_status" = "CREATE FAILED" ]
     then
         echo "!!!UserPersonalize Solution Create Failed!!!"
         echo "!!!Personalize Service Create Failed!!!"
         exit 8
-    elif [[ $userPersonalize_solution_status = "ACTIVE" ]]
+    elif [ "${userPersonalize_solution_status}" = "ACTIVE" ]
     then
         echo "UserPersonalize Solution  create successfully!"
-        break
+        break;
     fi
-
     CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
     echo "wait for 1 min..."
     sleep 60
@@ -203,8 +201,7 @@ fi
 
 #create solution version
 userPersonalize_solution_version_arn=$(aws personalize create-solution-version \
-        --solution-arn ${userPersonalize_solution_arn} 
-        --output text)
+        --solution-arn ${userPersonalize_solution_arn} --output text)
 
 
 #monitor solution version
@@ -218,17 +215,16 @@ do
             
     echo "userPersonalize_solution_version_status: ${userPersonalize_solution_version_status}"
     
-    if [[ $userPersonalize_solution_version_status = "CREATE FAILED" ]]
+    if [ "$userPersonalize_solution_version_status" = "CREATE FAILED" ]
     then
         echo "!!!UserPersonalize Solution Version Create Failed!!!"
         echo "!!!Personalize Service Create Failed!!!"
         exit 8
-    elif [[ $userPersonalize_solution_version_status = "ACTIVE" ]]
+    elif [ "$userPersonalize_solution_version_status" = "ACTIVE" ]
     then
         echo "UserPersonalize Solution Version create successfully!"
-        break
+        break;
     fi
-
     CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
     echo "wait for 1 min..."
     sleep 60
@@ -251,8 +247,7 @@ aws personalize get-solution-metrics --solution-version-arn ${userPersonalize_so
 userPersonalize_campaign_arn=$(aws personalize create-campaign \
         --name gcr-rs-dev-workshop-news-userPersonalize-campaign \
         --solution-version-arn ${userPersonalize_solution_version_arn} \
-        --min-provisioned-tps 1
-        --output text)
+        --min-provisioned-tps 1 --output text)
 
 
 #monitor campaign
@@ -266,17 +261,16 @@ do
             
     echo "userPersonalize_campaign_status: ${userPersonalize_campaign_status}"
     
-    if [[ $userPersonalize_campaign_status = "CREATE FAILED" ]]
+    if [ "$userPersonalize_campaign_status" = "CREATE FAILED" ]
     then
         echo "!!!UserPersonalize Campaign Create Failed!!!"
         echo "!!!Personalize Service Create Failed!!!"
         exit 8
-    elif [[ $userPersonalize_campaign_status = "ACTIVE" ]]
+    elif [ "$userPersonalize_campaign_status" = "ACTIVE" ]
     then
         echo "UserPersonalize Campaign create successfully!"
-        break
+        break;
     fi
-
     CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
     echo "wait for 1 min..."
     sleep 60
