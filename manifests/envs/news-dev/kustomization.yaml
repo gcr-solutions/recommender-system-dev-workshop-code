@@ -36,6 +36,9 @@ images:
 - name: rs/loader
   newName: public.ecr.aws/t8u1z3c8/rs/loader
   newTag: latest
+- name: rs/personalize
+  newName: 466154167985.dkr.ecr.ap-northeast-1.amazonaws.com/rs/personalize
+  newTag: 11f29b37b3f75a38c618bc923e59218568e830a3
 - name: rs/portrait
   newName: public.ecr.aws/t8u1z3c8/rs/portrait
   newTag: latest
