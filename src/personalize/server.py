@@ -113,7 +113,7 @@ def get_userpersonalization_campaign_arn():
         datasetGroupArn=dataset_group_arn
     )
     for solution in response["solutions"]:
-        if solution['name'] == 'personalize-poc-userpersonalization':
+        if solution['name'] == 'gcr-rs-dev-workshop-news-solution':
             solution_Arn = solution["solutionArn"]
 
     response = personalize.list_campaigns(
