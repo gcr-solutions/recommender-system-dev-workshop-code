@@ -158,7 +158,7 @@ def init():
     global personalize_events
     personalize = boto3.client('personalize', aws_region)
     personalize_runtime = boto3.client('personalize-runtime', aws_region)
-    personalize_events = boto3.client(service_name='personalize-events', aws_region)
+    personalize_events = boto3.client(service_name='personalize-events', region_name=aws_region)
 
 
     global dataset_group_arn
