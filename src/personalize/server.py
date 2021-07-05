@@ -10,6 +10,7 @@ import logging
 import os
 import time
 from threading import Thread
+from pydantic import BaseModel
 # from google.protobuf import any_pb2
 # import redis
 # import cache
@@ -24,6 +25,11 @@ MANDATORY_ENV_VARS = {
     'PERSONALIZE_PORT': 6500,
     'AWS_REGION': 'ap-northeast-1'
 }
+
+class ClickPersonalizeRequest(BaseModel):
+    user_id: str
+    item_id: str
+    event_type: str
 
 #Notice channel
 sleep_interval = 10 #second
@@ -58,12 +64,16 @@ def ping():
 
 session_dict = {}
 @app.post("/personalize/click", tags=["personalize_click"])
-def personalize_click(user_id: str, item_id: str, event_type: str):
+def personalize_click(clickPersonalizeRequest: ClickPersonalizeRequest):
     #     try:
     #         session_ID = session_dict[str(user_id)]
     #     except:
     #         session_dict[str(user_id)] = str(uuid.uuid1())
     #         session_ID = session_dict[str(user_id)]
+
+    user_id = clickPersonalizeRequest.user_id
+    item_id = clickPersonalizeRequest.item_id
+    event_type = clickPersonalizeRequest.event_type
 
     #   暂时用 userID 替代为 sessionID
     session_ID = user_id
