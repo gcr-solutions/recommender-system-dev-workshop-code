@@ -13,6 +13,7 @@ from threading import Thread
 # from google.protobuf import any_pb2
 # import redis
 # import cache
+from botocore import config
 
 app = FastAPI()
 
@@ -78,7 +79,7 @@ def personalize_click(user_id: str, item_id: int, event_type: str):
         eventList=[{
             'sentAt': int(time.time()),
             'eventType': str(event_type),
-            'itemId': item_id
+            'itemId': str(item_id)
         }]
     )
 
@@ -159,6 +160,7 @@ def init():
     personalize = boto3.client('personalize', aws_region)
     personalize_runtime = boto3.client('personalize-runtime', aws_region)
     personalize_events = boto3.client(service_name='personalize-events', region_name=aws_region)
+
 
 
     global dataset_group_arn
