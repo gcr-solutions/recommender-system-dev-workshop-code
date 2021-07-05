@@ -1,16 +1,18 @@
 import uvicorn
 from fastapi import FastAPI
-import grpc
+# import grpc
 import sys
-import service_pb2
-import service_pb2_grpc
+# import service_pb2
+# import service_pb2_grpc
 import boto3
 import json
 import logging
 import os
 import time
 from threading import Thread
-from google.protobuf import any_pb2
+# from google.protobuf import any_pb2
+# import redis
+# import cache
 
 app = FastAPI()
 
@@ -35,7 +37,7 @@ def xasync(f):
         thr = Thread(target = f, args = args, kwargs = kwargs)
         thr.start()
     return wrapper
-
+#
 # @app.get('/personalize/status', tags=["monitoring"])
 # def status():
 #     logging.info('Collecting status information from server & plugin...')
@@ -69,11 +71,12 @@ def personalize_click(user_id: str, item_id: int, event_type: str):
 
     #   暂时用 userID 替代为 sessionID
     session_ID = user_id
+    logging.info("userId: {}".format(user_id))
+    logging.info("itemId: {}".format(item_id))
+    logging.info("eventType: {}".format(event_type))
 
-    event = str(item_id)
-    event_json = json.dumps(event)
 
-    personalize_events.put_events(
+    response = personalize_events.put_events(
         trackingId=tracking_id,
         userId=str(user_id),
         sessionId=session_ID,
@@ -83,6 +86,13 @@ def personalize_click(user_id: str, item_id: int, event_type: str):
             'itemId': item_id
         }]
     )
+
+    response_json = json.dumps(response)
+    logging.info(response_json)
+
+
+
+
 
 
 @app.get("/personalize/retrieve", tags=["personalize_retrieve"])
@@ -113,7 +123,7 @@ def get_userpersonalization_campaign_arn():
         datasetGroupArn=dataset_group_arn
     )
     for solution in response["solutions"]:
-        if solution['name'] == 'gcr-rs-dev-workshop-news-solution':
+        if solution['name'] == 'userPersonalizeSolution':
             solution_Arn = solution["solutionArn"]
 
     response = personalize.list_campaigns(
@@ -159,14 +169,14 @@ def init():
     tracking_id = get_tracking_id()
 
     print(dataset_group_arn)
-    print()
+    print(userpersonalization_campaign_arn)
     print(tracking_id)
     print(event_tracker_arn)
 
 
 if __name__ == '__main__':
     print('server start')
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     init()
     uvicorn.run(app, host="0.0.0.0", port=MANDATORY_ENV_VARS['PERSONALIZE_PORT'])
 
