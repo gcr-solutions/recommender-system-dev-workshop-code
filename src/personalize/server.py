@@ -104,7 +104,11 @@ def personalize_get_recommendations(user_id: str):
     item_list = get_recommendations_response['itemList']
     recommendation_list = []
     for item in item_list:
-        recommendation_list.append(item)
+        data = {
+            'id': item['itemId'],
+            'tags': 'recommend'
+        }
+        recommendation_list.append(data)
     return recommendation_list
 
 
