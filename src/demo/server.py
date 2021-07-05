@@ -245,7 +245,7 @@ def get_recommend_news(userId: str, type: str, curPage: str, pageSize: str):
     news_recommend_list = httpResp.json()
     logging.info('new_recommend_list {}'.format(news_recommend_list))
 
-    # refresh_user_click_data(user_id, news_recommend_list, '1', recommend_type, 'news')
+    refresh_user_click_data(user_id, news_recommend_list, '1', recommend_type, 'news')
 
     retrieve_response = generate_news_retrieve_response(news_recommend_list)
     
