@@ -106,7 +106,7 @@ def personalize_get_recommendations(user_id: str):
     for item in item_list:
         data = {
             'id': item['itemId'],
-            'tags': 'recommend'
+            'tags': ['recommend']
         }
         recommendation_list.append(data)
     return recommendation_list

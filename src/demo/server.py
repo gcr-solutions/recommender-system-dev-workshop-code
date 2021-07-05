@@ -241,7 +241,8 @@ def get_recommend_news(userId: str, type: str, curPage: str, pageSize: str):
         return response_failed({
             "message": "Not support news type"
         }, 400)
-    news_recommend_list = httpResp.json()['content']
+    #news_recommend_list = httpResp.json()['content']
+    news_recommend_list = httpResp.json()
     logging.info('new_recommend_list {}'.format(news_recommend_list))
 
     # refresh_user_click_data(user_id, news_recommend_list, '1', recommend_type, 'news')
