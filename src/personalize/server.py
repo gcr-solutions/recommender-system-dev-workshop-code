@@ -20,17 +20,12 @@ app = FastAPI()
 MANDATORY_ENV_VARS = {
     'REDIS_HOST': 'localhost',
     'REDIS_PORT': 6379,
-    'PERSONALIZE_PORT': 6500
+    'PERSONALIZE_PORT': 6500,
+    'AWS_REGION': 'ap-northeast-1'
 }
 
 #Notice channel
 sleep_interval = 10 #second
-
-#建立连接
-personalize = boto3.client('personalize')
-personalize_runtime = boto3.client('personalize-runtime')
-personalize_events = boto3.client(service_name='personalize-events')
-
 
 def xasync(f):
     def wrapper(*args, **kwargs):
@@ -155,6 +150,16 @@ def init():
             logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
             MANDATORY_ENV_VARS[var] = os.environ.get(var)
+
+    aws_region = MANDATORY_ENV_VARS['AWS_REGION']
+    # 建立连接
+    global personalize
+    global personalize_runtime
+    global personalize_events
+    personalize = boto3.client('personalize', aws_region)
+    personalize_runtime = boto3.client('personalize-runtime', aws_region)
+    personalize_events = boto3.client(service_name='personalize-events', aws_region)
+
 
     global dataset_group_arn
     dataset_group_arn = get_dataset_group_arn()
