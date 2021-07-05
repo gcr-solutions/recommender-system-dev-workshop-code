@@ -312,6 +312,7 @@ def click_post(clickRequest: ClickRequest):
     logging.info("send request to personalize, response:{}".format(response))
 
 
+
     logging.info("---------time after recall:")
     logging.info(datetime.datetime.now())
     return response_success({
