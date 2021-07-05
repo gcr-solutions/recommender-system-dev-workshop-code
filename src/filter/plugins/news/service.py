@@ -506,7 +506,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                     count = count + 1
                     sort_type_count = sort_type_count + 1
                 if try_count > 3 * count:
-      #              logging.error(
+                    logging.error(
                         "fail to find enough candidate, need to find {} but only find {}".format(news_lacking_count,
                                                                                                         count))
                     break
