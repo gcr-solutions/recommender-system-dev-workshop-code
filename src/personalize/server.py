@@ -58,7 +58,7 @@ def ping():
 
 session_dict = {}
 @app.post("/personalize/click", tags=["personalize_click"])
-def personalize_click(user_id: str, item_id: int, event_type: str):
+def personalize_click(user_id: str, item_id: str, event_type: str):
     #     try:
     #         session_ID = session_dict[str(user_id)]
     #     except:
@@ -74,12 +74,12 @@ def personalize_click(user_id: str, item_id: int, event_type: str):
 
     response = personalize_events.put_events(
         trackingId=tracking_id,
-        userId=str(user_id),
+        userId=user_id,
         sessionId=session_ID,
         eventList=[{
             'sentAt': int(time.time()),
-            'eventType': str(event_type),
-            'itemId': str(item_id)
+            'eventType': event_type,
+            'itemId': item_id
         }]
     )
 
