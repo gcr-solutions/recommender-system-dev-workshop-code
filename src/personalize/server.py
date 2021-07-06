@@ -143,7 +143,7 @@ def personalize_get_recommendations(user_id: str,curPage: int = 0, pageSize: int
     #     }
     #     recommendation_list.append(data)
 
-    it_list = [RSItem(id=str(it['itemId']), description='test description', tags='recommend') for it in item_list]
+    it_list = [RSItem(id=str(it['itemId']), description='test description', tags=['recommend']) for it in item_list]
     it_list_paged = it_list[curPage * pageSize: (curPage + 1) * pageSize]
     total_page = math.ceil(len(it_list) / pageSize)
 
