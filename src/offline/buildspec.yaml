@@ -26,9 +26,7 @@ phases:
     commands:
       - echo Build started on `date`
       - export AWS_REGION=$AWS_DEFAULT_REGION
-      - cd $CODEBUILD_SRC_DIR/src/offline/lambda
-      - ./build.sh $Stage
-      - cd $CODEBUILD_SRC_DIR/src/offline/news
+      - cd $CODEBUILD_SRC_DIR/src/offline/
       - ./build.sh $Stage
       - echo "--------------------------------------------------------------------------------"
   post_build:
