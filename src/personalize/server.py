@@ -1,3 +1,6 @@
+import math
+from typing import List
+
 import uvicorn
 from fastapi import FastAPI
 # import grpc
@@ -26,10 +29,30 @@ MANDATORY_ENV_VARS = {
     'AWS_REGION': 'ap-northeast-1'
 }
 
+class Metadata(BaseModel):
+    type: str
+
 class ClickPersonalizeRequest(BaseModel):
     user_id: str
     item_id: str
     event_type: str
+
+class RSItem(BaseModel):
+    id: str
+    tags: List[str]
+    description: str
+
+class Pagination(BaseModel):
+    curPage: int
+    pageSize: int
+    totalSize: int
+    totalPage: int
+
+class RecommendList(BaseModel):
+    version: int = 1
+    metadata: Metadata
+    content: List[RSItem]
+    pagination: Pagination
 
 #Notice channel
 sleep_interval = 10 #second
@@ -102,7 +125,7 @@ def personalize_click(clickPersonalizeRequest: ClickPersonalizeRequest):
 
 
 @app.get("/personalize/retrieve", tags=["personalize_retrieve"])
-def personalize_get_recommendations(user_id: str):
+def personalize_get_recommendations(user_id: str,curPage: int = 0, pageSize: int = 10):
 
     # 为该用户获得推荐
     get_recommendations_response = personalize_runtime.get_recommendations(
@@ -112,14 +135,30 @@ def personalize_get_recommendations(user_id: str):
 
     # 为推荐列表构建新的 Dataframe
     item_list = get_recommendations_response['itemList']
-    recommendation_list = []
-    for item in item_list:
-        data = {
-            'id': item['itemId'],
-            'tags': ['recommend']
-        }
-        recommendation_list.append(data)
-    return recommendation_list
+    # recommendation_list = []
+    # for item in item_list:
+    #     data = {
+    #         'id': item['itemId'],
+    #         'tags': ['recommend']
+    #     }
+    #     recommendation_list.append(data)
+
+    it_list = [RSItem(id=str(it['itemId']), description='test description', tags='recommend') for it in item_list]
+    it_list_paged = it_list[curPage * pageSize: (curPage + 1) * pageSize]
+    total_page = math.ceil(len(it_list) / pageSize)
+
+    content = it_list_paged
+    pagination = Pagination(curPage=curPage, pageSize=pageSize,
+                            totalSize=len(it_list),
+                            totalPage=total_page)
+
+    rs_list = RecommendList(
+        metadata=Metadata(type="RecommendList"),
+        content=content,
+        pagination=pagination
+    )
+
+    return rs_list
 
 
 def get_dataset_group_arn():

@@ -225,14 +225,16 @@ def get_recommend_news(userId: str, type: str, curPage: str, pageSize: str):
     
     logging.info("---------time before trigger retrieve:")
     logging.info(datetime.datetime.now())
-    
-    httpResp = requests.get(MANDATORY_ENV_VARS['RETRIEVE_SERVICE_ENDPOINT'] +
+
+    if recommend_type == 'recommend':
+        logging.info("---------personalize recommend---------------:")
+        req_url=MANDATORY_ENV_VARS['PERSONALIZE_SERVICE_ENDPOINT'] + '/personalize/retrieve?user_id={}'.format(user_id)
+        httpResp = requests.get(req_url)
+
+    else:
+        httpResp = requests.get(MANDATORY_ENV_VARS['RETRIEVE_SERVICE_ENDPOINT'] +
                             '/api/v1/retrieve/'+user_id+'?recommendType='+recommend_type)
 
-
-    # logging.info("---------personalize recommend---------------:")
-    # req_url=MANDATORY_ENV_VARS['PERSONALIZE_SERVICE_ENDPOINT'] + '/personalize/retrieve?user_id={}'.format(user_id)
-    # httpResp = requests.get(req_url)
 
     logging.info("---------time after trigger retrieve:")
     logging.info(datetime.datetime.now())
@@ -242,7 +244,6 @@ def get_recommend_news(userId: str, type: str, curPage: str, pageSize: str):
             "message": "Not support news type"
         }, 400)
     news_recommend_list = httpResp.json()['content']
-    #news_recommend_list = httpResp.json()
     logging.info('new_recommend_list {}'.format(news_recommend_list))
 
     refresh_user_click_data(user_id, news_recommend_list, '1', recommend_type, 'news')
