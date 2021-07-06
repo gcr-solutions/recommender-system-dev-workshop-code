@@ -33,6 +33,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
+echo "REGION: $REGION"
 
 sleep 5
 
