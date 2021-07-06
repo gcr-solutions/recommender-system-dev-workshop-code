@@ -67,10 +67,16 @@ if [[ $? -ne 0 ]]; then
 fi
 
 echo "Copy complete_dkn_word_embedding.npy ..."
-
 s3_file_complete_dkn_word_embedding=s3://aws-gcr-rs-sol-workshop-ap-northeast-1-common/dkn_embedding_latest/complete_dkn_word_embedding.npy
+
+if [[ $REGION =~ ^cn.* ]]; then
+  wget https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/dkn_embedding_latest/complete_dkn_word_embedding.npy
+  s3_file_complete_dkn_word_embedding="./complete_dkn_word_embedding.npy"
+fi
+
 $AWS_CMD s3 cp ${s3_file_complete_dkn_word_embedding} \
 s3://${BUCKET_BUILD}/${PREFIX}/model/rank/content/dkn_embedding_latest/complete_dkn_word_embedding.npy  --acl bucket-owner-full-control
+
 
 if [[ $? -ne 0 ]]; then
       Error_print "error!!! Copy $s3_file_complete_dkn_word_embedding"
