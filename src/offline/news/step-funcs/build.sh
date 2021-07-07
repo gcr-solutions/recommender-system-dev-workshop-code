@@ -61,7 +61,7 @@ do
     echo "template_file: ${template_file}"
     if [[ $name =~ ^(steps|item-new-assembled)$ && $REGION =~ ^cn.* ]]; then
       org_template_file=${template_file}
-      sed 's#.amazonaws.com/#.amazonaws.com.cn/#g' ${template_file} > tmp_1_${org_template_file}
+      sed 's#.amazonaws.com#.amazonaws.com.cn#g' ${template_file} > tmp_1_${org_template_file}
       sed 's#522244679887.dkr.ecr.ap-northeast-1#'${AWS_ACCOUNT_ID}'.dkr.ecr.'${REGION}'#g' tmp_1_${org_template_file}  > tmp_2_${org_template_file}
       template_file=tmp_2_${org_template_file}
       echo "changed template_file: ${template_file}"
