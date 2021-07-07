@@ -24,7 +24,7 @@ resources:
 images:
 - name: rs/demo
   newName: 466154167985.dkr.ecr.ap-northeast-1.amazonaws.com/rs/demo
-  newTag: cd6a3e68732775fa0070bda7b9c92cc3a23079a5
+  newTag: decca082824a0c24356113945a7b8baa6e18f65e
 - name: rs/event
   newName: 466154167985.dkr.ecr.ap-northeast-1.amazonaws.com/rs/event
   newTag: 26edea606f182e289c1a6fc7394a35209a052b86
