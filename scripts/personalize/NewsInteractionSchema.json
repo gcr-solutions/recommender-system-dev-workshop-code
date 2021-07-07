@@ -14,10 +14,6 @@
       {
           "name": "TIMESTAMP",
           "type": "long"
-      },
-      {
-	        "name": "EVENT_TYPE",
-	        "type": "string"
       }
   ],
   "version": "1.0"

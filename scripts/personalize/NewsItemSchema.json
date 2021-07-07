@@ -9,7 +9,8 @@
     },
     {
       "name": "CATEGORY",
-      "type": "string"
+      "type": "string",
+      "categorical": true
     },
     {
       "name": "KEYWORD",

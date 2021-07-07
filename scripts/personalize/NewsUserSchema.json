@@ -8,14 +8,6 @@
           "type": "string"
       },
       {
-          "name": "USER_NAME",
-          "type": "string"
-      },
-      {
-          "name": "TIMESTAMP",
-          "type": "long"
-      },
-      {
           "name": "GENDER",
           "type": "string",
           "categorical": true
