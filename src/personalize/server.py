@@ -37,6 +37,10 @@ class ClickPersonalizeRequest(BaseModel):
     item_id: str
     event_type: str
 
+class RerankRequest(BaseModel):
+    user_id: str
+    item_list: List[str]
+
 class RSItem(BaseModel):
     id: str
     tags: List[str]
@@ -121,7 +125,22 @@ def personalize_click(clickPersonalizeRequest: ClickPersonalizeRequest):
 
 
 
+@app.post("/personalize/rerank", tags=["personalize_rerank"])
+def personalize_rerank(rerankRequest: RerankRequest):
+    user_id = rerankRequest.user_id
+    item_list = rerankRequest.item_list
 
+    logging.info("send get_personalized_ranking to aws personalize...")
+    response = personalize_runtime.get_personalized_ranking(
+        campaignArn=ranking_campaign_arn,
+        inputList=item_list,
+        userId=user_id
+    )
+    rank_list = response['personalizedRanking']
+    presults = {}
+    for rank_item in rank_list:
+        presults[rank_item['itemId']] = rank_item['score']
+    return presults
 
 
 @app.get("/personalize/retrieve", tags=["personalize_retrieve"])
@@ -164,6 +183,20 @@ def personalize_get_recommendations(user_id: str,curPage: int = 0, pageSize: int
 def get_dataset_group_arn():
     response = personalize.list_dataset_groups()
     return response["datasetGroups"][0]["datasetGroupArn"]
+
+def get_ranking_campaign_arn():
+    solution_arn = ''
+    response = personalize.list_solutions(
+        datasetGroupArn=dataset_group_arn
+    )
+    for solution in response["solutions"]:
+        if solution['name'] == 'rankingSolution':
+            solution_arn = solution["solutionArn"]
+
+    response = personalize.list_campaigns(
+        solutionArn=solution_arn
+    )
+    return response["campaigns"][0]["campaignArn"]
 
 
 def get_userpersonalization_campaign_arn():
@@ -221,6 +254,9 @@ def init():
 
     global userpersonalization_campaign_arn
     userpersonalization_campaign_arn = get_userpersonalization_campaign_arn()
+
+    global ranking_campaign_arn
+    ranking_campaign_arn = get_ranking_campaign_arn()
 
     global event_tracker_arn
     event_tracker_arn = get_event_tracker_arn()
