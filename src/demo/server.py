@@ -226,13 +226,13 @@ def get_recommend_news(userId: str, type: str, curPage: str, pageSize: str):
     logging.info("---------time before trigger retrieve:")
     logging.info(datetime.datetime.now())
 
-    if recommend_type == 'recommend':
-        logging.info("---------personalize recommend---------------:")
-        req_url=MANDATORY_ENV_VARS['PERSONALIZE_SERVICE_ENDPOINT'] + '/personalize/retrieve?user_id={}'.format(user_id)
-        httpResp = requests.get(req_url)
-
-    else:
-        httpResp = requests.get(MANDATORY_ENV_VARS['RETRIEVE_SERVICE_ENDPOINT'] +
+    # if recommend_type == 'recommend':
+    #     logging.info("---------personalize recommend---------------:")
+    #     req_url=MANDATORY_ENV_VARS['PERSONALIZE_SERVICE_ENDPOINT'] + '/personalize/retrieve?user_id={}'.format(user_id)
+    #     httpResp = requests.get(req_url)
+    #
+    # else:
+    httpResp = requests.get(MANDATORY_ENV_VARS['RETRIEVE_SERVICE_ENDPOINT'] +
                             '/api/v1/retrieve/'+user_id+'?recommendType='+recommend_type)
 
 
