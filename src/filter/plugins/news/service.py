@@ -734,10 +734,10 @@ class Filter(service_pb2_grpc.FilterServicer):
                 # 构建recall_score
                 recall_score = round(recall_property[3], 2)
                 # 构建rank_type
-                rank_pos = str(self.get_dict_pos(str(recall_id), dict_rank_result[str(user_id)]))
-                rank_type = self.mt_construct(run_timing, 'dkn', rank_pos)
+                rank_pos = str(self.get_dict_pos(str(recall_id), dict_rank_result['data'][str(user_id)]))
+                rank_type = self.mt_construct(run_timing, dict_rank_result['model'], rank_pos)
                 # 构建rank_score
-                rank_score = round(float(dict_rank_result[str(user_id)][str(recall_id)]), 2)
+                rank_score = round(float(dict_rank_result['data'][str(user_id)][str(recall_id)]), 2)
                 # 构建filter_type
                 filter_type = self.mt_construct(run_timing, tRecommend, 'TBD')
                 # 构建filter_score
@@ -761,6 +761,7 @@ class Filter(service_pb2_grpc.FilterServicer):
             update_user_result = self.category_diversity_logic(current_user_result, current_diversity_result, self.news_type_news_ids_dict,
                                                         self.filter_config)
             dict_filter_result[str(user_id)] = update_user_result
+            logging.info("--------------dict_filter_result:{}".format(dict_filter_result))
         return dict_filter_result
 
     def generate_new_filter_record_old(self, current_filter_record, recall_result, rank_result, user_portrait):
