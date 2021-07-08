@@ -143,6 +143,7 @@ def read_stream_messages():
     read_embedding_message()
     read_pickle_message()
 
+
 def get_rank_from_personalize(user_id, item_list):
     logging.info("send rank request to personalize...")
     headers = {'Content-type': 'application/json'}
