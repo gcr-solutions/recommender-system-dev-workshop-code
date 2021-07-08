@@ -48,10 +48,10 @@ images:
   newTag: latest
 - name: rs/rank
   newName: 466154167985.dkr.ecr.ap-northeast-1.amazonaws.com/rs/rank
-  newTag: 860aeb11cec306672f7146e38d290dcc7e600c12
+  newTag: 7eee87b8acd9793f70cd192dc05a0550085a8f16
 - name: rs/rank-plugin
   newName: 466154167985.dkr.ecr.ap-northeast-1.amazonaws.com/rs/rank-plugin
-  newTag: news-860aeb11cec306672f7146e38d290dcc7e600c12
+  newTag: news-7eee87b8acd9793f70cd192dc05a0550085a8f16
 - name: rs/recall
   newName: 466154167985.dkr.ecr.ap-northeast-1.amazonaws.com/rs/recall
   newTag: d6519af531d6c95df773bd123583edc7511ce44d
