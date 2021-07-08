@@ -98,11 +98,11 @@ def poll_recall_notice_to_rank():
                     presults = get_rank_from_personalize(user_id, item_list)
                     if presults:
                         logging.info("------------get rank from personalize success: {}".format(presults))
-                        # rCache.rpush_data_into_list(rank_notice_to_filter, json.dumps({
-                        #     'user_id': user_id,
-                        #     'recall_result': recall_result,
-                        #     'rank_result': presults
-                        # }).encode('utf-8'))
+                        rCache.rpush_data_into_list(rank_notice_to_filter, json.dumps({
+                            'user_id': user_id,
+                            'recall_result': recall_result,
+                            'rank_result': presults
+                        }).encode('utf-8'))
                         continue
                     else:
                         logging.info("-------------get rank from personalize failed, use dkn instead.")
@@ -142,7 +142,6 @@ def read_stream_messages():
     read_action_model_message()
     read_embedding_message()
     read_pickle_message()
-
 
 def get_rank_from_personalize(user_id, item_list):
     logging.info("send rank request to personalize...")
