@@ -734,10 +734,10 @@ class Filter(service_pb2_grpc.FilterServicer):
                 # 构建recall_score
                 recall_score = round(recall_property[3], 2)
                 # 构建rank_type
-                rank_pos = str(self.get_dict_pos(str(recall_id), dict_rank_result['data'][str(user_id)]))
-                rank_type = self.mt_construct(run_timing, dict_rank_result['model'], rank_pos)
+                rank_pos = str(self.get_dict_pos(str(recall_id), dict_rank_result[str(user_id)]['data']))
+                rank_type = self.mt_construct(run_timing, dict_rank_result[str(user_id)]['model'], rank_pos)
                 # 构建rank_score
-                rank_score = round(float(dict_rank_result['data'][str(user_id)][str(recall_id)]), 2)
+                rank_score = round(float(dict_rank_result[str(user_id)]['data'][str(recall_id)]), 2)
                 # 构建filter_type
                 filter_type = self.mt_construct(run_timing, tRecommend, 'TBD')
                 # 构建filter_score
