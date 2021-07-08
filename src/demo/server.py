@@ -73,7 +73,8 @@ MANDATORY_ENV_VARS = {
     'CLICK_RECORD_BUCKET': 'gcr-rs-ops-ap-southeast-1-522244679887',
     'CLICK_RECORD_FILE_PATH': 'system/ingest-data/action/',
     'USER_RECORD_FILE_PATH': 'system/ingest-data/user/',
-    'TEST': ''
+    'TEST': '',
+    'USE_AWS_PERSONALIZE': False
 }
 
 REDIS_KEY_USER_ID_CLICK_DICT = 'user_id_click_dict'
@@ -303,14 +304,14 @@ def click_post(clickRequest: ClickRequest):
     logging.info(datetime.datetime.now())
     click_hist_to_recall(user_id, item_id, user_click_count)
 
-    logging.info("------------send req to personalize-----------")
-    req_url = MANDATORY_ENV_VARS['PERSONALIZE_SERVICE_ENDPOINT'] + '/personalize/click'
-    response = send_post_request(req_url, {
-        'user_id': user_id,
-        'item_id': item_id,
-        'event_type': "1"
-    })
-    logging.info("send request to personalize, response:{}".format(response))
+    if MANDATORY_ENV_VARS['USE_AWS_PERSONALIZE']:
+        logging.info("------------send req to personalize-----------")
+        req_url = MANDATORY_ENV_VARS['PERSONALIZE_SERVICE_ENDPOINT'] + '/personalize/click'
+        response = send_post_request(req_url, {
+            'user_id': user_id,
+            'item_id': item_id,
+        })
+        logging.info("send request to personalize, response:{}".format(response))
 
 
 

@@ -94,14 +94,15 @@ def poll_recall_notice_to_rank():
 
                 if MANDATORY_ENV_VARS['use_personalize_ranking']:
                     item_list = [str(int(recall_item)) for recall_item in recall_result]
+                    logging.info("item_list: {}".format(item_list))
                     presults = get_rank_from_personalize(user_id, item_list)
                     if presults:
                         logging.info("------------get rank from personalize success: {}".format(presults))
-                        rCache.rpush_data_into_list(rank_notice_to_filter, json.dumps({
-                            'user_id': user_id,
-                            'recall_result': recall_result,
-                            'rank_result': presults
-                        }).encode('utf-8'))
+                        # rCache.rpush_data_into_list(rank_notice_to_filter, json.dumps({
+                        #     'user_id': user_id,
+                        #     'recall_result': recall_result,
+                        #     'rank_result': presults
+                        # }).encode('utf-8'))
                         continue
                     else:
                         logging.info("-------------get rank from personalize failed, use dkn instead.")
