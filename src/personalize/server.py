@@ -162,7 +162,7 @@ def get_campaign_arn():
     campaigns = personalize.list_campaigns(
         solutionArn=solution_arn
     )
-    for campaign in campaigns[""]:
+    for campaign in campaigns["campaigns"]:
         if campaign["name"] == MANDATORY_ENV_VARS['PERSONALIZE_CAMPAIGN']:
             logging.info("Campaign Arn:{}".format(campaign["campaignArn"]))
             return campaign["campaignArn"]
