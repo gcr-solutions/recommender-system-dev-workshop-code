@@ -194,7 +194,7 @@ class Filter(service_pb2_grpc.FilterServicer):
 
         filter_result = self.generate_filter_result(user_id, recall_result, rank_result)
 
-        logging.info("filter result {}".format(rank_result))
+        logging.info("filter result {}".format(filter_result))
 
         filterProcessResponseValue = {
             'user_id': user_id,
