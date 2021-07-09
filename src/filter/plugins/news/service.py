@@ -45,7 +45,8 @@ MANDATORY_ENV_VARS = {
     'COLDSTART_NEWS_COUNT': 100,
     'RECOMMEND_ITEM_COUNT': 20,
     'DUPLICATE_INTERVAL': 10, #min
-    'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300'
+    'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300',
+    'RANK_MODEL': 'personalize'
 }
 
 user_id_filter_dict='user_id_filter_dict'
@@ -497,7 +498,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                     else:
                         complement_news_recommend_list.append({
                             'id': news_id,
-                            'tag': tRecommend,
+                            'tag': "{} {}".format(tRecommend, MANDATORY_ENV_VARS['RANK_MODEL']),
                             'description': "completion|{}".format(sort_type[sort_type_count])
                         })
                     complement_present_recommend_news_id_list.append(news_id)
@@ -551,7 +552,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                 present_recommend_news_id_list.append(news_id)
                 news_list.append({
                     'id': news_id,
-                    'tag': tRecommend,
+                    'tag': "{} {}".format(tRecommend, MANDATORY_ENV_VARS['RANK_MODEL']),
                     'description': "online_hot_topic|{}".format(hot_topic_type[0])
                 })
                 count = count + 1
@@ -748,7 +749,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                                                             filter_score)
                 current_user_result[str(recall_id)] = []
                 current_user_result[str(recall_id)].append(str(recall_id))
-                current_user_result[str(recall_id)].append(tRecommend)
+                current_user_result[str(recall_id)].append("{} {}".format(tRecommend, dict_rank_result[str(user_id)]['model']))
                 current_user_result[str(recall_id)].append(filter_score)
                 current_user_result[str(recall_id)].append(recommend_trace)
                 # 更新多样性统计
