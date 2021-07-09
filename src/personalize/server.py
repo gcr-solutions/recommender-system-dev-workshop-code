@@ -31,7 +31,6 @@ class Metadata(BaseModel):
 class ClickPersonalizeRequest(BaseModel):
     user_id: str
     item_id: str
-    event_type: str
 
 class RerankRequest(BaseModel):
     user_id: str
