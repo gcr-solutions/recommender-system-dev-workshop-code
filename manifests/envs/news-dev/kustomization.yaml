@@ -39,7 +39,7 @@ images:
   newTag: latest
 - name: rs/personalize
   newName: 466154167985.dkr.ecr.ap-northeast-1.amazonaws.com/rs/personalize
-  newTag: 0739c833c00eb7d3e1e88fc99ea9f41b375cc03d
+  newTag: 84d9792c34c40efb7ea9ce80e6fba9edbb7386e4
 - name: rs/portrait
   newName: public.ecr.aws/t8u1z3c8/rs/portrait
   newTag: latest
