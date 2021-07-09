@@ -74,7 +74,7 @@ MANDATORY_ENV_VARS = {
     'CLICK_RECORD_FILE_PATH': 'system/ingest-data/action/',
     'USER_RECORD_FILE_PATH': 'system/ingest-data/user/',
     'TEST': '',
-    'USE_AWS_PERSONALIZE': True
+    'USE_AWS_PERSONALIZE': False
 }
 
 REDIS_KEY_USER_ID_CLICK_DICT = 'user_id_click_dict'
