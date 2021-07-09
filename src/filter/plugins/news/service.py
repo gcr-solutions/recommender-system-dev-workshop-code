@@ -47,6 +47,7 @@ MANDATORY_ENV_VARS = {
     'DUPLICATE_INTERVAL': 10, #min
     'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300',
     'RANK_MODEL': 'dkn'
+
 }
 
 user_id_filter_dict='user_id_filter_dict'
