@@ -261,7 +261,7 @@ class Rank(service_pb2_grpc.RankServicer):
         rank_list = response['personalizedRanking']
         rank_result = {}
         for rank_item in rank_list:
-            rank_result[rank_item['itemId']] = rank_item['score']
+            rank_result[rank_item['itemId']] = rank_item['score'] * 100
 
         rank_summary = {'model': 'personalize', 'data': rank_result}
         return rank_summary
