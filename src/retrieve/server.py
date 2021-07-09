@@ -11,6 +11,12 @@ from fastapi.exceptions import RequestValidationError
 from pydantic.main import BaseModel
 from starlette.responses import JSONResponse
 
+import service_pb2
+import service_pb2_grpc
+from google.protobuf import any_pb2
+import grpc
+import json
+
 import datetime
 
 app = FastAPI()
@@ -22,7 +28,8 @@ MANDATORY_ENV_VARS = {
     'RETRIEVE_PORT': '5600',
     'FILTER_HOST': 'filter',
     'FILTER_PORT': '5200',
-    'TEST': 'False'
+    'TEST': 'False',
+    'USE_PERSONALIZE_PLUGIN': 'True'
 }
 
 
@@ -117,6 +124,38 @@ def ping():
 def retrieve_get_v2(user_id: str, curPage: int = 0, pageSize: int = 20, regionId=Header("0"), recommendType: str = 'recommend'):
     logging.info("retrieve_get_v2() enter")
 
+    if MANDATORY_ENV_VARS['USE_PERSONALIZE_PLUGIN'] == "True" and recommendType == 'recommend':
+        request = any_pb2.Any()
+        request.value = json.dumps({
+            'user_id': user_id
+        }).encode('utf-8')
+        logging.info('Invoke personalize plugin to get recommend data...')
+        getRecommendDataRequest = service_pb2.GetRecommendDataRequest(apiVersion='v1', metadata='Retrieve',
+                                                                type='RecommendResult')
+        getRecommendDataRequest.requestBody.Pack(request)
+        channel = grpc.insecure_channel('localhost:50051')
+        stub = service_pb2_grpc.RetrieveStub(channel)
+        response = stub.GetRecommendData(getRecommendDataRequest)
+
+        results = any_pb2.Any()
+        response.results.Unpack(results)
+        resultJson = json.loads(results.value, encoding='utf-8')
+        logging.info("-------------------get result from personalize plugin:{}".format(resultJson))
+        # if response.code == 0:
+        #     return {
+        #         'code': response.code,
+        #         'description': response.description,
+        #         'data': resultJson['data']
+        #     }
+        # else:
+        #     return {
+        #         'code': -1,
+        #         'description': 'failed to get recommend data',
+        #         'data': ''
+        #     }
+
+    #else:
+    logging.info('send request to filter to get recommend data...')
     host = MANDATORY_ENV_VARS['FILTER_HOST']
     port = MANDATORY_ENV_VARS['FILTER_PORT']
 

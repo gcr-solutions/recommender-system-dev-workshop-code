@@ -4,6 +4,8 @@ env:
   variables:
     APP_NAME: "retrieve"
     SCENARIOS: "news"
+    RANK_MODEL: "personalize"
+    PLUGIN_NAME: "personalize-plugin"
 
   secrets-manager:
     GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
@@ -36,6 +38,16 @@ phases:
               --image-scanning-configuration scanOnPush=true \
               --region $AWS_DEFAULT_REGION || true
             echo "--------------------------------------------------------------------------------"
+          - |
+            echo "-------------------pre_build plugin---------------------------------------------"
+            PLUGIN_IMAGE=rs/$PLUGIN_NAME
+            PLUGIN_REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$PLUGIN_IMAGE
+            aws ecr create-repository \
+              --repository-name $PLUGIN_IMAGE \
+              --image-scanning-configuration scanOnPush=true \
+              --region $AWS_DEFAULT_REGION || true
+            echo "--------------------------------------------------------------------------------"
+
     build:
         commands:
           - echo Build started on `date`
@@ -48,6 +60,19 @@ phases:
             echo Tagging $APP_REPOSITORY_URI:$IMAGE_TAG...
             docker tag $APP_IMAGE:$IMAGE_TAG $APP_REPOSITORY_URI:$IMAGE_TAG
             echo "--------------------------------------------------------------------------------"
+          - |
+            echo "------------------build plugin--------------------------------------------------"
+            set -e
+            echo "start build plugin" $RANK_MODEL
+            cd $CODEBUILD_SRC_DIR/src/$APP_NAME/plugins/$RANK_MODEL
+            echo Building $PLUGIN_IMAGE:$RANK_MODEL-$IMAGE_TAG
+            cp -r ../../pb .
+            docker build . -t $PLUGIN_IMAGE:$RANK_MODEL-$IMAGE_TAG
+            echo Tagging $PLUGIN_REPOSITORY_URI:$RANK_MODEL-$IMAGE_TAG...
+            docker tag $PLUGIN_IMAGE:$RANK_MODEL-$IMAGE_TAG $PLUGIN_REPOSITORY_URI:$RANK_MODEL-$IMAGE_TAG
+            echo "build plugin " $RANK_MODEL "end"
+            done
+            echo "------------------build plugin end--------------------------------------------------"
 
     post_build:
         commands:
@@ -55,6 +80,11 @@ phases:
           - |
             echo "------------------push app image------------------------------------------------"
             docker push $APP_REPOSITORY_URI:$IMAGE_TAG
+            echo "--------------------------------------------------------------------------------"
+          - |
+            echo "------------------push plugin image---------------------------------------------"
+            echo "push " $RANK_MODEL
+            docker push $PLUGIN_REPOSITORY_URI:$RANK_MODEL-$IMAGE_TAG
             echo "--------------------------------------------------------------------------------"
 
           - cd; mkdir workspace; cd workspace 
