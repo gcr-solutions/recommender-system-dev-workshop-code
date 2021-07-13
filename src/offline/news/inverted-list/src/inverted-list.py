@@ -226,6 +226,8 @@ def get_tfidf(category_property):
     value = [item.strip() for item in category_property.split(',')]
     keywords_tfidf = {}
     for keyword in value:
+        if keyword not in dict_keywords_id:
+            continue
         current_score = 1 / \
             len(value)*math.log(n_keyword_whole /
                                 len(dict_keywords_id[keyword]))

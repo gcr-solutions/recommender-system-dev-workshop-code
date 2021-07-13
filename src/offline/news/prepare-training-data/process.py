@@ -5,8 +5,8 @@ import pickle
 import boto3
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, size, row_number, expr, array_join
-from pyspark.sql.types import StructType, StructField, StringType
-from pyspark.sql.window import Window
+from pyspark.sql.types import StructType, StructField, StringType, ArrayType
+import pyspark.sql.functions as F
 
 
 def list_s3_by_prefix(bucket, prefix, filter_func=None):
@@ -70,6 +70,25 @@ output_action_val_key = "{}/system/action-data/action_val.csv".format(prefix)
 
 print("input_action_file:", input_action_file)
 
+K_STEPS = 100
+
+class UdfFunction:
+    @staticmethod
+    def sortF(item_list, timestamp_list):
+        """
+        sort by time and return the corresponding item sequence
+        eg:
+            input: item_list:[1,2,3]
+                   timestamp_list:[1112486027,1212546032,1012486033]
+            return [3,1,2]
+        """
+        pairs = []
+        for m, t in zip(item_list, timestamp_list):
+            pairs.append((m, t))
+        # sort by time
+        pairs = sorted(pairs, key=lambda x: x[1])
+        return [x[0] for x in pairs]
+
 
 def sync_s3(file_name_list, s3_folder, local_folder):
     for f in file_name_list:
@@ -80,11 +99,15 @@ def sync_s3(file_name_list, s3_folder, local_folder):
 
 
 def gen_train_dataset(train_dataset_join):
+    sortUdf = F.udf(UdfFunction.sortF, ArrayType(StringType()))
     train_clicked_entities_words_arr_df = train_dataset_join.where(col("action_value") == "1") \
-        .orderBy("timestamp_num") \
         .groupby('user_id') \
-        .agg(expr("collect_list(entities) as entities_arr"),
-             expr("collect_list(entities) as words_arr"))
+        .agg(sortUdf(F.collect_list("entities"),
+                     F.collect_list("timestamp")).alias('entities_arr'),
+             sortUdf(F.collect_list("words"),
+                     F.collect_list("timestamp")).alias('words_arr'),
+             F.max(F.col("timestamp")).alias("timestamp")
+             )
     train_entities_words_df = train_clicked_entities_words_arr_df \
         .withColumn("clicked_entities",
                     array_join(col('entities_arr'), "-")) \
@@ -93,7 +116,7 @@ def gen_train_dataset(train_dataset_join):
         .drop("entities_arr") \
         .drop("words_arr")
     train_dataset_final = train_dataset_join \
-        .join(train_entities_words_df, on=["user_id"]) \
+        .join(train_entities_words_df, on=["user_id", "timestamp"]) \
         .select(
         "user_id", "words", "entities",
         "action_value", "clicked_words",
@@ -155,10 +178,10 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     df_action_input = df_action_input.selectExpr("split(value, '_!_') as row").where(
         size(col("row")) > 4).selectExpr("row[0] as user_id",
                                          "row[1] as item_id",
-                                         "row[2] as timestamp",
+                                         "cast(row[2] as int) as timestamp",
                                          "row[3] as action_type",
                                          "cast(row[4] as string) as action_value",
-                                         )
+                                         ).dropDuplicates(['user_id', 'item_id', 'timestamp', 'action_type'])
     df_action_input.cache()
     #
     # data for training
@@ -174,18 +197,18 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
         StructField('ml_user_id', StringType(), False),
     ])
 
-    df_feat = spark.createDataFrame(feat_list, schema)
-    df_user_id_map = spark.createDataFrame(user_list, user_map_schema)
+    df_feat = spark.createDataFrame(feat_list, schema).dropDuplicates(['item_id'])
+    df_user_id_map = spark.createDataFrame(user_list, user_map_schema).dropDuplicates(['user_id'])
 
-    window_spec = Window.orderBy('timestamp')
-    timestamp_num = row_number().over(window_spec)
-    df_action_rank = df_action_input.withColumn("timestamp_num", timestamp_num)
-    max_timestamp_num = df_action_rank.selectExpr("max(timestamp_num)").collect()[
-        0]['max(timestamp_num)']
-    max_train_num = int(max_timestamp_num * 0.7)
+    # window_spec = Window.orderBy('timestamp')
+    # timestamp_num = row_number().over(window_spec)
+    # df_action_rank = df_action_input.withColumn("timestamp_num", timestamp_num)
+    max_timestamp, min_timestamp = df_action_input.selectExpr("max(timestamp)", "min(timestamp)").collect()[0]
 
-    train_dataset = df_action_rank.where(col('timestamp_num') <= max_train_num)
-    val_dataset = df_action_rank.where(col('timestamp_num') > max_train_num)
+    max_train_num = int((max_timestamp - min_timestamp) * 0.8) + min_timestamp
+
+    train_dataset = df_action_input.where(col('timestamp') <= max_train_num)
+    val_dataset = df_action_input.where(col('timestamp') > max_train_num)
 
     #
     # gen train dataset
@@ -200,25 +223,16 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     train_dataset_final.coalesce(1).write.mode("overwrite").option(
         "header", "false").option("sep", "\t").csv(emr_s3_train_output)
 
+    #
     # gen val dataset
-
-    df_action_full = df_action_rank
-    df_action_full_join = df_action_full.join(df_feat, on=['item_id'])
-    val_user_df = val_dataset.select("user_id").dropDuplicates(["user_id"])
-    val_dataset_full = df_action_full_join.join(val_user_df, on=["user_id"])
-    val_dataset_clicked = gen_train_dataset(
-        val_dataset_full).drop("action_value")
-    val_dataset_final = val_dataset.join(val_dataset_clicked, on=['item_id', 'user_id', 'timestamp']).select(
-        "user_id", "words", "entities",
-        "action_value", "clicked_words",
-        "clicked_entities", "item_id", "timestamp")
-
+    #
+    val_dataset_join = val_dataset.join(df_feat, on=['item_id'])
+    val_dataset_final = gen_train_dataset(val_dataset_join)
     val_dataset_final = val_dataset_final.join(df_user_id_map, on=["user_id"]).select(
         "ml_user_id", "words", "entities",
         "action_value", "clicked_words",
         "clicked_entities", "item_id", "timestamp"
     )
-
     val_dataset_final.coalesce(1).write.mode("overwrite").option(
         "header", "false").option("sep", "\t").csv(emr_s3_val_output)
 
