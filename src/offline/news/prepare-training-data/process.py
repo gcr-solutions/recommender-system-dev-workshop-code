@@ -6,7 +6,6 @@ import boto3
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, size, row_number, expr, array_join
 from pyspark.sql.types import StructType, StructField, StringType, ArrayType
-from pyspark.sql.window import Window
 import pyspark.sql.functions as F
 
 
@@ -71,6 +70,8 @@ output_action_val_key = "{}/system/action-data/action_val.csv".format(prefix)
 
 print("input_action_file:", input_action_file)
 
+K_STEPS = 100
+
 class UdfFunction:
     @staticmethod
     def sortF(item_list, timestamp_list):
@@ -86,7 +87,7 @@ class UdfFunction:
             pairs.append((m, t))
         # sort by time
         pairs = sorted(pairs, key=lambda x: x[1])
-        return [x[0] for x in pairs][-200:]
+        return [x[0] for x in pairs]
 
 
 def sync_s3(file_name_list, s3_folder, local_folder):
@@ -105,6 +106,7 @@ def gen_train_dataset(train_dataset_join):
                      F.collect_list("timestamp")).alias('entities_arr'),
              sortUdf(F.collect_list("words"),
                      F.collect_list("timestamp")).alias('words_arr'),
+             F.max(F.col("timestamp")).alias("timestamp")
              )
     train_entities_words_df = train_clicked_entities_words_arr_df \
         .withColumn("clicked_entities",
@@ -114,7 +116,7 @@ def gen_train_dataset(train_dataset_join):
         .drop("entities_arr") \
         .drop("words_arr")
     train_dataset_final = train_dataset_join \
-        .join(train_entities_words_df, on=["user_id"]) \
+        .join(train_entities_words_df, on=["user_id", "timestamp"]) \
         .select(
         "user_id", "words", "entities",
         "action_value", "clicked_words",
