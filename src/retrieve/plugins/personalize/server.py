@@ -16,6 +16,7 @@ from google.protobuf import any_pb2
 import grpc
 from grpc_reflection.v1alpha import reflection
 from google.protobuf.any_pb2 import Any
+from concurrent import futures
 
 import service_pb2
 import service_pb2_grpc
@@ -136,3 +137,37 @@ class Retrieve(service_pb2_grpc.RankServicer):
             })
         return item_list
 
+
+def init():
+    # Check out environments
+    for var in MANDATORY_ENV_VARS:
+        if var not in os.environ:
+            logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
+        else:
+            MANDATORY_ENV_VARS[var] = os.environ.get(var)
+
+    # # Initial redis connection
+    # global rCache
+    # rCache = cache.RedisCache(host=MANDATORY_ENV_VARS['REDIS_HOST'], port=MANDATORY_ENV_VARS['REDIS_PORT'])
+
+
+def serve(plugin_name):
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
+    service_pb2_grpc.add_RetrieveServicer_to_server(Retrieve(), server)
+    SERVICE_NAMES = (
+        service_pb2.DESCRIPTOR.services_by_name['Retrieve'].full_name,
+        reflection.SERVICE_NAME,
+    )
+    reflection.enable_server_reflection(SERVICE_NAMES, server)
+    logging.info('Plugin - %s is listening at 50051...', plugin_name)
+    server.add_insecure_port('[::]:50051')
+    logging.info('Plugin - %s is ready to serve...', plugin_name)
+    server.start()
+    server.wait_for_termination()
+
+
+if __name__ == '__main__':
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    print('Retrieve plugin start')
+    init()
+    serve(os.environ.get("PLUGIN_NAME", "default"))
