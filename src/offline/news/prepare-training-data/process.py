@@ -176,7 +176,7 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     df_action_input = df_action_input.selectExpr("split(value, '_!_') as row").where(
         size(col("row")) > 4).selectExpr("row[0] as user_id",
                                          "row[1] as item_id",
-                                         "case(row[2] as int) as timestamp",
+                                         "cast(row[2] as int) as timestamp",
                                          "row[3] as action_type",
                                          "cast(row[4] as string) as action_value",
                                          ).dropDuplicates(['user_id', 'item_id', 'timestamp', 'action_type'])
@@ -201,7 +201,7 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     # window_spec = Window.orderBy('timestamp')
     # timestamp_num = row_number().over(window_spec)
     # df_action_rank = df_action_input.withColumn("timestamp_num", timestamp_num)
-    max_timestamp,  min_timestamp = df_action_input.selectExpr("max(timestamp)", "min(timestamp)").collect()[0]
+    max_timestamp, min_timestamp = df_action_input.selectExpr("max(timestamp)", "min(timestamp)").collect()[0]
 
     max_train_num = int((max_timestamp - min_timestamp) * 0.8) + min_timestamp
 
