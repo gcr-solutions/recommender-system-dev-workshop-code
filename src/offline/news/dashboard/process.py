@@ -281,7 +281,7 @@ with SparkSession.builder.appName("Spark App - item preprocessing").getOrCreate(
 
     df_action_input = spark.read.text(action_input_file)
     df_action_input = df_action_input.selectExpr("split(value, '_!_') as row").where(
-        size(col("row")) > 4).selectExpr("row[0] as user_id",
+        size(col("row")) > 5).selectExpr("row[0] as user_id",
                                          "row[1] as item_id",
                                          "row[2] as timestamp",
                                          "row[3] as action_type",
