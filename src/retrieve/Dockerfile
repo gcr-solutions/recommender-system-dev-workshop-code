@@ -15,7 +15,7 @@ WORKDIR /code
 # copy only the dependencies installation from the 1st stage image
 COPY --from=builder /root/.local/bin /root/.local
 COPY --from=builder /root/.local/lib /root/.local
-COPY --from=builder /root/*_pb2*.py .
+COPY --from=builder /*_pb2*.py ./
 COPY ./ .
 
 

@@ -6,7 +6,6 @@ env:
     SCENARIOS: "news"
     RANK_MODEL: "personalize"
     PLUGIN_NAME: "personalize-plugin"
-
   secrets-manager:
     GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
     ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken
