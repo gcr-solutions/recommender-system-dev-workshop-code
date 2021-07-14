@@ -279,7 +279,7 @@ for user_id, recall_result in dict_recall_result.items():
         if str(recall_id) in dict_id_content:
             current_category = dict_id_content[str(recall_id)]['type']
             for cate in current_category:
-                if cate is not None:
+                if cate is not None and cate in current_diversity_result:
                     current_diversity_result[cate] = current_diversity_result[cate] + 1
         else:
             print("Cannot find user {}, recall_id: {} in dict_id_content".format(
