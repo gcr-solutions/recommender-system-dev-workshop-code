@@ -149,6 +149,8 @@ src/offline/fill_data/todo
 src/offline/fill_data/done
 src/offline/sync_code.sh
 hack//istio-1*
+# avoid access token detected by github
+scripts/setup-rs-system.sh
 
 
 # ui
