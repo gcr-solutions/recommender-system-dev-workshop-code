@@ -70,7 +70,6 @@ phases:
             echo Tagging $PLUGIN_REPOSITORY_URI:$RANK_MODEL-$IMAGE_TAG...
             docker tag $PLUGIN_IMAGE:$RANK_MODEL-$IMAGE_TAG $PLUGIN_REPOSITORY_URI:$RANK_MODEL-$IMAGE_TAG
             echo "build plugin " $RANK_MODEL "end"
-            done
             echo "------------------build plugin end--------------------------------------------------"
 
     post_build:
