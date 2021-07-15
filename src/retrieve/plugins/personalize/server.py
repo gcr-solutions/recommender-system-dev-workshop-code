@@ -29,10 +29,10 @@ MANDATORY_ENV_VARS = {
     'REDIS_PORT': 6379,
     'PERSONALIZE_PORT': 6500,
     'AWS_REGION': 'ap-northeast-1',
-    'PERSONALIZE_DATASET_GROUP': 'GCR-RS-News-Ranking-Dataset-Group',
-    'PERSONALIZE_SOLUTION': 'rankingSolution',
-    'PERSONALIZE_CAMPAIGN': 'gcr-rs-dev-workshop-news-ranking-campaign',
-    'EVENT_TRACKER': 'NewsRankingEventTracker'
+    'PERSONALIZE_DATASET_GROUP': 'GCR-RS-News-Dataset-Group',
+    'PERSONALIZE_SOLUTION': 'userPersonalizeSolution',
+    'PERSONALIZE_CAMPAIGN': 'gcr-rs-dev-workshop-news-userPersonalize-campaign',
+    'EVENT_TRACKER': 'NewsEventTracker'
 }
 
 
