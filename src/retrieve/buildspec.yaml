@@ -4,8 +4,8 @@ env:
   variables:
     APP_NAME: "retrieve"
     SCENARIOS: "news"
-    RANK_MODEL: "personalize"
-    PLUGIN_NAME: "personalize-plugin"
+    PLUGIN_MODEL: "personalize"
+    PLUGIN_NAME: "retrieve-plugin"
   secrets-manager:
     GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
     ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken
@@ -62,15 +62,18 @@ phases:
           - |
             echo "------------------build plugin--------------------------------------------------"
             set -e
-            echo "start build plugin" $RANK_MODEL
-            cd $CODEBUILD_SRC_DIR/src/$APP_NAME/plugins/$RANK_MODEL
-            echo Building $PLUGIN_IMAGE:$RANK_MODEL-$IMAGE_TAG
-            cp -r ../../pb .
-            docker build . -t $PLUGIN_IMAGE:$RANK_MODEL-$IMAGE_TAG
-            echo Tagging $PLUGIN_REPOSITORY_URI:$RANK_MODEL-$IMAGE_TAG...
-            docker tag $PLUGIN_IMAGE:$RANK_MODEL-$IMAGE_TAG $PLUGIN_REPOSITORY_URI:$RANK_MODEL-$IMAGE_TAG
-            echo "build plugin " $RANK_MODEL "end"
-            echo "------------------build plugin end--------------------------------------------------"
+            for SCENARIO in $SCENARIOS
+            do
+              echo "start build plugin" $SCENARIO-$PLUGIN_MODEL
+              cd $CODEBUILD_SRC_DIR/src/$APP_NAME/plugins/$PLUGIN_MODEL
+              echo Building $PLUGIN_IMAGE:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG
+              cp -r ../../pb .
+              docker build . -t $PLUGIN_IMAGE:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG
+              echo Tagging $PLUGIN_REPOSITORY_URI:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG...
+              docker tag $PLUGIN_IMAGE:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG $PLUGIN_REPOSITORY_URI:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG
+              echo "build plugin " $SCENARIO-$PLUGIN_MODEL "end"
+            done
+              echo "------------------build plugin end--------------------------------------------------"
 
     post_build:
         commands:
@@ -81,8 +84,11 @@ phases:
             echo "--------------------------------------------------------------------------------"
           - |
             echo "------------------push plugin image---------------------------------------------"
-            echo "push " $RANK_MODEL
-            docker push $PLUGIN_REPOSITORY_URI:$RANK_MODEL-$IMAGE_TAG
+            for SCENARIO in $SCENARIOS
+            do
+              echo "push " $SCENARIO-$PLUGIN_MODEL
+              docker push $PLUGIN_REPOSITORY_URI:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG
+            done
             echo "--------------------------------------------------------------------------------"
 
           - cd; mkdir workspace; cd workspace 
@@ -96,6 +102,7 @@ phases:
             do          
               cd $SCENARIO-dev
               kustomize edit set image rs/$APP_NAME=$APP_REPOSITORY_URI:$IMAGE_TAG
+              kustomize edit set image rs/$PLUGIN_NAME=$PLUGIN_REPOSITORY_URI:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG
               cat kustomization.yaml  
               cd ../          
             done 
