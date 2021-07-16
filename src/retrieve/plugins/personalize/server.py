@@ -138,6 +138,7 @@ class Retrieve(service_pb2_grpc.RankServicer):
         return item_list
 
 
+
 def init():
     # Check out environments
     for var in MANDATORY_ENV_VARS:
