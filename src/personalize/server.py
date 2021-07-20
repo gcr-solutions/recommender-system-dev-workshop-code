@@ -13,6 +13,7 @@ from botocore import config
 
 app = FastAPI()
 
+
 #Mandatory variables in envirnment
 MANDATORY_ENV_VARS = {
     'REDIS_HOST': 'localhost',
