@@ -154,6 +154,7 @@ def retrieve_get_v2(user_id: str, curPage: int = 0, pageSize: int = 20, regionId
         #         'data': ''
         #     }
 
+
     #else:
     logging.info('send request to filter to get recommend data...')
     host = MANDATORY_ENV_VARS['FILTER_HOST']

@@ -23,6 +23,7 @@ import service_pb2_grpc
 
 app = FastAPI()
 
+
 # Mandatory variables in envirnment
 MANDATORY_ENV_VARS = {
     'REDIS_HOST': 'localhost',
