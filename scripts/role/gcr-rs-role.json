@@ -164,8 +164,7 @@
         {
             "Effect": "Allow",
             "Action": [
-                "lambda:UpdateFunctionConfiguration",
-                "lambda:DeleteFunction"
+                "lambda:*"
             ],
             "Resource": "*"
         },
