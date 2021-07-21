@@ -189,7 +189,14 @@
                 "cloudformation:DeleteStack"
             ],
             "Resource": "*"
-        }          
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "states:*"
+            ],
+            "Resource": "*"
+        }
     ]  
 }
 
