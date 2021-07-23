@@ -164,7 +164,7 @@
         {
             "Effect": "Allow",
             "Action": [
-                "lambda:UpdateFunctionConfiguration"
+                "lambda:*"
             ],
             "Resource": "*"
         },
@@ -189,7 +189,14 @@
                 "cloudformation:DeleteStack"
             ],
             "Resource": "*"
-        }          
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "states:*"
+            ],
+            "Resource": "*"
+        }
     ]  
 }
 
