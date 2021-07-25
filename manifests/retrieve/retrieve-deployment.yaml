@@ -38,7 +38,7 @@ spec:
           - name: FILTER_PORT
             value: "5200"
       - name: rs-retrieve-plugin
-        image: rs/retrievev-plugin:latest
+        image: rs/retrieve-plugin:latest
         ports:
           - name: http
             containerPort: 50051
