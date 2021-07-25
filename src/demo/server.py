@@ -303,15 +303,6 @@ def click_post(clickRequest: ClickRequest):
     logging.info(datetime.datetime.now())
     click_hist_to_recall(user_id, item_id, user_click_count)
 
-    if MANDATORY_ENV_VARS['USE_AWS_PERSONALIZE']:
-        logging.info("------------send req to personalize-----------")
-        req_url = MANDATORY_ENV_VARS['PERSONALIZE_SERVICE_ENDPOINT'] + '/personalize/click'
-        response = send_post_request(req_url, {
-            'user_id': user_id,
-            'item_id': item_id,
-        })
-        logging.info("send request to personalize, response:{}".format(response))
-
     logging.info("---------time after recall:")
     logging.info(datetime.datetime.now())
     return response_success({
