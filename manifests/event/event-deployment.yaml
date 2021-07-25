@@ -72,6 +72,8 @@ spec:
             value: "GCR-RS-News-Dataset-Group"
           - name: EVENT_TRACKER
             value: "NewsEventTracker"
+          - name: USE_PERSONALIZE_PLUGIN
+            value: "True"
         volumeMounts:
           - name: persistent-storage
             mountPath: /rs-data
