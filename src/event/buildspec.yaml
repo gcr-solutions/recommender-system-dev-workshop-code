@@ -4,6 +4,8 @@ env:
   variables:
     APP_NAME: "event"
     SCENARIOS: "news"
+    PLUGIN_MODEL: "personalize"
+    PLUGIN_NAME: "event-plugin"
   secrets-manager:
     GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
     ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken
@@ -35,6 +37,16 @@ phases:
               --image-scanning-configuration scanOnPush=true \
               --region $AWS_DEFAULT_REGION || true
             echo "--------------------------------------------------------------------------------"
+          - |
+            echo "-------------------pre_build plugin---------------------------------------------"
+            PLUGIN_IMAGE=rs/$PLUGIN_NAME
+            PLUGIN_REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$PLUGIN_IMAGE
+            aws ecr create-repository \
+              --repository-name $PLUGIN_IMAGE \
+              --image-scanning-configuration scanOnPush=true \
+              --region $AWS_DEFAULT_REGION || true
+            echo "--------------------------------------------------------------------------------"
+
     build:
         commands:
           - echo Build started on `date`
@@ -47,6 +59,21 @@ phases:
             echo Tagging $APP_REPOSITORY_URI:$IMAGE_TAG...
             docker tag $APP_IMAGE:$IMAGE_TAG $APP_REPOSITORY_URI:$IMAGE_TAG
             echo "--------------------------------------------------------------------------------"
+          - |
+            echo "------------------build plugin--------------------------------------------------"
+            set -e
+            for SCENARIO in $SCENARIOS
+            do
+              echo "start build plugin" $SCENARIO-$PLUGIN_MODEL
+              cd $CODEBUILD_SRC_DIR/src/$APP_NAME/plugins/$PLUGIN_MODEL
+              echo Building $PLUGIN_IMAGE:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG
+              cp -r ../../pb .
+              docker build . -t $PLUGIN_IMAGE:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG
+              echo Tagging $PLUGIN_REPOSITORY_URI:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG...
+              docker tag $PLUGIN_IMAGE:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG $PLUGIN_REPOSITORY_URI:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG
+              echo "build plugin " $SCENARIO-$PLUGIN_MODEL "end"
+            done
+              echo "------------------build plugin end--------------------------------------------------"
 
     post_build:
         commands:
@@ -54,6 +81,14 @@ phases:
           - |
             echo "------------------push app image------------------------------------------------"
             docker push $APP_REPOSITORY_URI:$IMAGE_TAG
+            echo "--------------------------------------------------------------------------------"
+          - |
+            echo "------------------push plugin image---------------------------------------------"
+            for SCENARIO in $SCENARIOS
+            do
+              echo "push " $SCENARIO-$PLUGIN_MODEL
+              docker push $PLUGIN_REPOSITORY_URI:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG
+            done
             echo "--------------------------------------------------------------------------------"
 
           - cd; mkdir workspace; cd workspace 
@@ -67,6 +102,7 @@ phases:
             do          
               cd $SCENARIO-dev
               kustomize edit set image rs/$APP_NAME=$APP_REPOSITORY_URI:$IMAGE_TAG
+              kustomize edit set image rs/$PLUGIN_NAME=$PLUGIN_REPOSITORY_URI:$SCENARIO-$PLUGIN_MODEL-$IMAGE_TAG
               cat kustomization.yaml  
               cd ../          
             done 

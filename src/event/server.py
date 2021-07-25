@@ -13,6 +13,10 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+import service_pb2
+import service_pb2_grpc
+from google.protobuf import any_pb2
+import grpc
 
 app = FastAPI()
 api_router = APIRouter()
@@ -34,7 +38,8 @@ MANDATORY_ENV_VARS = {
     'S3_BUCKET': 'aws-gcr-rs-sol-demo-ap-southeast-1-522244679887',
     'S3_PREFIX': 'sample-data',
     'POD_NAMESPACE': 'default',
-    'TEST': 'False'
+    'TEST': 'False',
+    'USE_PERSONALIZE_PLUGIN': 'False'
 }
 
 
@@ -224,7 +229,29 @@ def recall_post(user_id: str, clickItemList: ClickedItemList):
         'user_id': user_id,
         'clicked_item_ids': [item.id for item in clickItemList.clicked_item_list]
     }
-    message = send_post_request(recall_svc_url, data)
+
+    if MANDATORY_ENV_VARS['USE_PERSONALIZE_PLUGIN'] == "True":
+        request = any_pb2.Any()
+        request.value = json.dumps(data).encode('utf-8')
+        logging.info('Invoke personalize plugin to trigger event tracker...')
+        eventTrackerRequest = service_pb2.EventTrackerRequest(apiVersion='v1', metadata='Event',
+                                                                      type='EventTracker')
+        eventTrackerRequest.requestBody.Pack(request)
+        channel = grpc.insecure_channel('localhost:50051')
+        stub = service_pb2_grpc.EventStub(channel)
+        response = stub.EventTracker(eventTrackerRequest)
+
+        results = any_pb2.Any()
+        response.results.Unpack(results)
+        if response.code == 0:
+            logging.info("----------event tracker from personalize plugin successful.")
+            message = response.description
+        else:
+            logging.info("----------event tracker from personalize plugin failed.")
+            message = "event tracker from personalize plugin failed."
+    else:
+        message = send_post_request(recall_svc_url, data)
+
     res = gen_simple_response(message)
     return res
 

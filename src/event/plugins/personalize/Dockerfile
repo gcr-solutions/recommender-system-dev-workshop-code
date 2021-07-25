@@ -19,6 +19,7 @@ COPY --from=builder /*_pb2*.py ./
 COPY ./ .
 
 
+
 # update PATH environment variable
 ENV PATH=/root/.local:$PATH
 ENV PYTHONPATH=/root/.local:/root/.local/python3.8/site-packages
