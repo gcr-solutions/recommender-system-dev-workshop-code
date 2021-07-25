@@ -87,7 +87,11 @@ do
         exit 1
     fi
 
-    rm tmp_*.yaml > /dev/null 2>&1
+    if [[ $name =~ ^(steps|item-new-assembled)$ && $REGION =~ ^cn.* ]]; then
+       rm tmp_*.yaml
+    fi
+    
+    #rm tmp_*.yaml > /dev/null 2>&1
 
 done
 
