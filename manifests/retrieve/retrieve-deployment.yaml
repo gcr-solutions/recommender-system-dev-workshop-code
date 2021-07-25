@@ -38,7 +38,7 @@ spec:
           - name: FILTER_PORT
             value: "5200"
           - name: USE_PERSONALIZE_PLUGIN
-            value: "False"
+            value: "True"
       - name: rs-retrieve-plugin
         image: rs/retrieve-plugin:latest
         ports:
