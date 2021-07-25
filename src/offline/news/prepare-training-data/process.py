@@ -87,8 +87,7 @@ class UdfFunction:
             pairs.append((m, t))
         # sort by time
         pairs = sorted(pairs, key=lambda x: x[1])
-        # shift noe
-        return [x[0] for x in pairs][:-1]
+        return [x[0] for x in pairs]
 
 
 def sync_s3(file_name_list, s3_folder, local_folder):

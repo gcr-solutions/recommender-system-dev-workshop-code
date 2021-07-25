@@ -154,26 +154,3 @@ VERSION_IMAGE=${account_ecr_uri}/$repoName:$version_id
 docker tag ${repoName} ${VERSION_IMAGE}
 echo ">> push ${VERSION_IMAGE}"
 docker push ${VERSION_IMAGE}
-
-
-AWS_ECR_PUB_REGION='ap-northeast-1'
-echo "push this image to ${AWS_ECR_PUB_REGION}, use export RELEASE_TO_PUBLIC=1"
-
-if [[ (${AWS_REGION} != ${AWS_ECR_PUB_REGION}) && (${RELEASE_TO_PUBLIC} == '1') ]]; then
-    echo "push the image to public ecr in  ${AWS_ECR_PUB_REGION}"
-    public_ecr_uri=${account_id}.dkr.ecr.${AWS_ECR_PUB_REGION}.amazonaws.com
-
-    create_repo $repoName $AWS_ECR_PUB_REGION 1
-
-    $AWS_CMD ecr get-login-password  --region ${AWS_ECR_PUB_REGION} | docker login --username AWS --password-stdin ${public_ecr_uri}
-
-    PUBLIC_IMAGEURI=${public_ecr_uri}/$repoName:$Stage
-    echo "PUBLIC_IMAGEURI: $PUBLIC_IMAGEURI"
-    docker tag $repoName ${PUBLIC_IMAGEURI}
-    echo ">> push ${PUBLIC_IMAGEURI}"
-    docker push ${PUBLIC_IMAGEURI}
-    if [[ $? != 0 ]];then
-       echo "Error docker push ${PUBLIC_IMAGEURI}"
-       exit 1
-    fi
-fi

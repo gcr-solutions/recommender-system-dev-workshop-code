@@ -242,7 +242,7 @@ Resources:
                   "bucket.$": "$.Bucket",
                   "prefix.$": "$.S3Prefix",
                   "file_list": [
-                    "system/ingest-data/action/action.csv",
+                    "system/ingest-data/action/",
                     "feature/content/inverted-list/news_id_news_feature_dict.pickle",
                     "feature/action/raw_embed_user_mapping.pickle"
                   ]
