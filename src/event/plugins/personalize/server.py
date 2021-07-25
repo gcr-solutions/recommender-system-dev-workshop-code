@@ -58,7 +58,7 @@ class Event(service_pb2_grpc.EventServicer):
         logging.info("Event Tracker ID:{}".format(eventTracker["eventTracker"]["trackingId"]))
         return eventTracker["eventTracker"]["trackingId"]
 
-    def EventTracker(self, request):
+    def EventTracker(self, request, context):
         logging.info("personalize plugin EventTracker start...")
         # Event Tracker
         request_body = Any()
