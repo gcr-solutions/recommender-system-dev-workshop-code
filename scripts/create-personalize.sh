@@ -2,8 +2,9 @@
 set -e
 
 #create dataset group
-datasetGroupArn=$(aws personalize create-dataset-group --name GCR-RS-News-Dataset-Group --output text)
+datasetGroupArn=$(aws personalize create-dataset-group --name GCR-RS-News-UserPersonalize-Dataset-Group --output text)
 echo "dataset_Group_Arn: ${datasetGroupArn}"
+echo "......"
 
 # for test
 #datasetGroupArn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-group/GCR-RS-News-Dataset-Group"
@@ -20,17 +21,19 @@ sleep 10
 #create schema
 echo "creating Schema..."
 user_schema_arn=$(aws personalize create-schema \
-	--name NewsUserSchema \
+	--name NewsUserPersonalizeUserSchema \
 	--schema file://./personalize/NewsUserSchema.json --output text)
 
 item_schema_arn=$(aws personalize create-schema \
-	--name NewsItemSchema \
+	--name NewsUserPersonalizeItemSchema \
 	--schema file://./personalize/NewsItemSchema.json --output text)
 
 interaction_schema_arn=$(aws personalize create-schema \
-	--name NewsInteractionSchema \
+	--name NewsUserPersonalizeInteractionSchema \
 	--schema file://./personalize/NewsInteractionSchema.json --output text)
 
+echo "......"
+sleep 10
 
 #create dataset
 echo "create dataset..."
@@ -57,6 +60,7 @@ interaction_dataset_arn=$(aws personalize create-dataset \
 # item_dataset_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset/GCR-RS-News-Dataset-Group/ITEMS"
 # interaction_dataset_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset/GCR-RS-News-Dataset-Group/INTERACTIONS"
 
+echo "......"
 
 #Get Bucket Name
 Stage=$1
@@ -89,6 +93,7 @@ echo "\nWaiting for creating dataset finishing...\n"
 sleep 60
 
 #create import job
+echo "create dataset import job..."
 user_dataset_import_job_arn=$(aws personalize create-dataset-import-job \
   --job-name NewsUserImportJob \
   --dataset-arn ${user_dataset_arn} \
@@ -111,7 +116,7 @@ interaction_dataset_import_job_arn=$(aws personalize create-dataset-import-job \
   --role-arn ${PERSONALIZE_ROLE_BUILD} \
   --output text)
  
-  
+echo "......"
 # #for test
 # user_dataset_import_job_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-import-job/NewsUserImportJob"
 # item_dataset_import_job_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-import-job/NewsItemImportJob"
