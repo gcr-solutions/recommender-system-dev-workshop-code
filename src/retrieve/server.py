@@ -123,7 +123,7 @@ def ping():
 @app.get('/api/v1/retrieve/{user_id}', response_model=RecommendList, tags=["retrieve"])
 def retrieve_get_v2(user_id: str, curPage: int = 0, pageSize: int = 20, regionId=Header("0"), recommendType: str = 'recommend'):
     logging.info("retrieve_get_v2() enter")
-
+    item_list = []
     if MANDATORY_ENV_VARS['USE_PERSONALIZE_PLUGIN'] == "True":
         request = any_pb2.Any()
         request.value = json.dumps({
@@ -142,36 +142,27 @@ def retrieve_get_v2(user_id: str, curPage: int = 0, pageSize: int = 20, regionId
         response.results.Unpack(results)
         resultJson = json.loads(results.value, encoding='utf-8')
         logging.info("-------------------get result from personalize plugin:{}".format(resultJson))
-        # if response.code == 0:
-        #     return {
-        #         'code': response.code,
-        #         'description': response.description,
-        #         'data': resultJson['data']
-        #     }
-        # else:
-        #     return {
-        #         'code': -1,
-        #         'description': 'failed to get recommend data',
-        #         'data': ''
-        #     }
+        if response.code == 0:
+            logging.info("----------get data from personalize plugin successful.")
+            item_list = resultJson['data']
+        else:
+            logging.info("----------get data from personalize plugin successful.")
 
+    else:
+        logging.info('send request to filter to get recommend data...')
+        host = MANDATORY_ENV_VARS['FILTER_HOST']
+        port = MANDATORY_ENV_VARS['FILTER_PORT']
 
-    #else:
-    logging.info('send request to filter to get recommend data...')
-    host = MANDATORY_ENV_VARS['FILTER_HOST']
-    port = MANDATORY_ENV_VARS['FILTER_PORT']
+        svc_url = "http://{}:{}/filter/get_recommend_data?userId={}&recommendType={}" \
+            .format(host, port, user_id, recommendType)
+        logging.info("svc_url:{}".format(svc_url))
 
-    svc_url = "http://{}:{}/filter/get_recommend_data?userId={}&recommendType={}" \
-        .format(host, port, user_id, recommendType)
-    logging.info("svc_url:{}".format(svc_url))
+        print("---------time before trigger filter:")
+        print(datetime.datetime.now())
+        item_list = get_data_request(svc_url, lambda json_data: json_data['data'])
+        print("---------time after trigger filter:")
+        print(datetime.datetime.now())
 
-    print("---------time before trigger filter:")
-    print(datetime.datetime.now())
-    item_list = get_data_request(svc_url, lambda json_data: json_data['data'])
-
-
-    print("---------time after trigger filter:")
-    print(datetime.datetime.now())
     it_list = [RSItem(id=str(it['id']), description=str(it['description']), tags=str(it["tag"]).split(" ")) for it in item_list]
     it_list_paged = it_list[curPage * pageSize: (curPage + 1) * pageSize]
     total_page = math.ceil(len(it_list) / pageSize)
