@@ -146,7 +146,7 @@ def retrieve_get_v2(user_id: str, curPage: int = 0, pageSize: int = 20, regionId
             logging.info("----------get data from personalize plugin successful.")
             item_list = resultJson['data']
         else:
-            logging.info("----------get data from personalize plugin successful.")
+            logging.info("----------get data from personalize plugin failed.")
 
     else:
         logging.info('send request to filter to get recommend data...')

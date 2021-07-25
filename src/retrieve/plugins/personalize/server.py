@@ -1,31 +1,20 @@
-import math
-from typing import List
-import uvicorn
-from fastapi import FastAPI
-import sys
-import boto3
 import json
 import logging
-import pickle
 import os
+import pickle
 import random
-
-import time
-from pydantic import BaseModel
-from botocore import config
-
-from google.protobuf import descriptor
-from google.protobuf import any_pb2
-import grpc
-from grpc_reflection.v1alpha import reflection
-from google.protobuf.any_pb2 import Any
+import sys
 from concurrent import futures
 
+import boto3
+import grpc
 import service_pb2
 import service_pb2_grpc
+from fastapi import FastAPI
+from google.protobuf.any_pb2 import Any
+from grpc_reflection.v1alpha import reflection
 
 app = FastAPI()
-
 
 # Mandatory variables in envirnment
 MANDATORY_ENV_VARS = {
@@ -34,19 +23,13 @@ MANDATORY_ENV_VARS = {
     'NEWS_TYPE_NEWS_IDS': 'news_type_news_ids_dict.pickle',
     'RECOMMEND_ITEM_COUNT': 20,
 
-    'REDIS_HOST': 'localhost',
-    'REDIS_PORT': 6379,
-    'PERSONALIZE_PORT': 6500,
     'AWS_REGION': 'ap-northeast-1',
     'PERSONALIZE_DATASET_GROUP': 'GCR-RS-News-Dataset-Group',
     'PERSONALIZE_SOLUTION': 'userPersonalizeSolution',
     'PERSONALIZE_CAMPAIGN': 'gcr-rs-dev-workshop-news-userPersonalize-campaign',
-    'EVENT_TRACKER': 'NewsEventTracker'
 }
 
-
 lCfgCompleteType = ['news_story', 'news_culture', 'news_entertainment', 'news_sports', 'news_finance', 'news_house', 'news_car', 'news_edu', 'news_tech', 'news_military', 'news_travel', 'news_world', 'stock', 'news_agriculture', 'news_game']
-
 
 class Retrieve(service_pb2_grpc.RetrieveServicer):
 
@@ -60,8 +43,6 @@ class Retrieve(service_pb2_grpc.RetrieveServicer):
         self.dataset_group_arn = self.get_dataset_group_arn()
         self.solution_arn = self.get_solution_arn()
         self.campaign_arn = self.get_campaign_arn()
-        self.event_tracker_arn = self.get_event_tracker_arn()
-        self.event_tracker_id = self.get_event_tracking_id()
 
         local_data_folder = MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER']
         file_list = [MANDATORY_ENV_VARS['NEWS_TYPE_NEWS_IDS']]
@@ -114,22 +95,6 @@ class Retrieve(service_pb2_grpc.RetrieveServicer):
             if campaign["name"] == MANDATORY_ENV_VARS['PERSONALIZE_CAMPAIGN']:
                 logging.info("Campaign Arn:{}".format(campaign["campaignArn"]))
                 return campaign["campaignArn"]
-
-    def get_event_tracker_arn(self):
-        eventTrackers = self.personalize.list_event_trackers(
-            datasetGroupArn=self.dataset_group_arn
-        )
-        for event_tracker in eventTrackers["eventTrackers"]:
-            if event_tracker['name'] == MANDATORY_ENV_VARS['EVENT_TRACKER']:
-                logging.info("Event Tracker Arn:{}".format(event_tracker["eventTrackerArn"]))
-                return event_tracker["eventTrackerArn"]
-
-    def get_event_tracking_id(self):
-        eventTracker = self.personalize.describe_event_tracker(
-            eventTrackerArn=self.event_tracker_arn
-        )
-        logging.info("Event Tracker ID:{}".format(eventTracker["eventTracker"]["trackingId"]))
-        return eventTracker["eventTracker"]["trackingId"]
 
     def GetRecommendData(self, request, context):
         logging.info("personalize plugin GetRecommendData start...")
@@ -227,11 +192,6 @@ def init():
             logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
             MANDATORY_ENV_VARS[var] = os.environ.get(var)
-
-    # # Initial redis connection
-    # global rCache
-    # rCache = cache.RedisCache(host=MANDATORY_ENV_VARS['REDIS_HOST'], port=MANDATORY_ENV_VARS['REDIS_PORT'])
-
 
 def serve(plugin_name):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
