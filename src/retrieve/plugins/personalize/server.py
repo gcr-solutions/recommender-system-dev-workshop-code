@@ -6,7 +6,10 @@ import sys
 import boto3
 import json
 import logging
+import pickle
 import os
+import random
+
 import time
 from pydantic import BaseModel
 from botocore import config
@@ -26,6 +29,11 @@ app = FastAPI()
 
 # Mandatory variables in envirnment
 MANDATORY_ENV_VARS = {
+    'LOCAL_DATA_FOLDER': '/tmp/rs-data/',
+    'NEWS_ID_PROPERTY': 'news_id_news_property_dict.pickle',
+    'NEWS_TYPE_NEWS_IDS': 'news_type_news_ids_dict.pickle',
+    'RECOMMEND_ITEM_COUNT': 20,
+
     'REDIS_HOST': 'localhost',
     'REDIS_PORT': 6379,
     'PERSONALIZE_PORT': 6500,
@@ -37,7 +45,10 @@ MANDATORY_ENV_VARS = {
 }
 
 
-class Retrieve(service_pb2_grpc.RankServicer):
+lCfgCompleteType = ['news_story', 'news_culture', 'news_entertainment', 'news_sports', 'news_finance', 'news_house', 'news_car', 'news_edu', 'news_tech', 'news_military', 'news_travel', 'news_world', 'stock', 'news_agriculture', 'news_game']
+
+
+class Retrieve(service_pb2_grpc.RetrieveServicer):
 
     def __init__(self):
         logging.info('__init__(self)...')
@@ -46,12 +57,38 @@ class Retrieve(service_pb2_grpc.RankServicer):
         self.personalize_runtime = boto3.client('personalize-runtime', MANDATORY_ENV_VARS['AWS_REGION'])
         self.personalize_events = boto3.client(service_name='personalize-events',
                                                region_name=MANDATORY_ENV_VARS['AWS_REGION'])
-
         self.dataset_group_arn = self.get_dataset_group_arn()
         self.solution_arn = self.get_solution_arn()
         self.campaign_arn = self.get_campaign_arn()
         self.event_tracker_arn = self.get_event_tracker_arn()
         self.event_tracker_id = self.get_event_tracking_id()
+
+        local_data_folder = MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER']
+        file_list = [MANDATORY_ENV_VARS['NEWS_TYPE_NEWS_IDS']]
+        file_list.append(MANDATORY_ENV_VARS['NEWS_ID_PROPERTY'])
+        self.reload_pickle_type(local_data_folder, file_list, False)
+
+    def reload_pickle_type(self, file_path, file_list, reloadFlag):
+        logging.info('reload_pickle_type strat')
+        for file_name in file_list:
+            pickle_path = file_path + file_name
+            logging.info('reload_pickle_type pickle_path {}'.format(pickle_path))
+            if MANDATORY_ENV_VARS['NEWS_ID_PROPERTY'] in pickle_path:
+                logging.info('reload news_id_news_property_dict file {}'.format(pickle_path))
+                self.news_id_news_property_dict = self.load_pickle(pickle_path)
+            elif MANDATORY_ENV_VARS['NEWS_TYPE_NEWS_IDS'] in pickle_path:
+                logging.info('reload news_type_news_ids_dict file {}'.format(pickle_path))
+                self.news_type_news_ids_dict = self.load_pickle(pickle_path)
+                self.lCfgCompleteType = list(self.news_type_news_ids_dict.keys())
+
+    def load_pickle(self, file):
+        if os.path.isfile(file):
+            infile = open(file, 'rb')
+            dict = pickle.load(infile)
+            infile.close()
+            return dict
+        else:
+            return {}
 
     def get_dataset_group_arn(self):
         datasetGroups = self.personalize.list_dataset_groups()
@@ -101,9 +138,11 @@ class Retrieve(service_pb2_grpc.RankServicer):
         request.requestBody.Unpack(request_body)
         reqData = json.loads(request_body.value, encoding='utf-8')
         user_id = reqData['user_id']
+        recommend_type = reqData['recommend_type']
         logging.info('user_id -> {}'.format(user_id))
+        logging.info('recommend_type -> {}'.format(recommend_type))
 
-        item_list = self.get_recommend_data(user_id)
+        item_list = self.get_recommend_data(user_id, recommend_type)
 
         logging.info("-----------recommend list:{}".format(item_list))
         logging.info('GetFilterData start')
@@ -121,23 +160,64 @@ class Retrieve(service_pb2_grpc.RankServicer):
 
         return getRecommendDataResponse
 
-    def get_recommend_data(self, user_id):
-        # trigger personalize api
-        get_recommendations_response = self.personalize_runtime.get_recommendations(
-            campaignArn=self.campaign_arn,
-            userId=str(user_id),
-        )
-        # 为推荐列表构建新的 Dataframe
-        result_list = get_recommendations_response['itemList']
+    def get_recommend_data(self, user_id, recommend_type):
+        logging.info('get_personalize_recommend_result start!!')
         item_list = []
-        for item in result_list:
-            item_list.append({
-                "id": item['itemId'],
-                "description": 'personalize|{}'.format(str(item['score'])),
-                "tag": 'recommend'
-            })
+        if recommend_type == 'recommend':
+            # trigger personalize api
+            get_recommendations_response = self.personalize_runtime.get_recommendations(
+                campaignArn=self.campaign_arn,
+                userId=str(user_id),
+            )
+            # 为推荐列表构建新的 Dataframe
+            result_list = get_recommendations_response['itemList']
+            for item in result_list:
+                item_list.append({
+                    "id": item['itemId'],
+                    "description": 'personalize|{}'.format(str(item['score'])),
+                    "tag": 'recommend'
+                })
+        else:
+            logging.info('get news list by news type {}'.format(recommend_type))
+            if recommend_type not in self.lCfgCompleteType:
+                return item_list
+            logging.info('Get news_type_news_ids_dict completed')
+            if not bool(self.news_type_news_ids_dict):
+                return item_list
+            news_id_list = self.news_type_news_ids_dict[recommend_type]
+            item_list = self.generate_news_list_by_type(news_id_list)
+
         return item_list
 
+    def generate_news_list_by_type(self, news_id_list):
+        news_recommend_list = []
+        count = 0
+        present_recommend_news_id_list = []
+        try_count = 0
+        need_count = int(MANDATORY_ENV_VARS['RECOMMEND_ITEM_COUNT'])
+        while count < need_count:
+            news, news_id = self.get_random_news(news_id_list)
+            try_count = try_count + 1
+            if news_id not in present_recommend_news_id_list:
+                news_recommend_list.append(news)
+                present_recommend_news_id_list.append(news_id)
+                count = count + 1
+            if try_count > need_count * 3:
+                logging.error(
+                    "fail to find enough candidate in generate_news_list_by_type, need to find {} but only find {}".format(need_count,
+                                                                                                    count))
+                break
+
+        return news_recommend_list
+
+    def get_random_news(self, news_id_list):
+        logging.info('get_random_news_id start')
+        index = random.randint(0,len(news_id_list) -1)
+        return {
+            'id': news_id_list[index],
+            'tag': 'type',
+            'description': 'get the list of type'
+        }, news_id_list[index]
 
 
 def init():

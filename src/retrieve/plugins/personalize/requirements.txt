@@ -5,7 +5,7 @@
 # Requirements with Version Specifiers
 redis== 3.5.3
 # faiss-cpu==1.6.5
-# numpy==1.19.5
+numpy==1.19.5
 uvicorn==0.13.4
 fastapi==0.63.0
 grpcio==1.36.1

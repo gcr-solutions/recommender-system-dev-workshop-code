@@ -29,7 +29,7 @@ MANDATORY_ENV_VARS = {
     'FILTER_HOST': 'filter',
     'FILTER_PORT': '5200',
     'TEST': 'False',
-    'USE_PERSONALIZE_PLUGIN': 'True'
+    'USE_PERSONALIZE_PLUGIN': 'False'
 }
 
 
@@ -124,10 +124,11 @@ def ping():
 def retrieve_get_v2(user_id: str, curPage: int = 0, pageSize: int = 20, regionId=Header("0"), recommendType: str = 'recommend'):
     logging.info("retrieve_get_v2() enter")
 
-    if MANDATORY_ENV_VARS['USE_PERSONALIZE_PLUGIN'] == "True" and recommendType == 'recommend':
+    if MANDATORY_ENV_VARS['USE_PERSONALIZE_PLUGIN'] == "True":
         request = any_pb2.Any()
         request.value = json.dumps({
-            'user_id': user_id
+            'user_id': user_id,
+            'recommend_type': recommendType
         }).encode('utf-8')
         logging.info('Invoke personalize plugin to get recommend data...')
         getRecommendDataRequest = service_pb2.GetRecommendDataRequest(apiVersion='v1', metadata='Retrieve',
