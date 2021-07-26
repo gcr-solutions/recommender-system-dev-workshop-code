@@ -2,7 +2,7 @@
 set -e
 
 #create dataset group
-datasetGroupArn=$(aws personalize create-dataset-group --name GCR-RS-News-UserPersonalize-Dataset-Group --output text)
+datasetGroupArn=$(aws personalize create-dataset-group --name GCR-RS-News-Dataset-Group --output text)
 echo "dataset_Group_Arn: ${datasetGroupArn}"
 echo "......"
 
@@ -60,7 +60,46 @@ interaction_dataset_arn=$(aws personalize create-dataset \
 # item_dataset_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset/GCR-RS-News-UserPersonalize-Dataset-Group/ITEMS"
 # interaction_dataset_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset/GCR-RS-News-UserPersonalize-Dataset-Group/INTERACTIONS"
 
-echo "......"
+#monitor dataset 
+echo "Dataset Creating... It will takes no longer than 10 min..."
+MAX_TIME=`expr 10 \* 60` # 10 min
+CURRENT_TIME=0
+while(( ${CURRENT_TIME} < ${MAX_TIME} )) 
+do
+    user_dataset_status=$(aws personalize describe-dataset \
+                --dataset-arn ${user_dataset_arn} | jq '.dataset.status' -r)
+    item_dataset_status=$(aws personalize describe-dataset \
+                --dataset-arn ${item_dataset_arn} | jq '.dataset.status' -r)
+    interaction_dataset_status=$(aws personalize describe-dataset \
+                --dataset-arn ${interaction_dataset_arn} | jq '.dataset.status' -r)
+
+    echo "user_dataset_status: ${user_dataset_status}"
+    echo "item_dataset_status: ${item_dataset_status}"
+    echo "interaction_dataset_status: ${interaction_dataset_status}"
+    
+    if [[ "$user_dataset_status" = "CREATE FAILED" || "$item_dataset_status" = "CREATE FAILED" || "$interaction_dataset_status" = "CREATE FAILED" ]]
+    then
+        echo "!!!Dataset Create Failed!!!"
+        echo "!!!Personalize Service Create Failed!!!"
+        exit 8
+    elif [[ "$user_dataset_status" = "ACTIVE" && "$item_dataset_status" = "ACTIVE" && "$interaction_dataset_status" = "ACTIVE" ]]
+    then
+        echo "Dataset Create successfully!"
+        break
+    fi
+    
+    CURRENT_TIME=`expr ${CURRENT_TIME} + 10`
+    echo "wait for 10 second..."
+    sleep 10
+
+done
+
+if [ $CURRENT_TIME -ge $MAX_TIME ]
+then
+    echo "Dataset Create Time exceed 10 min, please delete import job and try again!"
+    exit 8
+fi
+
 
 #Get Bucket Name
 Stage=$1
@@ -164,7 +203,7 @@ fi
 
 #create solution
 userPersonalize_solution_arn=$(aws personalize create-solution \
-        --name userPersonalizeSolutionNew \
+        --name userPersonalizeSolution \
         --dataset-group-arn ${datasetGroupArn} \
         --recipe-arn arn:aws:personalize:::recipe/aws-user-personalization --output text)
 
@@ -330,19 +369,4 @@ fi
 
 
 echo "Congratulations!!! Your AWS Personalize Service Create Successfully!!!"
-
-
-
-
-
-
-
-    
-    
-    
-
-
-	
-
-
 
