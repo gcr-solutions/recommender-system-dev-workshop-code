@@ -71,15 +71,17 @@ class Event(service_pb2_grpc.EventServicer):
         logging.info('user_id -> {}'.format(user_id))
         logging.info('items_id -> {}'.format(items_id))
 
-        self.personalize_events.put_events(
-            trackingId=self.event_tracker_id,
-            userId=user_id,
-            sessionId=session_ID,
-            eventList=[{
-                'sentAt': int(time.time()),
-                'itemId': items_id
-            }]
-        )
+        for item_id in items_id:
+            curTime = int(time.time())
+            self.personalize_events.put_events(
+                trackingId=self.event_tracker_id,
+                userId=user_id,
+                sessionId=session_ID,
+                eventList=[{
+                    'sentAt': curTime,
+                    'itemId': item_id
+                }]
+            )
 
         eventTrackerResponseAny = Any()
         eventTrackerResponse = service_pb2.EventTrackerResponse(code=0, description='personalize plugin process with success')
