@@ -241,8 +241,6 @@ def recall_post(user_id: str, clickItemList: ClickedItemList):
         stub = service_pb2_grpc.EventStub(channel)
         response = stub.EventTracker(eventTrackerRequest)
 
-        results = any_pb2.Any()
-        response.results.Unpack(results)
         if response.code == 0:
             logging.info("----------event tracker from personalize plugin successful.")
             message = response.description
