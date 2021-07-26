@@ -84,9 +84,9 @@ class Event(service_pb2_grpc.EventServicer):
                 }]
             )
 
-        eventTrackerResponseAny = Any()
+        #eventTrackerResponseAny = Any()
         eventTrackerResponse = service_pb2.EventTrackerResponse(code=0, description='personalize plugin process with success')
-        eventTrackerResponse.results.Pack(eventTrackerResponseAny)
+        #eventTrackerResponse.results.Pack(eventTrackerResponseAny)
         logging.info("event track complete")
         return eventTrackerResponse
 
