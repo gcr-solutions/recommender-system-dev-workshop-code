@@ -22,15 +22,15 @@ sleep 10
 echo "creating Schema..."
 user_schema_arn=$(aws personalize create-schema \
 	--name NewsUserSchema \
-	--schema file://./personalize/NewsUserSchema.json --output text)
+	--schema file://../sample-data/system/personalize-data/schema/NewsUserSchema.json --output text)
 
 item_schema_arn=$(aws personalize create-schema \
 	--name NewsItemSchema \
-	--schema file://./personalize/NewsItemSchema.json --output text)
+	--schema file://../sample-data/system/personalize-data/schema/NewsItemSchema.json --output text)
 
 interaction_schema_arn=$(aws personalize create-schema \
 	--name NewsInteractionSchema \
-	--schema file://./personalize/NewsInteractionSchema.json --output text)
+	--schema file://../sample-data/system/personalize-data/schema/NewsInteractionSchema.json --output text)
 
 echo "......"
 sleep 10
