@@ -6,30 +6,30 @@ datasetGroupArn=$(aws personalize create-dataset-group --name GCR-RS-News-UserPe
 echo "dataset_Group_Arn: ${datasetGroupArn}"
 echo "......"
 
-# for test
-#datasetGroupArn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-group/GCR-RS-News-Dataset-Group"
+# #for test
+# datasetGroupArn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-group/GCR-RS-News-UserPersonalize-Dataset-Group"
 
 
-# #delete exist schema
-# echo "deleting Schema..."
-# aws personalize delete-schema --schema-arn "arn:aws:personalize:ap-northeast-1:466154167985:schema/NewsUserSchema"
-# aws personalize delete-schema --schema-arn "arn:aws:personalize:ap-northeast-1:466154167985:schema/NewsItemSchema"
-# aws personalize delete-schema --schema-arn "arn:aws:personalize:ap-northeast-1:466154167985:schema/NewsInteractionSchema"
+#delete exist schema
+echo "deleting Schema..."
+aws personalize delete-schema --schema-arn "arn:aws:personalize:ap-northeast-1:466154167985:schema/NewsUserSchema"
+aws personalize delete-schema --schema-arn "arn:aws:personalize:ap-northeast-1:466154167985:schema/NewsItemSchema"
+aws personalize delete-schema --schema-arn "arn:aws:personalize:ap-northeast-1:466154167985:schema/NewsInteractionSchema"
 
 sleep 10
 
 #create schema
 echo "creating Schema..."
 user_schema_arn=$(aws personalize create-schema \
-	--name NewsUserPersonalizeUserSchema \
+	--name NewsUserSchema \
 	--schema file://./personalize/NewsUserSchema.json --output text)
 
 item_schema_arn=$(aws personalize create-schema \
-	--name NewsUserPersonalizeItemSchema \
+	--name NewsItemSchema \
 	--schema file://./personalize/NewsItemSchema.json --output text)
 
 interaction_schema_arn=$(aws personalize create-schema \
-	--name NewsUserPersonalizeInteractionSchema \
+	--name NewsInteractionSchema \
 	--schema file://./personalize/NewsInteractionSchema.json --output text)
 
 echo "......"
@@ -56,9 +56,9 @@ interaction_dataset_arn=$(aws personalize create-dataset \
 	--schema-arn ${interaction_schema_arn} --output text)
 
 # #for test
-# user_dataset_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset/GCR-RS-News-Dataset-Group/USERS"
-# item_dataset_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset/GCR-RS-News-Dataset-Group/ITEMS"
-# interaction_dataset_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset/GCR-RS-News-Dataset-Group/INTERACTIONS"
+# user_dataset_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset/GCR-RS-News-UserPersonalize-Dataset-Group/USERS"
+# item_dataset_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset/GCR-RS-News-UserPersonalize-Dataset-Group/ITEMS"
+# interaction_dataset_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset/GCR-RS-News-UserPersonalize-Dataset-Group/INTERACTIONS"
 
 echo "......"
 
@@ -89,13 +89,13 @@ PERSONALIZE_ROLE_BUILD=arn:aws:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-${Stage}-perso
 echo "PERSONALIZE_ROLE_BUILD=${PERSONALIZE_ROLE_BUILD}"
 echo "Check if your personalize role arn is equal to the PERSONALIZE_ROLE_BUILD. If not, please follow the previous step to create iam role for personalize!"
 
-echo "\nWaiting for creating dataset finishing...\n"
-sleep 60
+# echo "\nWaiting for creating dataset finishing...\n"
+# sleep 60
 
 #create import job
 echo "create dataset import job..."
 user_dataset_import_job_arn=$(aws personalize create-dataset-import-job \
-  --job-name NewsUserImportJob \
+  --job-name NewsUserUserPersonalizeImportJob \
   --dataset-arn ${user_dataset_arn} \
   --data-source dataLocation=s3://${BUCKET_BUILD}/sample-data-news/system/personalize-data/personalize_user.csv \
   --role-arn ${PERSONALIZE_ROLE_BUILD} \
@@ -103,23 +103,23 @@ user_dataset_import_job_arn=$(aws personalize create-dataset-import-job \
   
   
 item_dataset_import_job_arn=$(aws personalize create-dataset-import-job \
-  --job-name NewsItemImportJob \
+  --job-name NewsUserPersonalizeItemImportJob \
   --dataset-arn ${item_dataset_arn} \
   --data-source dataLocation=s3://${BUCKET_BUILD}/sample-data-news/system/personalize-data/personalize_item.csv \
   --role-arn ${PERSONALIZE_ROLE_BUILD} \
   --output text)
   
 interaction_dataset_import_job_arn=$(aws personalize create-dataset-import-job \
-  --job-name NewsInteractionImportJob \
+  --job-name NewsUserPersonalizeInteractionImportJob \
   --dataset-arn ${interaction_dataset_arn} \
   --data-source dataLocation=s3://${BUCKET_BUILD}/sample-data-news/system/personalize-data/personalize_interactions.csv \
   --role-arn ${PERSONALIZE_ROLE_BUILD} \
   --output text)
  
 echo "......"
-# #for test
-# user_dataset_import_job_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-import-job/NewsUserImportJob"
-# item_dataset_import_job_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-import-job/NewsItemImportJob"
+# # #for test
+# # user_dataset_import_job_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-import-job/NewsUserImportJob"
+# # item_dataset_import_job_arn="arn:aws:personalize:ap-northeast-1:466154167985:dataset-import-job/NewsItemImportJob"
 
 #monitor import job
 echo "Data Importing... It will takes no longer than 10 min..."
@@ -164,9 +164,15 @@ fi
 
 #create solution
 userPersonalize_solution_arn=$(aws personalize create-solution \
-        --name userPersonalizeSolution \
+        --name userPersonalizeSolutionNew \
         --dataset-group-arn ${datasetGroupArn} \
         --recipe-arn arn:aws:personalize:::recipe/aws-user-personalization --output text)
+
+ranking_solution_arn=$(aws personalize create-solution \
+        --name rankingSolution \
+        --dataset-group-arn ${datasetGroupArn} \
+        --recipe-arn arn:aws:personalize:::recipe/aws-personalized-ranking --output text)
+
 
 
 #monitor solution
@@ -177,17 +183,22 @@ while(( ${CURRENT_TIME} < ${MAX_TIME} ))
 do
     userPersonalize_solution_status=$(aws personalize describe-solution \
         --solution-arn ${userPersonalize_solution_arn} | jq '.solution.status' -r)
+    ranking_solution_status=$(aws personalize describe-solution \
+        --solution-arn ${ranking_solution_arn} | jq '.solution.status' -r)
+    
     
     echo "userPersonalize_solution_status: ${userPersonalize_solution_status}"
+    echo "ranking_solution_status: ${ranking_solution_status}"
+
     
-    if [ "$userPersonalize_solution_status" = "CREATE FAILED" ]
+    if [[ "$userPersonalize_solution_status" = "CREATE FAILED" || "$ranking_solution_status" = "CREATE FAILED" ]]
     then
-        echo "!!!UserPersonalize Solution Create Failed!!!"
+        echo "!!!Solution Create Failed!!!"
         echo "!!!Personalize Service Create Failed!!!"
         exit 8
-    elif [ "$userPersonalize_solution_status" = "ACTIVE" ]
+    elif [[ "$userPersonalize_solution_status" = "ACTIVE" && "$ranking_solution_status" = "ACTIVE" ]]
     then
-        echo "UserPersonalize Solution  create successfully!"
+        echo "Solution  create successfully!"
         break;
     fi
     CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
@@ -198,7 +209,7 @@ done
 
 if [ $CURRENT_TIME -ge $MAX_TIME ]
 then
-    echo "Creating UserPersonalize Solution Time exceed 10 min, please delete UserPersonalize Solution and try again!"
+    echo "Creating Solution Time exceed 10 min, please delete Solution and try again!"
     exit 8
 fi
 
@@ -207,6 +218,8 @@ fi
 #create solution version
 userPersonalize_solution_version_arn=$(aws personalize create-solution-version \
         --solution-arn ${userPersonalize_solution_arn} --output text)
+ranking_solution_version_arn=$(aws personalize create-solution-version \
+        --solution-arn ${ranking_solution_arn} --output text)
 
 
 #monitor solution version
@@ -217,17 +230,20 @@ while(( ${CURRENT_TIME} < ${MAX_TIME} ))
 do
     userPersonalize_solution_version_status=$(aws personalize describe-solution-version \
             --solution-version-arn ${userPersonalize_solution_version_arn} | jq '.solutionVersion.status' -r)
-            
+    ranking_solution_version_status=$(aws personalize describe-solution-version \
+            --solution-version-arn ${ranking_solution_version_arn} | jq '.solutionVersion.status' -r)
+             
     echo "userPersonalize_solution_version_status: ${userPersonalize_solution_version_status}"
+    echo "ranking_solution_version_status: ${ranking_solution_version_status}"
     
-    if [ "$userPersonalize_solution_version_status" = "CREATE FAILED" ]
+    if [[ "$userPersonalize_solution_version_status" = "CREATE FAILED" || "$ranking_solution_version_status" = "CREATE FAILED" ]]
     then
-        echo "!!!UserPersonalize Solution Version Create Failed!!!"
+        echo "!!!Solution Version Create Failed!!!"
         echo "!!!Personalize Service Create Failed!!!"
         exit 8
-    elif [ "$userPersonalize_solution_version_status" = "ACTIVE" ]
+    elif [[ "$userPersonalize_solution_version_status" = "ACTIVE" && "$ranking_solution_version_status" = "ACTIVE" ]]
     then
-        echo "UserPersonalize Solution Version create successfully!"
+        echo "Solution Version create successfully!"
         break;
     fi
     CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
@@ -255,17 +271,23 @@ echo "eventTrackerArn: ${eventTrackerArn}"
 echo "trackingId: ${trackingId}"
 
 # # for test
-# userPersonalize_solution_version_arn="arn:aws:personalize:ap-northeast-1:466154167985:solution/userPersonalizeSolution/e98f9f3c"
+# userPersonalize_solution_version_arn="arn:aws:personalize:ap-northeast-1:466154167985:solution/userPersonalizeSolutionNew/cf6b305a"
 
 #print metrics
 echo "UserPersonalize Solution Metrics:"
 aws personalize get-solution-metrics --solution-version-arn ${userPersonalize_solution_version_arn}
+echo "Ranking Solution Metrics:"
+aws personalize get-solution-metrics --solution-version-arn ${ranking_solution_version_arn}
 
 
 #create campaign
 userPersonalize_campaign_arn=$(aws personalize create-campaign \
-        --name gcr-rs-dev-workshop-news-userPersonalize-campaign \
+        --name gcr-rs-dev-workshop-news-UserPersonalize-campaign \
         --solution-version-arn ${userPersonalize_solution_version_arn} \
+        --min-provisioned-tps 1 --output text)
+ranking_campaign_arn=$(aws personalize create-campaign \
+        --name gcr-rs-dev-workshop-news-ranking-campaign \
+        --solution-version-arn ${ranking_solution_version_arn} \
         --min-provisioned-tps 1 --output text)
 
 
@@ -277,17 +299,21 @@ while(( ${CURRENT_TIME} < ${MAX_TIME} ))
 do
     userPersonalize_campaign_status=$(aws personalize describe-campaign \
             --campaign-arn ${userPersonalize_campaign_arn} | jq '.campaign.status' -r)
+    ranking_campaign_status=$(aws personalize describe-campaign \
+            --campaign-arn ${ranking_campaign_arn} | jq '.campaign.status' -r)
             
     echo "userPersonalize_campaign_status: ${userPersonalize_campaign_status}"
+    echo "ranking_campaign_status: ${ranking_campaign_status}"
+
     
-    if [ "$userPersonalize_campaign_status" = "CREATE FAILED" ]
+    if [[ "$userPersonalize_campaign_status" = "CREATE FAILED" || "$ranking_campaign_status" = "CREATE FAILED" ]]
     then
-        echo "!!!UserPersonalize Campaign Create Failed!!!"
+        echo "!!!Campaign Create Failed!!!"
         echo "!!!Personalize Service Create Failed!!!"
         exit 8
-    elif [ "$userPersonalize_campaign_status" = "ACTIVE" ]
+    elif [[ "$userPersonalize_campaign_status" = "ACTIVE" && "$ranking_campaign_status" = "ACTIVE" ]]
     then
-        echo "UserPersonalize Campaign create successfully!"
+        echo "Campaign create successfully!"
         break;
     fi
     CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
@@ -298,7 +324,7 @@ done
 
 if [ $CURRENT_TIME -ge $MAX_TIME ]
 then
-    echo "Creating UserPersonalize Campaign Time exceed 10 min, please delete UserPersonalize Campaign and try again!"
+    echo "Creating Campaign Time exceed 10 min, please delete UserPersonalize Campaign and try again!"
     exit 8
 fi
 
