@@ -52,7 +52,7 @@ spec:
               fieldRef:
                 fieldPath: metadata.namespace
           - name: USE_PERSONALIZE_PLUGIN
-            value: "True"
+            value: "False"
       - name: rs-event-plugin
         image: rs/event-plugin:latest
         ports:

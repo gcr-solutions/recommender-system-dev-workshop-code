@@ -39,7 +39,7 @@ MANDATORY_ENV_VARS = {
     'S3_PREFIX': 'sample-data',
     'POD_NAMESPACE': 'default',
     'TEST': 'False',
-    'USE_PERSONALIZE_PLUGIN': 'True'
+    'USE_PERSONALIZE_PLUGIN': 'False'
 }
 
 
