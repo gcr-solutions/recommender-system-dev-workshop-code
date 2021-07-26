@@ -57,7 +57,7 @@ spec:
           - name: AWS_REGION
             value: "ap-northeast-1"
           - name: PERSONALIZE_DATASET_GROUP
-            value: "GCR-RS-News-UserPersonalize-Dataset-Group"
+            value: "GCR-RS-News-Dataset-Group"
           - name: PERSONALIZE_SOLUTION
             value: "userPersonalizeSolutionNew"
           - name: PERSONALIZE_CAMPAIGN
