@@ -79,7 +79,8 @@ class Event(service_pb2_grpc.EventServicer):
                 sessionId=session_ID,
                 eventList=[{
                     'sentAt': curTime,
-                    'itemId': item_id
+                    'itemId': item_id,
+                    'eventType': 'CLICK'
                 }]
             )
 
