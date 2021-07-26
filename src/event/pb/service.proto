@@ -13,6 +13,7 @@ service Event {
     rpc Stop(StopRquest) returns (CommonResponse) {};
 
     rpc EventTracker(EventTrackerRequest) returns (EventTrackerResponse) {};
+    rpc AddNewUser(AddNewUserRequest) returns (AddNewUserResponse) {};
 }
 
 message CommonResponse {
@@ -41,6 +42,18 @@ message EventTrackerRequest {
 }
 
 message EventTrackerResponse {
+  int32 code = 1;
+  string description = 2;
+}
+
+message AddNewUserRequest {
+  string apiVersion = 1;
+  string metadata = 2;
+  string type = 3;
+  google.protobuf.Any requestBody = 4;
+}
+
+message AddNewUserResponse {
   int32 code = 1;
   string description = 2;
 }

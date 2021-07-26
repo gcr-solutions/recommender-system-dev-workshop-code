@@ -182,6 +182,9 @@ class StateMachineStatusResponse(BaseModel):
     detailUrl: str
     executionArn: str
 
+class UserEntity(BaseModel):
+    user_id: str
+    user_sex: str
 
 def gen_simple_response(message):
     res = SimpleResponse(
@@ -288,6 +291,36 @@ def offline_status_get(exec_arn: str):
                                          stopDate=res.get('stopDate', None))
                                      )
     return res
+
+
+@api_router.post('/api/v1/event/add_user/{user_id}', response_model=SimpleResponse, tags=["event"])
+def add_new_user(userEntity: UserEntity):
+    logging.info("Add new user to AWS Personalize Service...")
+    user_id = userEntity.user_id
+    user_sex = userEntity.user_sex
+    logging.info("New User Id:{}, Sex:{}".format(user_id, user_sex))
+
+    request = any_pb2.Any()
+    request.value = json.dumps([{
+        'userId': user_id,
+        'gender': user_sex
+    }]).encode('utf-8')
+    logging.info('Invoke personalize plugin to add new user...')
+    addNewUserRequest = service_pb2.AddNewUserRequest(apiVersion='v1',metadata='Event',
+                                                      type='AddNewUser')
+    addNewUserRequest.requestBody.Pack(request)
+    channel = grpc.insecure_channel('localhost:50051')
+    stub = service_pb2_grpc.EventStub(channel)
+    response = stub.AddNewUser(addNewUserRequest)
+
+    if response.code == 0:
+        logging.info("add user to AWS Personalize Service successful.")
+        message = response.description
+    else:
+        logging.info("add user to AWS Personalize Service failed.")
+        message = "add user to AWS Personalize Service failed."
+
+    return gen_simple_response(message)
 
 
 def start_step_funcs(trainReq):

@@ -22,6 +22,7 @@ MANDATORY_ENV_VARS = {
     'EVENT_TRACKER': 'NewsEventTracker'
 }
 
+
 class Event(service_pb2_grpc.EventServicer):
 
     def __init__(self):
@@ -34,6 +35,7 @@ class Event(service_pb2_grpc.EventServicer):
         self.dataset_group_arn = self.get_dataset_group_arn()
         self.event_tracker_arn = self.get_event_tracker_arn()
         self.event_tracker_id = self.get_event_tracking_id()
+        self.user_dataset_arn = self.get_user_dataset_arn()
 
     def get_dataset_group_arn(self):
         datasetGroups = self.personalize.list_dataset_groups()
@@ -57,6 +59,15 @@ class Event(service_pb2_grpc.EventServicer):
         )
         logging.info("Event Tracker ID:{}".format(eventTracker["eventTracker"]["trackingId"]))
         return eventTracker["eventTracker"]["trackingId"]
+
+    def get_user_dataset_arn(self):
+        datasets = self.personalize.list_datasets(
+            datasetGroupArn=self.dataset_group_arn
+        )
+        for dataset in datasets['datasets']:
+            if dataset['datasetType'] == 'Users':
+                logging.info('User Dataset Arn:{}'.format(dataset['datasetArn']))
+                return dataset['datasetArn']
 
     def EventTracker(self, request, context):
         logging.info("personalize plugin EventTracker start...")
@@ -84,11 +95,28 @@ class Event(service_pb2_grpc.EventServicer):
                 }]
             )
 
-        #eventTrackerResponseAny = Any()
-        eventTrackerResponse = service_pb2.EventTrackerResponse(code=0, description='personalize plugin process with success')
-        #eventTrackerResponse.results.Pack(eventTrackerResponseAny)
+        eventTrackerResponse = service_pb2.EventTrackerResponse(code=0,
+                                                                description='personalize plugin process with success')
         logging.info("event track complete")
         return eventTrackerResponse
+
+    def AddNewUser(self, request, context):
+        logging.info("personalize plugin AddNewUser start ...")
+        request_body = Any()
+        request.requestBody.Unpack(request_body)
+        reqData = json.loads(request_body.value, encoding='utf-8')
+        logging.info("reqData:{}".format(reqData))
+
+        self.personalize_events.put_users(
+            datasetArn=self.user_dataset_arn,
+            users=reqData
+        )
+
+        addNewUserResponse = service_pb2.AddNewUserResponse(code=0,
+                                                            description='personalize plugin add new user process with success')
+        logging.info("add new user complete")
+        return addNewUserResponse
+
 
 def init():
     # Check out environments
@@ -97,6 +125,7 @@ def init():
             logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
             MANDATORY_ENV_VARS[var] = os.environ.get(var)
+
 
 def serve(plugin_name):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
