@@ -115,11 +115,20 @@ class Event(service_pb2_grpc.EventServicer):
         request_body = Any()
         request.requestBody.Unpack(request_body)
         reqData = json.loads(request_body.value, encoding='utf-8')
-        logging.info("reqData:{}".format(reqData))
+        user_id = reqData['userId']
+        user_sex = reqData['gender']
+        logging.info("user_id:{}, user_gender:{}".format(user_id, user_sex))
 
         self.personalize_events.put_users(
             datasetArn=self.user_dataset_arn,
-            users=reqData
+            users=[
+                {
+                    'userId': user_id,
+                    'properties': str({
+                        'gender': user_sex
+                    })
+                }
+            ]
         )
 
         addNewUserResponse = service_pb2.AddNewUserResponse(code=0,
@@ -134,12 +143,21 @@ class Event(service_pb2_grpc.EventServicer):
     #     reqData = json.loads(request_body.value, encoding='utf-8')
     #     solutionName = reqData['solutionName']
     #
+    #     if solutionName == 'user-personalize':
+    #         training_model = 'UPDATE'
+    #     else:
+    #         training_model = 'FULL'
+    #
     #     solution_arn = self.get_solution_arn(solutionName)
     #
-    #     response = self.personalize.create_solution_version(
+    #     create_solution_version_response = self.personalize.create_solution_version(
     #         solutionArn=solution_arn,
-    #         trainingModel='UPDATE'
+    #         trainingModel=training_model
     #     )
+    #
+    #     create_campaign =
+    #
+    #
     #
     #     modelTrainResponseAny = Any()
     #     modelTrainResponseAny.value = json.dumps(response).encode('utf-8')
@@ -148,7 +166,7 @@ class Event(service_pb2_grpc.EventServicer):
     #
     #     logging.info("model train complete")
     #     return modelTrainResponse
-    #
+
 
 
 def init():

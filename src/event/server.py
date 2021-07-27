@@ -318,12 +318,10 @@ def add_new_user(userEntity: UserEntity):
     logging.info("New User Id:{}, Sex:{}".format(user_id, user_sex))
 
     request = any_pb2.Any()
-    request.value = json.dumps([{
+    request.value = json.dumps({
         'userId': user_id,
-        'properties': str({
-            'gender': user_sex
-        })
-    }]).encode('utf-8')
+        'gender': user_sex
+    }).encode('utf-8')
     logging.info('Invoke personalize plugin to add new user...')
     addNewUserRequest = service_pb2.AddNewUserRequest(apiVersion='v1',metadata='Event',
                                                       type='AddNewUser')
