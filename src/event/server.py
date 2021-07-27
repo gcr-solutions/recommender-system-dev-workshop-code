@@ -300,14 +300,11 @@ def add_new_user(userEntity: UserEntity):
     user_sex = userEntity.user_sex
     logging.info("New User Id:{}, Sex:{}".format(user_id, user_sex))
 
-    user_list = [{
-        'userId': user_id,
-        'properties': "{ gender: {}}".format(user_sex)
-    }]
-
-    logging.info("New User List: {}".format(user_list))
     request = any_pb2.Any()
-    request.value = json.dumps(user_list).encode('utf-8')
+    request.value = json.dumps([{
+        'userId': user_id,
+        'properties': "{\"gender\": \"M\"}"
+    }]).encode('utf-8')
     logging.info('Invoke personalize plugin to add new user...')
     addNewUserRequest = service_pb2.AddNewUserRequest(apiVersion='v1',metadata='Event',
                                                       type='AddNewUser')

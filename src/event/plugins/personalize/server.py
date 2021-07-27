@@ -65,7 +65,7 @@ class Event(service_pb2_grpc.EventServicer):
             datasetGroupArn=self.dataset_group_arn
         )
         for dataset in datasets['datasets']:
-            if dataset['datasetType'] == 'USERS':
+            if dataset['datasetType'] == 'Users':
                 logging.info('User Dataset Arn:{}'.format(dataset['datasetArn']))
                 return dataset['datasetArn']
 
