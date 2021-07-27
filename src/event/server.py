@@ -39,7 +39,8 @@ MANDATORY_ENV_VARS = {
     'S3_PREFIX': 'sample-data',
     'POD_NAMESPACE': 'default',
     'TEST': 'False',
-    'USE_PERSONALIZE_PLUGIN': 'False'
+    'USE_PERSONALIZE_PLUGIN': 'False',
+    'PERSONALIZE_RECIPE': 'user-personalize'
 }
 
 
@@ -261,6 +262,22 @@ def recall_post(user_id: str, clickItemList: ClickedItemList):
 def start_train_post(trainReq: TrainRequest):
     if trainReq.change_type not in ['MODEL', 'CONTENT', 'ACTION']:
         raise HTTPException(status_code=405, detail="invalid change_type")
+
+    # if MANDATORY_ENV_VARS['USE_PERSONALIZE_PLUGIN'] == "True":
+    #     request = any_pb2.Any()
+    #     data = {
+    #         "recipe": MANDATORY_ENV_VARS['PERSONALIZE_RECIPE']
+    #     }
+    #     request.value = json.dumps(data).encode('utf-8')
+    #     logging.info('Invoke personalize plugin to train model...')
+    #     modelTrainRequest = service_pb2.ModelTrainRequest(apiVersion='v1', metadata='Event',
+    #                                                           type='ModelTrain')
+    #     modelTrainRequest.requestBody.Pack(request)
+    #     channel = grpc.insecure_channel('localhost:50051')
+    #     stub = service_pb2_grpc.EventStub(channel)
+    #     response = stub.ModelTrain(modelTrainRequest)
+    #
+
     res = start_step_funcs(trainReq)
     return res
 
@@ -303,7 +320,9 @@ def add_new_user(userEntity: UserEntity):
     request = any_pb2.Any()
     request.value = json.dumps([{
         'userId': user_id,
-        'properties': "{\"gender\": \"M\"}"
+        'properties': str({
+            'gender': user_sex
+        })
     }]).encode('utf-8')
     logging.info('Invoke personalize plugin to add new user...')
     addNewUserRequest = service_pb2.AddNewUserRequest(apiVersion='v1',metadata='Event',

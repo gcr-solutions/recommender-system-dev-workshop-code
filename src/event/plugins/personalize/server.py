@@ -65,9 +65,19 @@ class Event(service_pb2_grpc.EventServicer):
             datasetGroupArn=self.dataset_group_arn
         )
         for dataset in datasets['datasets']:
-            if dataset['datasetType'] == 'Users':
+            if dataset['datasetType'] == 'USERS':
                 logging.info('User Dataset Arn:{}'.format(dataset['datasetArn']))
                 return dataset['datasetArn']
+
+    def get_solution_arn(self, solutionName):
+        solutions = self.personalize.list_solutions(
+            datasetGroupArn=self.dataset_group_arn
+        )
+        for solution in solutions["solutions"]:
+            if solution['name'] == solutionName:
+                logging.info("Solution Arn:{}".format(solution["solutionArn"]))
+                return solution["solutionArn"]
+
 
     def EventTracker(self, request, context):
         logging.info("personalize plugin EventTracker start...")
@@ -116,6 +126,29 @@ class Event(service_pb2_grpc.EventServicer):
                                                             description='personalize plugin add new user process with success')
         logging.info("add new user complete")
         return addNewUserResponse
+
+    # def ModelTrain(self, request, context):
+    #     logging.info("personalize plugin ModelTrain start ...")
+    #     request_body = Any()
+    #     request.requestBody.Unpack(request_body)
+    #     reqData = json.loads(request_body.value, encoding='utf-8')
+    #     solutionName = reqData['solutionName']
+    #
+    #     solution_arn = self.get_solution_arn(solutionName)
+    #
+    #     response = self.personalize.create_solution_version(
+    #         solutionArn=solution_arn,
+    #         trainingModel='UPDATE'
+    #     )
+    #
+    #     modelTrainResponseAny = Any()
+    #     modelTrainResponseAny.value = json.dumps(response).encode('utf-8')
+    #     modelTrainResponse = service_pb2.ModelTrainResponse(code=0, description='model train with success')
+    #     modelTrainResponse.results.Pack(modelTrainResponseAny)
+    #
+    #     logging.info("model train complete")
+    #     return modelTrainResponse
+    #
 
 
 def init():
