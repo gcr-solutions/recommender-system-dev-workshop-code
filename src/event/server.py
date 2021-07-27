@@ -302,7 +302,7 @@ def add_new_user(userEntity: UserEntity):
 
     user_list = [{
         'userId': user_id,
-        'properties': "{'gender': {}}".format(user_sex)
+        'properties': "{\"gender\": {}}".format(user_sex)
     }]
 
     logging.info("New User List: {}".format(user_list))
