@@ -83,7 +83,7 @@ do
     echo ${StackStatus} |  egrep "(CREATE_COMPLETE)|(UPDATE_COMPLETE)" > /dev/null
 
     if [[ $? -ne 0 ]]; then
-        echo "error!!!  ${StackStatus}"
+        echo "error!  ${StackStatus}"
         exit 1
     fi
 #
