@@ -87,7 +87,7 @@ do
          exit 1
      fi
 
-    rm tmp_*.yaml > /dev/null 2>&1
+    rm tmp_*.yaml > /dev/null 2>&1  || true
 
 done
 
