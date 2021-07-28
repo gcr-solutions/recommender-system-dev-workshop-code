@@ -104,18 +104,40 @@ elif [[ $AWS_REGION == 'ap-northeast-2' ]]; then
   registry_uri=860869212795.dkr.ecr.${AWS_REGION}.amazonaws.com
 elif [[ $AWS_REGION == 'ap-southeast-1' ]]; then
   registry_uri=759080221371.dkr.ecr.${AWS_REGION}.amazonaws.com
+elif [[ $AWS_REGION == 'ap-southeast-2' ]]; then
+  registry_uri=440695851116.dkr.ecr.${AWS_REGION}.amazonaws.com
 elif [[ $AWS_REGION == 'ap-east-1' ]]; then
   registry_uri=732049463269.dkr.ecr.${AWS_REGION}.amazonaws.com
 elif [[ $AWS_REGION == 'cn-north-1' ]]; then
   registry_uri=671472414489.dkr.ecr.cn-north-1.amazonaws.com.cn
 elif [[ $AWS_REGION == 'cn-northwest-1' ]]; then
   registry_uri=844356804704.dkr.ecr.cn-northwest-1.amazonaws.com.cn
+elif [[ $AWS_REGION == 'us-west-1' ]]; then
+  registry_uri=667973535471.dkr.ecr.${AWS_REGION}.amazonaws.com
 elif [[ $AWS_REGION == 'us-west-2' ]]; then
   registry_uri=153931337802.dkr.ecr.${AWS_REGION}.amazonaws.com
 elif [[ $AWS_REGION == 'ap-south-1' ]]; then
   registry_uri=105495057255.dkr.ecr.${AWS_REGION}.amazonaws.com
+elif [[ $AWS_REGION == 'af-south-1' ]]; then
+  registry_uri=309385258863.dkr.ecr.${AWS_REGION}.amazonaws.com
+elif [[ $AWS_REGION == 'me-south-1' ]]; then
+  registry_uri=750251592176.dkr.ecr.${AWS_REGION}.amazonaws.com
+elif [[ $AWS_REGION == 'sa-east-1' ]]; then
+  registry_uri=737130764395.dkr.ecr.${AWS_REGION}.amazonaws.com
+elif [[ $AWS_REGION == 'ca-central-1' ]]; then
+  registry_uri=446299261295.dkr.ecr.${AWS_REGION}.amazonaws.com
+elif [[ $AWS_REGION == 'eu-central-1' ]]; then
+  registry_uri=906073651304.dkr.ecr.${AWS_REGION}.amazonaws.com
+elif [[ $AWS_REGION == 'eu-north-1' ]]; then
+  registry_uri=330188676905.dkr.ecr.${AWS_REGION}.amazonaws.com
 elif [[ $AWS_REGION == 'eu-west-1' ]]; then
   registry_uri=571004829621.dkr.ecr.${AWS_REGION}.amazonaws.com
+elif [[ $AWS_REGION == 'eu-west-2' ]]; then
+  registry_uri=836651553127.dkr.ecr.${AWS_REGION}.amazonaws.com
+elif [[ $AWS_REGION == 'eu-south-1' ]]; then
+  registry_uri=753923664805.dkr.ecr.${AWS_REGION}.amazonaws.com
+elif [[ $AWS_REGION == 'eu-west-3' ]]; then
+  registry_uri=136845547031.dkr.ecr.${AWS_REGION}.amazonaws.com
 fi
 
 echo registry_uri=$registry_uri
