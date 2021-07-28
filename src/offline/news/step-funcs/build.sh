@@ -83,14 +83,14 @@ do
     echo ${StackStatus} |  egrep "(CREATE_COMPLETE)|(UPDATE_COMPLETE)" > /dev/null
 
     if [[ $? -ne 0 ]]; then
-        echo "error!  ${StackStatus}"
+        echo "error  ${StackStatus}"
         exit 1
     fi
 #
 #    if [[ $name =~ ^(steps|item-new-assembled)$ && $REGION =~ ^cn.* ]]; then
 #       rm tmp_*.yaml
 #    fi
-    
+    echo finish
     rm tmp_*.yaml > /dev/null 2>&1
 
 done
