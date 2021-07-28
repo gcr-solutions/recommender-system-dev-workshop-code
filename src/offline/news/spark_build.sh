@@ -138,8 +138,6 @@ elif [[ $AWS_REGION == 'eu-south-1' ]]; then
   registry_uri=753923664805.dkr.ecr.${AWS_REGION}.amazonaws.com
 elif [[ $AWS_REGION == 'eu-west-3' ]]; then
   registry_uri=136845547031.dkr.ecr.${AWS_REGION}.amazonaws.com
-elif [[ $AWS_REGION == '' ]]; then
-  registry_uri=571004829621.dkr.ecr.${AWS_REGION}.amazonaws.com
 fi
 
 echo registry_uri=$registry_uri
