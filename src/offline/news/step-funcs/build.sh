@@ -78,7 +78,7 @@ do
     --parameter-overrides ${PARAMETER_OVERRIDES} \
     --capabilities CAPABILITY_NAMED_IAM
 
-    echo finish deploy
+    echo "finish deploy"
 
     StackStatus=$($AWS_CMD  cloudformation  describe-stacks --region ${REGION} --stack-name ${STACK_NAME} --output table | grep StackStatus)
     echo ${StackStatus} |  egrep "(CREATE_COMPLETE)|(UPDATE_COMPLETE)" > /dev/null
@@ -92,7 +92,7 @@ do
 #    if [[ $name =~ ^(steps|item-new-assembled)$ && $REGION =~ ^cn.* ]]; then
 #       rm tmp_*.yaml
 #    fi
-    echo finish
+    echo "finish"
     rm tmp_*.yaml > /dev/null 2>&1
 
 done
