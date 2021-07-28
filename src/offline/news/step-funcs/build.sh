@@ -82,10 +82,11 @@ do
     StackStatus=$($AWS_CMD  cloudformation  describe-stacks --region ${REGION} --stack-name ${STACK_NAME} --output table | grep StackStatus)
     echo ${StackStatus} |  egrep "(CREATE_COMPLETE)|(UPDATE_COMPLETE)" > /dev/null
 
-    if [[ $? -ne 0 ]]; then
-        echo "error  ${StackStatus}"
-        exit 1
-    fi
+#    if [[ $? -ne 0 ]]; then
+#        echo "error  ${StackStatus}"
+#        exit 1
+#    fi
+
 #
 #    if [[ $name =~ ^(steps|item-new-assembled)$ && $REGION =~ ^cn.* ]]; then
 #       rm tmp_*.yaml
