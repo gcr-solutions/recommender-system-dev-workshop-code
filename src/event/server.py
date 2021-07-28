@@ -264,19 +264,6 @@ def start_train_post(trainReq: TrainRequest):
         raise HTTPException(status_code=405, detail="invalid change_type")
 
     # if MANDATORY_ENV_VARS['USE_PERSONALIZE_PLUGIN'] == "True":
-    #     request = any_pb2.Any()
-    #     data = {
-    #         "recipe": MANDATORY_ENV_VARS['PERSONALIZE_RECIPE']
-    #     }
-    #     request.value = json.dumps(data).encode('utf-8')
-    #     logging.info('Invoke personalize plugin to train model...')
-    #     modelTrainRequest = service_pb2.ModelTrainRequest(apiVersion='v1', metadata='Event',
-    #                                                           type='ModelTrain')
-    #     modelTrainRequest.requestBody.Pack(request)
-    #     channel = grpc.insecure_channel('localhost:50051')
-    #     stub = service_pb2_grpc.EventStub(channel)
-    #     response = stub.ModelTrain(modelTrainRequest)
-    #
 
     res = start_step_funcs(trainReq)
     return res

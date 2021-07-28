@@ -127,7 +127,7 @@ class Event(service_pb2_grpc.EventServicer):
                     'properties': str({
                         'gender': user_sex
                     })
-                }
+                },
             ]
         )
 
@@ -135,38 +135,6 @@ class Event(service_pb2_grpc.EventServicer):
                                                             description='personalize plugin add new user process with success')
         logging.info("add new user complete")
         return addNewUserResponse
-
-    # def ModelTrain(self, request, context):
-    #     logging.info("personalize plugin ModelTrain start ...")
-    #     request_body = Any()
-    #     request.requestBody.Unpack(request_body)
-    #     reqData = json.loads(request_body.value, encoding='utf-8')
-    #     solutionName = reqData['solutionName']
-    #
-    #     if solutionName == 'user-personalize':
-    #         training_model = 'UPDATE'
-    #     else:
-    #         training_model = 'FULL'
-    #
-    #     solution_arn = self.get_solution_arn(solutionName)
-    #
-    #     create_solution_version_response = self.personalize.create_solution_version(
-    #         solutionArn=solution_arn,
-    #         trainingModel=training_model
-    #     )
-    #
-    #     create_campaign =
-    #
-    #
-    #
-    #     modelTrainResponseAny = Any()
-    #     modelTrainResponseAny.value = json.dumps(response).encode('utf-8')
-    #     modelTrainResponse = service_pb2.ModelTrainResponse(code=0, description='model train with success')
-    #     modelTrainResponse.results.Pack(modelTrainResponseAny)
-    #
-    #     logging.info("model train complete")
-    #     return modelTrainResponse
-
 
 
 def init():
