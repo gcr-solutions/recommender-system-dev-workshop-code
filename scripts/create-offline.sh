@@ -9,7 +9,7 @@ if [[ -z $Stage ]];then
 fi
 
 if [[ -z $REGION ]]; then
- export REGION='ap-northeast-1'
+  REGION='ap-northeast-1'
 fi
 
 echo "Stage=$Stage"
