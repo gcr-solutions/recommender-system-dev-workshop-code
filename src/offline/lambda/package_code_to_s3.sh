@@ -41,6 +41,9 @@ lambda_funcs=(
   precheck-lambda
   s3-util-lambda
   sns-message-lambda
+  create-dataset-import-job-lambda
+  update-solution-version-lambda
+  update-campaign-lambda
 )
 
 rm -rf deploy >/dev/null 2>&1
