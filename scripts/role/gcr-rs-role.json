@@ -40,19 +40,11 @@
         {
             "Effect": "Allow",
             "Action": [
-                "iam:GetRole"
-            ],
-            "Resource": [
-                "arn:aws:iam::<account_id>:role/*"
-            ]
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
+                "iam:GetRole",
                 "iam:ListRoles"
             ],
             "Resource": [
-                "*"
+                "arn:aws:iam::<account_id>:role/*"
             ]
         },
         {

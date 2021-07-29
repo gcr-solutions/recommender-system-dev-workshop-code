@@ -1,0 +1,28 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: personalize
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - front-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /personalize
+    route:
+    - destination:
+        host: personalize
+        port:
+          number: 6500
+    corsPolicy:
+      allowOrigins:
+        - regex: ".*"
+      allowMethods:
+        - POST
+        - GET
+      allowCredentials: true
+      allowHeaders:
+        - "*"
+      maxAge: "24h"

@@ -27,6 +27,8 @@ from requests import ConnectTimeout
 from typing import Optional
 from fastapi.responses import JSONResponse
 
+import datetime
+
 
 class LoginRequest(BaseModel):
     userId: str
@@ -64,14 +66,16 @@ MANDATORY_ENV_VARS = {
     'REDIS_PORT': 6379,
     'EVENT_SERVICE_ENDPOINT': 'http://event:5100',
     'RETRIEVE_SERVICE_ENDPOINT': 'http://retrieve:5600',
+    'PERSONALIZE_SERVICE_ENDPOINT': 'http://personalize:6500',
     'LOCAL_DATA_FOLDER': '/tmp/rs-data/',
-    'S3_BUCKET':  'aws-gcr-rs-sol-demo-ap-southeast-1-522244679887',
+    'S3_BUCKET': 'aws-gcr-rs-sol-demo-ap-southeast-1-522244679887',
     'S3_PREFIX': 'sample-data',
     'AWS_REGION': 'ap-southeast-1',
     'CLICK_RECORD_BUCKET': 'gcr-rs-ops-ap-southeast-1-522244679887',
     'CLICK_RECORD_FILE_PATH': 'system/ingest-data/action/',
     'USER_RECORD_FILE_PATH': 'system/ingest-data/user/',
-    'TEST': ''
+    'TEST': '',
+    'USE_AWS_PERSONALIZE': False
 }
 
 REDIS_KEY_USER_ID_CLICK_DICT = 'user_id_click_dict'
@@ -83,13 +87,15 @@ movie_records_dict = 'movie_records_dict'
 user_id_action_dict = 'user_id_action_dict'
 
 lNewsCfgCompleteType = ['news_story', 'news_culture', 'news_entertainment', 'news_sports', 'news_finance', 'news_house',
-                        'news_car', 'news_edu', 'news_tech', 'news_military', 'news_travel', 'news_world', 'news_agriculture', 'news_game']
+                        'news_car', 'news_edu', 'news_tech', 'news_military', 'news_travel', 'news_world',
+                        'news_agriculture', 'news_game']
 
 
 def xasync(f):
     def wrapper(*args, **kwargs):
         thr = Thread(target=f, args=args, kwargs=kwargs)
         thr.start()
+
     return wrapper
 
 
@@ -106,6 +112,7 @@ def get_dashboard_data():
     json_data = json.loads(object_str)
     return response_success(json_data)
 
+
 # notice demo service to load news record data
 
 
@@ -121,13 +128,13 @@ def notice(loadRequest: LoadRequest):
         file_type, file_path, file_list))
     if not os.path.exists(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER']):
         logging.info("the local path {} is not existed".format(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER']))
-        os.mkdir(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'])        
+        os.mkdir(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'])
     if file_type == 'news_records':
         for file in file_list:
             init_news_records_data(file_type, file_path, file, news_records_dict)
     elif file_type == 'movie_records':
         for file in file_list:
-            init_movie_records_data(file_type, file_path, file, movie_records_dict)    
+            init_movie_records_data(file_type, file_path, file, movie_records_dict)
 
     return json.dumps({'result': 'success'}), 200, {'ContentType': 'application/json'}
 
@@ -153,7 +160,11 @@ def login(loginRequest: LoginRequest):
         s3client = boto3.resource('s3')
         if s3_body != '':
             s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
-                Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
+                Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv',
+                Body=s3_body)
+
+        # call aws personalize addUser api
+        #call_personalize_add_user(user_id, temp_array[1])
 
         return response_success({
             "message": "Login as anonymous user!",
@@ -183,7 +194,11 @@ def login(loginRequest: LoginRequest):
         s3client = boto3.resource('s3')
         if s3_body != '':
             s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
-                Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
+                Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv',
+                Body=s3_body)
+
+        # call aws personalize addUser api
+        #call_personalize_add_user(user_id, temp_array[1])
 
         login_new_user(user_name, user_id)
         user_id_in_sever = user_id
@@ -197,6 +212,17 @@ def login(loginRequest: LoginRequest):
         }
     }
     return response_success(response)
+
+
+def call_personalize_add_user(user_id, user_sex):
+    logging.info("Start add new user, user id:{}, user sex:{}".format(user_id, user_sex))
+    url = MANDATORY_ENV_VARS['EVENT_SERVICE_ENDPOINT'] + \
+          '/api/v1/event/add_user/' + user_id
+
+    return send_post_request(url, {
+        'user_id': user_id,
+        'user_sex': user_sex
+    })
 
 
 def get_random_sex():
@@ -220,8 +246,21 @@ def get_recommend_news(userId: str, type: str, curPage: str, pageSize: str):
         return mock_news_retrieve_response()
     logging.info('recommend news list to user')
     # get from retrieve
+
+    logging.info("---------time before trigger retrieve:")
+    logging.info(datetime.datetime.now())
+
+    # if recommend_type == 'recommend':
+    #     logging.info("---------personalize recommend---------------:")
+    #     req_url=MANDATORY_ENV_VARS['PERSONALIZE_SERVICE_ENDPOINT'] + '/personalize/retrieve?user_id={}'.format(user_id)
+    #     httpResp = requests.get(req_url)
+
     httpResp = requests.get(MANDATORY_ENV_VARS['RETRIEVE_SERVICE_ENDPOINT'] +
-                            '/api/v1/retrieve/'+user_id+'?recommendType='+recommend_type)
+                            '/api/v1/retrieve/' + user_id + '?recommendType=' + recommend_type)
+
+    logging.info("---------time after trigger retrieve:")
+    logging.info(datetime.datetime.now())
+
     if httpResp.status_code != 200:
         return response_failed({
             "message": "Not support news type"
@@ -233,7 +272,11 @@ def get_recommend_news(userId: str, type: str, curPage: str, pageSize: str):
 
     retrieve_response = generate_news_retrieve_response(news_recommend_list)
 
+    logging.info("---------time finish /news:")
+    logging.info(datetime.datetime.now())
+
     return retrieve_response
+
 
 # get user history of click
 
@@ -253,6 +296,7 @@ def click_get(user_id: str, pageSize: str, curPage: str):
         "data": click_list_info['click_list']
     })
 
+
 @app.get('/api/v1/demo/movie/click/{user_id}', tags=["demo"])
 def click_get(user_id: str, pageSize: str, curPage: str):
     logging.info("click_get enter")
@@ -266,7 +310,7 @@ def click_get(user_id: str, pageSize: str, curPage: str):
         "curPage": cur_page,
         "totalPage": click_list_info['total_page'],
         "data": click_list_info['click_list']
-    })    
+    })
 
 
 @app.post('/api/v1/demo/click', tags=["demo"])
@@ -276,8 +320,15 @@ def click_post(clickRequest: ClickRequest):
     item_id = clickRequest.itemId
     logging.info("user_id:{}, item_id:{}".format(user_id, item_id))
     user_click_count = add_user_click_info(user_id, item_id)
+    logging.info("---------time start:")
+    logging.info(datetime.datetime.now())
     click_one_to_portrait(user_id, item_id)
+    logging.info("---------time after portrait:")
+    logging.info(datetime.datetime.now())
     click_hist_to_recall(user_id, item_id, user_click_count)
+
+    logging.info("---------time after recall:")
+    logging.info(datetime.datetime.now())
     return response_success({
         "message": "clicked item_id: {}".format(item_id)
     })
@@ -288,7 +339,7 @@ def portrait_get(user_id: str):
     logging.info("portrait_get enter")
     logging.info('user_id -> %s', user_id)
     httpResp = requests.get(
-        MANDATORY_ENV_VARS['EVENT_SERVICE_ENDPOINT']+'/api/v1/event/portrait/'+user_id)
+        MANDATORY_ENV_VARS['EVENT_SERVICE_ENDPOINT'] + '/api/v1/event/portrait/' + user_id)
     if httpResp.status_code != 200:
         return response_failed({
             "message": "Not support news type"
@@ -297,7 +348,7 @@ def portrait_get(user_id: str):
     logging.info('portrait_data {}'.format(portrait_data))
 
     return {"message": "success",
-            "data":  portrait_data}
+            "data": portrait_data}
 
 
 @app.post('/api/v1/demo/url', tags=["demo"])
@@ -457,6 +508,7 @@ def init_news_records_data(type, path, file, key):
     p.close()
     p.join()
 
+
 @xasync
 def init_movie_records_data(type, path, file, key):
     logging.info('start init_movie_records_data')
@@ -469,6 +521,7 @@ def init_movie_records_data(type, path, file, key):
 
     p.close()
     p.join()
+
 
 def load_news_records_to_redis(type, key, file):
     try:
@@ -489,6 +542,7 @@ def load_news_records_to_redis(type, key, file):
 
     file_to_load.close()
     logging.info('Load news record... was success.')
+
 
 def load_movie_records_to_redis(type, key, file):
     try:
@@ -514,7 +568,7 @@ def load_movie_records_to_redis(type, key, file):
             }).encode('utf-8'))
 
     file_to_load.close()
-    logging.info('Load news record... was success.')    
+    logging.info('Load news record... was success.')
 
 
 def download_file_from_s3(bucket, path, file, dest_folder):
@@ -523,7 +577,7 @@ def download_file_from_s3(bucket, path, file, dest_folder):
     # Using default session
     s3client = boto3.client('s3')
     try:
-        s3client.download_file(bucket, path+file, dest_folder+file)
+        s3client.download_file(bucket, path + file, dest_folder + file)
     except botocore.exceptions.ClientError as error:
         raise error
     except botocore.exceptions.ParamValidationError as error:
@@ -532,12 +586,12 @@ def download_file_from_s3(bucket, path, file, dest_folder):
 
     logging.info(
         'Download file - %s from s3://%s/%s ... was success', file, bucket, path)
-    return dest_folder+file
+    return dest_folder + file
 
 
 def click_one_to_portrait(user_id, news_id):
     url = MANDATORY_ENV_VARS['EVENT_SERVICE_ENDPOINT'] + \
-        '/api/v1/event/portrait/'+user_id
+          '/api/v1/event/portrait/' + user_id
     send_post_request(url, {
         'clicked_item': {
             'id': news_id
@@ -553,7 +607,7 @@ def click_hist_to_recall(user_id, news_id, user_click_count):
 def trigger_recall_svc(user_id):
     window = TRIGGER_RECALL_WINDOW
     url = MANDATORY_ENV_VARS['EVENT_SERVICE_ENDPOINT'] + \
-        '/api/v1/event/recall/'+user_id
+          '/api/v1/event/recall/' + user_id
     click_list = get_user_click_hist(user_id, window)
 
     return send_post_request(url, {
@@ -688,6 +742,7 @@ def get_item_by_id(item_id):
         'url': 'www.baidu.com'  # TODO
     }
 
+
 def get_movie_by_id(item_id):
     logging.info("get_movie_by_id start")
     movie_detail_record = json.loads(rCache.get_data_from_hash(
@@ -698,7 +753,8 @@ def get_movie_by_id(item_id):
     aws_region = MANDATORY_ENV_VARS['AWS_REGION']
     return {
         'id': item_id,
-        'image': 'https://{}.s3-{}.amazonaws.com/{}/movielens-posters/img/{}.jpg'.format(s3_bucket, aws_region, s3_prefix, item_id),
+        'image': 'https://{}.s3-{}.amazonaws.com/{}/movielens-posters/img/{}.jpg'.format(s3_bucket, aws_region,
+                                                                                         s3_prefix, item_id),
         'title': movie_detail_record['program_name'],
         'release_year': movie_detail_record['release_year'],
         'director': movie_detail_record['director'],
@@ -768,7 +824,8 @@ def generate_movie_retrieve_response(movie_recommend_list):
 
         data = {
             'id': element['id'],
-            'image': 'https://{}.s3-{}.amazonaws.com/{}/movielens-posters/img/{}.jpg'.format(s3_bucket, aws_region, s3_prefix, element['id']),
+            'image': 'https://{}.s3-{}.amazonaws.com/{}/movielens-posters/img/{}.jpg'.format(s3_bucket, aws_region,
+                                                                                             s3_prefix, element['id']),
             'title': movie_detail_record['program_name'],
             'release_year': movie_detail_record['release_year'],
             'director': movie_detail_record['director'],
@@ -788,6 +845,7 @@ def generate_movie_retrieve_response(movie_recommend_list):
         "totalPage": 1,
         "data": retrieve_data
     })
+
 
 def refresh_user_click_data(user_id, items_recommend_list, action_type, action_source, scenario):
     logging.info('refresh_user_click_data start')
@@ -885,7 +943,8 @@ def store_previous_click_data(user_id, action_type, scenario):
     s3client = boto3.resource('s3')
     if s3_body != '':
         s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
-            Key=MANDATORY_ENV_VARS['CLICK_RECORD_FILE_PATH'] + 'action_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
+            Key=MANDATORY_ENV_VARS['CLICK_RECORD_FILE_PATH'] + 'action_' + user_id + '_' + current_timestamp + '.csv',
+            Body=s3_body)
     logging.info('store_previous_click_data completed')
 
 
@@ -902,6 +961,7 @@ def get_action_source_code(action_source, item_id, scenario):
         else:
             # e.g. 'action' or 'crime', movie type
             return action_source
+
 
 def get_user_id_by_name(user_name):
     user_info_dict = get_dict_from_redis(REDIS_KEY_USER_LOGIN_DICT, user_name)
@@ -965,7 +1025,7 @@ def get_recommend_movie(userId: str, type: str, curPage: str, pageSize: str):
     logging.info('recommend movie list to user')
     # get from retrieve
     httpResp = requests.get(MANDATORY_ENV_VARS['RETRIEVE_SERVICE_ENDPOINT'] +
-                            '/api/v1/retrieve/'+user_id+'?recommendType='+recommend_type)
+                            '/api/v1/retrieve/' + user_id + '?recommendType=' + recommend_type)
     if httpResp.status_code != 200:
         return response_failed({
             "message": "Not support news type"
@@ -979,6 +1039,7 @@ def get_recommend_movie(userId: str, type: str, curPage: str, pageSize: str):
 
     return retrieve_response
 
+
 @app.post('/api/v1/demo/start_train', tags=["demo"])
 def start_train_post(trainReq: TrainRequest):
     logging.info('demo start_train_post start! change type: {}'.format(
@@ -987,7 +1048,7 @@ def start_train_post(trainReq: TrainRequest):
         raise HTTPException(status_code=405, detail="invalid change_type")
 
     url = MANDATORY_ENV_VARS['EVENT_SERVICE_ENDPOINT'] + \
-        '/api/v1/event/start_train'
+          '/api/v1/event/start_train'
     result = send_post_request(url, {
         'change_type': trainReq.change_type
     })
@@ -1003,7 +1064,7 @@ def start_train_post(trainReq: TrainRequest):
 def offline_status(executionArn: str):
     logging.info("offline_status start, executionArn {}".format(executionArn))
     httpResp = requests.get(
-        MANDATORY_ENV_VARS['EVENT_SERVICE_ENDPOINT']+'/api/v1/event/offline_status/'+executionArn)
+        MANDATORY_ENV_VARS['EVENT_SERVICE_ENDPOINT'] + '/api/v1/event/offline_status/' + executionArn)
     if httpResp.status_code != 200:
         return response_failed({
             "message": "Error"

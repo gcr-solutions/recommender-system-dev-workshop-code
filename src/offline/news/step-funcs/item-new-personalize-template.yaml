@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys StepFuncs
+
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+
+  StepFuncAndLambdaRoleName:
+    Type: String
+    Default: LambdaAndStepFuncsRole
+
+  SagemakerRoleName:
+    Type: String
+    Default: SMRole
+
+  S3UtilLabmda:
+    Type: String
+    Default: S3UtilLabmda
+
+  PreCheckLabmda:
+    Type: String
+    Default: PreCheckLabmda
+
+  SNSMessageLambda:
+    Type: String
+    Default: SNSMessageLambda
+
+  CreateDatasetImportJobLambda:
+    Type: String
+    Default: CreateDatasetImportJobLambda
+
+Resources:
+  ItemNewStepFuncPersonalize:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-News-ItemNewStepFunc-Personalize
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "TimeoutSeconds": 36000,
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/personalize-data/personalize_item.csv"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Create Item Dataset Import Job"
+            },
+            "Create Item Dataset Import Job": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${CreateDatasetImportJobLambda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "datasetGroupName.$": "$.DatasetGroupName",
+                  "datasetName.$": "$.DatasetName"
+                },
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.CreateItemDatasetImportJob",
+              "Next": "Succeed"
+            },
+            "Succeed": {
+              "Type": "Succeed"
+            }
+          }
+        }

@@ -34,12 +34,18 @@ lambda_funcs_name=(
  rs-${Stage}-PreCheckLabmda
  rs-${Stage}-S3UtilLabmda
  rs-${Stage}-SNSMessageLambda
+ rs-${Stage}-CreateDatasetImportJobLambda
+ rs-${Stage}-UpdateSolutionVersionLambda
+ rs-${Stage}-UpdateCampaignLambda
 )
 
 lambda_funcs_code=(
  precheck-lambda.zip
  s3-util-lambda.zip
  sns-message-lambda.zip
+ create-dataset-import-job-lambda.zip
+ update-solution-version-lambda.zip
+ update-campaign-lambda.zip
 )
 
 i=0

@@ -10,6 +10,7 @@ projects[5]="retrieve"
 projects[6]="recall"
 projects[7]="demo"
 projects[8]="ui"
+projects[9]="personalize"
 
 for project in ${projects[@]}; do
     echo "Deleting ${project} from CodeBuild ..."

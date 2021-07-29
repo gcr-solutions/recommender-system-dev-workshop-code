@@ -51,3 +51,36 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+          - name: USE_PERSONALIZE_PLUGIN
+            value: "True"
+      - name: rs-event-plugin
+        image: rs/event-plugin:latest
+        ports:
+          - name: http
+            containerPort: 50051
+        resources:
+          requests:
+            cpu: 2000m
+            memory: 4096Mi
+          limits:
+            cpu: 4000m
+            memory: 8192Mi
+        env:
+          - name: LOCAL_DATA_FOLDER
+            value: $(LOCAL_DATA_FOLDER)
+          - name: AWS_REGION
+            value: "ap-northeast-1"
+          - name: PERSONALIZE_DATASET_GROUP
+            value: "GCR-RS-News-Dataset-Group"
+          - name: EVENT_TRACKER
+            value: "NewsEventTracker"
+          - name: USE_PERSONALIZE_PLUGIN
+            value: "True"
+        volumeMounts:
+          - name: persistent-storage
+            mountPath: /rs-data
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: efs-claim
+
