@@ -164,7 +164,7 @@ def login(loginRequest: LoginRequest):
                 Body=s3_body)
 
         # call aws personalize addUser api
-        call_personalize_add_user(user_id, temp_array[1])
+        #call_personalize_add_user(user_id, temp_array[1])
 
         return response_success({
             "message": "Login as anonymous user!",
@@ -198,7 +198,7 @@ def login(loginRequest: LoginRequest):
                 Body=s3_body)
 
         # call aws personalize addUser api
-        call_personalize_add_user(user_id, temp_array[1])
+        #call_personalize_add_user(user_id, temp_array[1])
 
         login_new_user(user_name, user_id)
         user_id_in_sever = user_id
