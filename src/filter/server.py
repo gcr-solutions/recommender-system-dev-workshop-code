@@ -14,7 +14,6 @@ import redis
 import cache
 import service_pb2
 import service_pb2_grpc
-import datetime
 
 app = FastAPI()
 
@@ -62,7 +61,7 @@ def ping():
 def get_recommend_data(userId: str, recommendType: str):
     logging.info('user_id -> %s', userId)
     logging.info('recommend_type -> %s', recommendType)
-    
+
     logging.info('start get_recommend_data')
 
     request = any_pb2.Any()
@@ -72,29 +71,16 @@ def get_recommend_data(userId: str, recommendType: str):
     }).encode('utf-8') 
 
     logging.info('Invoke plugin to get recommend data...')
-    
-    print("---------time before trigger getFilterData:")
-    print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
-
     getFilterDataRequest = service_pb2.GetFilterDataRequest(apiVersion='v1', metadata='Filter', type='RecommendResult')
     getFilterDataRequest.requestBody.Pack(request)
     channel = grpc.insecure_channel('localhost:50051')
     stub = service_pb2_grpc.FilterStub(channel)
     response = stub.GetFilterData(getFilterDataRequest)
 
-
-    print("---------time after trigger getFilterData:")
-    print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
-    
-    
-    
     results = any_pb2.Any()
     response.results.Unpack(results)
     resultJson = json.loads(results.value, encoding='utf-8')   
 
-    print("---------time finish filter:")
-    print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
-    
     if response.code == 0:
         return {
             'code': response.code,
@@ -116,15 +102,15 @@ def poll_rank_notice_to_filter():
         try:        
             message_redis = rCache.lpop_data_from_list(rank_notice_to_filter)
             if message_redis:
-           #     logging.info('get message {} from {}'.format(message_redis, rank_notice_to_filter))
+                logging.info('get message {} from {}'.format(message_redis, rank_notice_to_filter))
                 message = json.loads(message_redis, encoding='utf-8')
                 user_id = message['user_id']
                 rank_result = message['rank_result']
                 recall_result = message['recall_result']
                 logging.info('start filter_process in poll_rank_notice_to_filter')
                 logging.info('user_id {}'.format(user_id))
-       #         logging.info('rank_result {}'.format(rank_result))
-       #        logging.info('recall_result {}'.format(recall_result))
+                logging.info('rank_result {}'.format(rank_result))
+                logging.info('recall_result {}'.format(recall_result))
 
                 reqDicts = any_pb2.Any()
                 reqDicts.value = json.dumps({
@@ -181,7 +167,7 @@ def handle_stream_message(stream_message):
     logging.info('start reload data process in handle_stream_message')
     logging.info('file_type {}'.format(file_type))
     logging.info('file_path {}'.format(file_path))
-#    logging.info('file_list {}'.format(file_list))
+    logging.info('file_list {}'.format(file_list))
 
     reqDicts = any_pb2.Any()
     reqDicts.value = json.dumps({

@@ -97,36 +97,3 @@ Resources:
         Variables:
           SNS_TOPIC_ARN: !Ref RSOfflineSNS
           NEWS_ONLINE_LOADER_URL: !FindInMap [ LoaderConfigMap, NewsOnlineLoaderURL, 'devworkshop' ]
-
-  CreateDatasetImportJobLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub rs-${Stage}-CreateDatasetImportJobLambda
-      Handler: create-dataset-import-job-lambda.lambda_handler
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
-      CodeUri:
-        Bucket: !Ref Bucket
-        Key: !Sub "${S3Prefix}/code/lambda/create-dataset-import-job-lambda.zip"
-      Timeout: 900
-
-  UpdateSolutionVersionLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub rs-${Stage}-UpdateSolutionVersionLambda
-      Handler: update-solution-version-lambda.lambda_handler
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
-      CodeUri:
-        Bucket: !Ref Bucket
-        Key: !Sub "${S3Prefix}/code/lambda/update-solution-version-lambda.zip"
-      Timeout: 900
-
-  UpdateCampaignLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub rs-${Stage}-UpdateCampaignLambda
-      Handler: update-campaign-lambda.lambda_handler
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
-      CodeUri:
-        Bucket: !Ref Bucket
-        Key: !Sub "${S3Prefix}/code/lambda/update-campaign-lambda.zip"
-      Timeout: 900

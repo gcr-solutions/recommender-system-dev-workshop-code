@@ -11,27 +11,31 @@ echo "################ start clean EFS resource ################ "
 #delete EFS file system
 EFS_ID=$(aws efs describe-file-systems | jq '.[][] | select(.Tags[].Value=="GCR-RS-DEV-WORKSHOP-EFS-FileSystem")' | jq '.FileSystemId' -r)
 if [ "$EFS_ID" != "" ]; then
-  MOUNT_TARGET_IDS=$(aws efs describe-mount-targets --file-system-id $EFS_ID | jq '.[][].MountTargetId' -r)
-  for MOUNT_TARGET_ID in $(echo $MOUNT_TARGET_IDS); do
-    echo remove $MOUNT_TARGET_ID
-    aws efs delete-mount-target --mount-target-id $MOUNT_TARGET_ID
+  for EFS_SUB_ID in $(echo $EFS_ID); do
+    MOUNT_TARGET_IDS=$(aws efs describe-mount-targets --file-system-id $EFS_SUB_ID | jq '.[][].MountTargetId' -r)
+    for MOUNT_TARGET_ID in $(echo $MOUNT_TARGET_IDS); do
+      echo remove $MOUNT_TARGET_ID
+      aws efs delete-mount-target --mount-target-id $MOUNT_TARGET_ID
+    done
+  
+    MOUNT_TARGET_IDS=""
+    while true; do
+      MOUNT_TARGET_IDS=$(aws efs describe-mount-targets --file-system-id $EFS_SUB_ID | jq '.[][].MountTargetId' -r)
+      if [ "$MOUNT_TARGET_IDS" == "" ]; then
+        echo "delete GCR-RS-DEV-WORKSHOP-EFS-FileSystem EFS mount target successfully!"
+        break
+      else
+        echo "deleting GCR-RS-DEV-WORKSHOP-EFS-FileSystem EFS mount target!"
+      fi
+      sleep 20
+    done
+  
+    echo remove EFS File System: $EFS_SUB_ID
+   
+   
+    echo remove $EFS_SUB_ID
+    aws efs delete-file-system --file-system-id $EFS_SUB_ID
   done
-
-  MOUNT_TARGET_IDS=""
-  while true; do
-    MOUNT_TARGET_IDS=$(aws efs describe-mount-targets --file-system-id $EFS_ID | jq '.[][].MountTargetId' -r)
-    if [ "$MOUNT_TARGET_IDS" == "" ]; then
-      echo "delete GCR-RS-DEV-WORKSHOP-EFS-FileSystem EFS mount target successfully!"
-      break
-    else
-      echo "deleting GCR-RS-DEV-WORKSHOP-EFS-FileSystem EFS mount target!"
-    fi
-    sleep 20
-  done
-
-  echo remove EFS File System: $EFS_ID
-
-  aws efs delete-file-system --file-system-id $EFS_ID
 
   EFS_ID=""
   while true; do
@@ -110,7 +114,6 @@ projects[5]="retrieve"
 projects[6]="recall"
 projects[7]="demo"
 projects[8]="ui"
-projects[9]="personalize"
 
 for project in ${projects[@]}
 do 

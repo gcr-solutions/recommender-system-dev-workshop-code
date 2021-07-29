@@ -82,8 +82,6 @@ def process(processItem: ProcessItem):
     }).encode('utf-8')
 
     logging.info('Invoke plugin to process recall request...')
-    
-    print("---------time before ")
     mergeRequest = service_pb2.MergeResultRequest(apiVersion='v1', metadata='Merge', type='MergeResult')
     mergeRequest.dicts.Pack(reqDicts)
     channel = grpc.insecure_channel('localhost:50051')

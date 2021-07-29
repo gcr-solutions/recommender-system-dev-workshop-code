@@ -4,16 +4,15 @@ metadata:
   name: rs-news-dev-config
 data:
   redis_port: "6379"
-  redis_host: "gcr-rs-dev-workshop-redis-cluster.rlzxvo.0001.apne1.cache.amazonaws.com"
+  redis_host: "REDIS_HOST_PLACEHOLDER"
   messge_broker_redis_port: "6379"
   messge_broker_redis_host: "redis-cart"
-  aws_region: "ap-northeast-1"
-  s3_bucket: "aws-gcr-rs-sol-dev-workshop-ap-northeast-1-466154167985"
+  aws_region: "__AWS_REGION__"
+  s3_bucket: "aws-gcr-rs-sol-dev-workshop-__AWS_REGION__-__AWS_ACCOUNT_ID__"
   s3_prefix: "sample-data-news"
   click_record_file_path: 'sample-data-news/system/ingest-data/action/'
   user_record_file_path: 'sample-data-news/system/ingest-data/user/'
-  click_record_bucket: 'aws-gcr-rs-sol-dev-workshop-ap-northeast-1-466154167985'
+  click_record_bucket: 'aws-gcr-rs-sol-dev-workshop-__AWS_REGION__-__AWS_ACCOUNT_ID__'
   local_data_folder: '/rs-data/news-dev/'
 
-  
   

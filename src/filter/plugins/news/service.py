@@ -45,9 +45,7 @@ MANDATORY_ENV_VARS = {
     'COLDSTART_NEWS_COUNT': 100,
     'RECOMMEND_ITEM_COUNT': 20,
     'DUPLICATE_INTERVAL': 10, #min
-    'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300',
-    'RANK_MODEL': 'dkn'
-
+    'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300'
 }
 
 user_id_filter_dict='user_id_filter_dict'
@@ -87,7 +85,7 @@ class Filter(service_pb2_grpc.FilterServicer):
         file_type = requestMessageJson['file_type']
         file_list = eval(requestMessageJson['file_list'])
         logging.info('file_type -> {}'.format(file_type))
-    #    logging.info('file_list -> {}'.format(file_list)) 
+        logging.info('file_list -> {}'.format(file_list)) 
 
         self.check_files_ready(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list, 0)
         if file_type == pickle_type:
@@ -196,7 +194,7 @@ class Filter(service_pb2_grpc.FilterServicer):
 
         filter_result = self.generate_filter_result(user_id, recall_result, rank_result)
 
-        logging.info("filter result {}".format(filter_result))
+        logging.info("filter result {}".format(rank_result))
 
         filterProcessResponseValue = {
             'user_id': user_id,
@@ -222,15 +220,8 @@ class Filter(service_pb2_grpc.FilterServicer):
         recommend_type = reqData['recommend_type']
         logging.info('user_id -> {}'.format(user_id))
         logging.info('recommend_type -> {}'.format(recommend_type))
-        
 
-        print("---------time before trigger get_filter_recommend_result:")
-        print(datetime.now())
-    
         recommend_result = self.get_filter_recommend_result(user_id, recommend_type)
-        
-        print("---------time after trigger get_filter_recommend_result:")
-        print(datetime.now())
 
         logging.info("recommend result {}".format(recommend_result))
 
@@ -244,8 +235,6 @@ class Filter(service_pb2_grpc.FilterServicer):
         getFilterDataResponse.results.Pack(getFilterDataResponseAny)        
 
         logging.info("get filter data complete") 
-        
-
         return getFilterDataResponse 
 
     def get_filter_recommend_result(self, user_id, recommend_type):
@@ -255,15 +244,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                 logging.info('recommend news list to user')
                 # get filtered data from filter redis cache
                 filtered_data = []
-                
-                print("---------time before  get_data_from_hash:")
-                print(datetime.now())
-    
                 filtered_data_redis = rCache.get_data_from_hash(user_id_filter_dict, user_id)
-                
-                print("---------time after  get_data_from_hash:")
-                print(datetime.now())
-                
                 if filtered_data_redis:
                     # [{timestamp: [{"6554153017963184647": "recommend"}...]}, {timestamp: [{"6554153017963184647": "recommend"}...]}]
                     filtered_data = json.loads(filtered_data_redis, encoding='utf-8')
@@ -272,14 +253,10 @@ class Filter(service_pb2_grpc.FilterServicer):
                     logging.info('start coldstart process!')
                     filtered_data = self.generate_cold_start_data(user_id)
 
-                # logging.info('filtered_data {}'.format(filtered_data))
+                logging.info('filtered_data {}'.format(filtered_data))
                 # generate new recommend data, store them into cache
-                
-
                 recommend_list = self.generate_new_recommend_data(user_id, filtered_data)
-                
-
-                # logging.info('recommend_list {}'.format(recommend_list))
+                logging.info('recommend_list {}'.format(recommend_list))
         else:
             logging.info('get news list by news type {}'.format(recommend_type))
             if recommend_type not in self.lCfgCompleteType:
@@ -290,9 +267,6 @@ class Filter(service_pb2_grpc.FilterServicer):
             news_id_list = self.news_type_news_ids_dict[recommend_type]
             recommend_list = self.generate_news_list_by_type(news_id_list)
 
-        print("---------time finish get_filter_recommend_result :")
-        print(datetime.now())
-                
         return recommend_list
 
     def generate_cold_start_data(self, user_id):
@@ -318,7 +292,7 @@ class Filter(service_pb2_grpc.FilterServicer):
             calendar.timegm(time.gmtime()): coldstart_item_list
         })
 
- #       logging.info('coldstart filter record {}'.format(new_filter_record))
+        logging.info('coldstart filter record {}'.format(new_filter_record))
             
         if rCache.load_data_into_hash(user_id_filter_dict, user_id, json.dumps(new_filter_record).encode('utf-8')):
             logging.info('Save filter data into Redis with key : %s ', user_id) 
@@ -376,10 +350,12 @@ class Filter(service_pb2_grpc.FilterServicer):
             hot_topic_count = hot_topic_count_array[random.randint(0,len(hot_topic_count_array) -1)]
             new_recommend_list, present_recommend_news_id_list, remain_count = self.get_present_recommend_news_list(user_id, filtered_data, recommended_news_list, int(MANDATORY_ENV_VARS['RECOMMEND_ITEM_COUNT']) - hot_topic_count, False)
             logging.info('need hot topic news')
-            hot_topic_news_list = self.get_hot_topic_news_list(user_id, hot_topic_count, present_recommend_news_id_list, recommended_news_list)
+            hot_topic_news_list = []
+            # comment for dev workshop
+            # hot_topic_news_list = self.get_hot_topic_news_list(user_id, hot_topic_count, present_recommend_news_id_list, recommended_news_list)
             new_recommend_list = hot_topic_news_list + new_recommend_list
 
-    #    logging.info('present_recommend_record_list {}'.format(present_recommend_news_id_list))
+        logging.info('present_recommend_record_list {}'.format(present_recommend_news_id_list))
         recommended_data.append({str(calendar.timegm(time.gmtime())): present_recommend_news_id_list})
 
         if rCache.load_data_into_hash(user_id_recommended_dict, user_id, json.dumps(recommended_data).encode('utf-8')):
@@ -399,7 +375,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                     recommended_time_min = int(k)
                     if expire_timestamp > recommended_time_min/60:
                         recommended_data.remove(element)
-  #      logging.info('recommended_data {} for user {}'.format(recommended_data, user_id))    
+        logging.info('recommended_data {} for user {}'.format(recommended_data, user_id))    
         return recommended_data 
 
     def get_recommended_news_id_list(self, recommended_data):
@@ -413,12 +389,12 @@ class Filter(service_pb2_grpc.FilterServicer):
 
     def is_cold_start_data(self, filtered_data):
         for element in filtered_data:
-    #        logging.info('filtered_data element {}'.format(element))
+            logging.info('filtered_data element {}'.format(element))
             # k is timestamp
             # v is result
             for k, v in element.items():
                 for item_id, item_content in v.items():
-    #                logging.info('filtered_data first item recommend type {}'.format(item_content[1]))
+                    logging.info('filtered_data first item recommend type {}'.format(item_content[1]))
                     if item_content[1] == tColdstart:
                         return True
         # for k,v in filtered_data[0].items():
@@ -454,7 +430,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                             remain_count = remain_count + 1
         item_lacking_count = item_list_count - len(present_recommend_item_id_list)
         if item_lacking_count > 0:
-   #         logging.info('complement item list, count {}'.format(str(item_lacking_count)))
+            logging.info('complement item list, count {}'.format(str(item_lacking_count)))
             complement_item_recommend_list = []
             complement_present_recommend_item_id_list = []
 
@@ -464,7 +440,7 @@ class Filter(service_pb2_grpc.FilterServicer):
         return item_recommend_list, present_recommend_item_id_list, remain_count                                                           
 
     def get_complement_item_recommend_list(self, user_id, present_recommend_news_id_list, news_lacking_count, isColdStart):
- #       logging.info('get_complement_item_recommend_list start')
+        logging.info('get_complement_item_recommend_list start')
         complement_news_recommend_list = []
         complement_present_recommend_news_id_list = []
         count = 0
@@ -475,12 +451,12 @@ class Filter(service_pb2_grpc.FilterServicer):
             return complement_news_recommend_list, complement_present_recommend_news_id_list
         user_portrait = httpResp.json()          
          
- #       logging.info('user_portrait: {}'.format(user_portrait))
+        logging.info('user_portrait: {}'.format(user_portrait))
         if user_portrait['results'] == {}:
             sort_type = lCfgCompleteType
         else:
             sort_type = user_portrait['results']['type']['recent'][0][::-1]
- #       logging.info('sort_type {}'.format(sort_type))
+        logging.info('sort_type {}'.format(sort_type))
 
         while count < news_lacking_count:
             try_count = 0
@@ -489,7 +465,7 @@ class Filter(service_pb2_grpc.FilterServicer):
                 try_count = try_count + 1
                 news_id = self.sample_by_type(sort_type[sort_type_count])
                 if (news_id not in present_recommend_news_id_list and news_id not in complement_present_recommend_news_id_list and news_id != ''):
-      #              logging.info("get hot topic news id {}".format(news_id))
+                    logging.info("get hot topic news id {}".format(news_id))
                     if isColdStart:
                         complement_news_recommend_list.append({
                             'id': news_id,
@@ -587,14 +563,14 @@ class Filter(service_pb2_grpc.FilterServicer):
            
         logging.info('recall_result: {}'.format(recall_result))
                    
-        logging.info('rank_result: {}'.format(rank_result))
+        logging.info('rank_result: {}'.format(rank_result))  
 
         httpResp = requests.get(MANDATORY_ENV_VARS['PORTRAIT_SERVICE_ENDPOINT']+'/portrait/userid/'+user_id)
         if httpResp.status_code != 200:
             return service_pb2.FilterProcessResponse(code=-1, description=('Failed to get portrait for -> {}').format(user_id))
         user_portrait = httpResp.json()          
          
-        logging.info('user_portrait: {}'.format(user_portrait))
+        logging.info('user_portrait: {}'.format(user_portrait))  
 
         user_portrait_result = user_portrait['results']   
         
@@ -736,10 +712,10 @@ class Filter(service_pb2_grpc.FilterServicer):
                 # 构建recall_score
                 recall_score = round(recall_property[3], 2)
                 # 构建rank_type
-                rank_pos = str(self.get_dict_pos(str(recall_id), dict_rank_result[str(user_id)]['data']))
-                rank_type = self.mt_construct(run_timing, dict_rank_result[str(user_id)]['model'], rank_pos)
+                rank_pos = str(self.get_dict_pos(str(recall_id), dict_rank_result[str(user_id)]))
+                rank_type = self.mt_construct(run_timing, 'dkn', rank_pos)
                 # 构建rank_score
-                rank_score = round(float(dict_rank_result[str(user_id)]['data'][str(recall_id)]), 2)
+                rank_score = round(float(dict_rank_result[str(user_id)][str(recall_id)]), 2)
                 # 构建filter_type
                 filter_type = self.mt_construct(run_timing, tRecommend, 'TBD')
                 # 构建filter_score
@@ -763,7 +739,6 @@ class Filter(service_pb2_grpc.FilterServicer):
             update_user_result = self.category_diversity_logic(current_user_result, current_diversity_result, self.news_type_news_ids_dict,
                                                         self.filter_config)
             dict_filter_result[str(user_id)] = update_user_result
-            logging.info("--------------dict_filter_result:{}".format(dict_filter_result))
         return dict_filter_result
 
     def generate_new_filter_record_old(self, current_filter_record, recall_result, rank_result, user_portrait):

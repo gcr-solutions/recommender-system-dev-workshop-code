@@ -5,8 +5,6 @@ import json
 import uuid
 from datetime import datetime
 import pickle
-
-import boto3
 import numpy as np
 import requests
 import sys
@@ -32,11 +30,6 @@ MANDATORY_ENV_VARS = {
     'NEWS_ID_FEATURE': 'news_id_news_feature_dict.pickle',
     'MODEL_EXTRACT_DIR': '/opt/ml/model/',
     'DEMO_SERVICE_ENDPOINT': 'http://demo:5900',
-    'RANK_MODEL': 'personalize',
-    'AWS_REGION': 'ap-northeast-1',
-    'PERSONALIZE_DATASET_GROUP': 'GCR-RS-News-Ranking-Dataset-Group',
-    'PERSONALIZE_SOLUTION': 'rankingSolution',
-    'PERSONALIZE_CAMPAIGN': 'gcr-rs-dev-workshop-news-ranking-campaign',
 
     # numpy file
     'ENTITY_EMBEDDING_NPY': 'dkn_entity_embedding.npy',
@@ -56,9 +49,6 @@ fill_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 action_model_type = 'action-model'
 embedding_type = 'embedding'
 pickle_type = 'inverted-list'
-
-personalize = boto3.client('personalize', MANDATORY_ENV_VARS['AWS_REGION'])
-personalize_runtime = boto3.client('personalize-runtime', MANDATORY_ENV_VARS['AWS_REGION'])
 
 
 class Rank(service_pb2_grpc.RankServicer):
@@ -221,24 +211,20 @@ class Rank(service_pb2_grpc.RankServicer):
         logging.info('user_id -> {}'.format(user_id))
         logging.info('recall_result -> {}'.format(recall_result))
 
-        if MANDATORY_ENV_VARS['RANK_MODEL'] == 'personalize':
-            logging.info("get rank result from personalize model...")
-            rank_result = self.generate_rank_result_from_personalize(user_id, recall_result)
-        else:
-            #TODO need to call customer service to get real data
-            # user_clicks_set = ['6553003847780925965','6553082318746026500','6522187689410691591']
-            # user_clicks_set_redis = rCache.get_data_from_hash(user_id_click_dict, user_id)
-            # if bool(user_clicks_set_redis):
-            #     logging.info('user_clicks_set_redis {}'.format(user_clicks_set_redis))
-            #     user_clicks_set = json.loads(user_clicks_set_redis, encoding='utf-8')
-            user_clicks_set = []
-            httpResp = requests.get(MANDATORY_ENV_VARS['DEMO_SERVICE_ENDPOINT']+'/api/v1/demo/click/'+user_id+'?curPage=0&pageSize=10')
-            if httpResp.status_code == 200:
-                for var in httpResp.json()['data']:
-                    user_clicks_set.append(var.get('id'))
+        #TODO need to call customer service to get real data
+        # user_clicks_set = ['6553003847780925965','6553082318746026500','6522187689410691591']
+        # user_clicks_set_redis = rCache.get_data_from_hash(user_id_click_dict, user_id)
+        # if bool(user_clicks_set_redis):
+        #     logging.info('user_clicks_set_redis {}'.format(user_clicks_set_redis))
+        #     user_clicks_set = json.loads(user_clicks_set_redis, encoding='utf-8')
+        user_clicks_set = []
+        httpResp = requests.get(MANDATORY_ENV_VARS['DEMO_SERVICE_ENDPOINT']+'/api/v1/demo/click/'+user_id+'?curPage=0&pageSize=10')
+        if httpResp.status_code == 200: 
+            for var in httpResp.json()['data']:
+                user_clicks_set.append(var.get('id'))
 
-            logging.info("user click history {}".format(user_clicks_set))
-            rank_result = self.generate_rank_result_from_dkn(recall_result, user_clicks_set)
+        logging.info("user click history {}".format(user_clicks_set))
+        rank_result = self.generate_rank_result(recall_result, user_clicks_set)
 
         logging.info("rank result {}".format(rank_result))
 
@@ -250,47 +236,8 @@ class Rank(service_pb2_grpc.RankServicer):
         logging.info("rank process complete") 
         return rankProcessResponse
 
-    def generate_rank_result_from_personalize(self, user_id, recall_result):
-        logging.info('generate_rank_result using personalize model start')
-        item_list = [str(int(recall_item)) for recall_item in recall_result]
-        response = personalize_runtime.get_personalized_ranking(
-            campaignArn=campaign_arn,
-            inputList=item_list,
-            userId=user_id
-        )
-        rank_list = response['personalizedRanking']
-        rank_result = {}
-        for rank_item in rank_list:
-            rank_result[rank_item['itemId']] = rank_item['score'] * len(rank_list)
-
-        rank_summary = {'model': 'personalize', 'data': rank_result}
-        return rank_summary
-
-    def get_dataset_group_arn(self):
-        response = personalize.list_dataset_groups()
-        for dataset_group in response["datasetGroups"]:
-            if dataset_group["name"] == MANDATORY_ENV_VARS['PERSONALIZE_DATASET_GROUP']:
-                logging.info("Dataset Group Arn:{}".format(dataset_group["datasetGroupArn"]))
-                return dataset_group["datasetGroupArn"]
-
-    def get_campaign_arn(self):
-        solutions = personalize.list_solutions(
-            datasetGroupArn=dataset_group_arn
-        )
-        solution_arn = ''
-        for solution in solutions["solutions"]:
-            if solution['name'] == MANDATORY_ENV_VARS['PERSONALIZE_SOLUTION']:
-                solution_arn = solution["solutionArn"]
-        campaigns = personalize.list_campaigns(
-            solutionArn=solution_arn
-        )
-        for campaign in campaigns["campaigns"]:
-            if campaign["name"] == MANDATORY_ENV_VARS['PERSONALIZE_CAMPAIGN']:
-                logging.info("Campaign Arn:{}".format(campaign["campaignArn"]))
-                return campaign["campaignArn"]
-
-    def generate_rank_result_from_dkn(self, recall_result, user_clicks_set):
-        logging.info('generate_rank_result using dkn model start')
+    def generate_rank_result(self, recall_result, user_clicks_set):
+        logging.info('generate_rank_result start')
         news_words_index = []
         news_entity_index = []
         click_words_index = []
@@ -363,8 +310,7 @@ class Rank(service_pb2_grpc.RankServicer):
             rank_result[str(int(recall_item))] =  str(output_prob[i])
             i = i + 1
 
-        rank_summary = {'model': 'dkn', 'data': rank_result}
-        return rank_summary
+        return rank_result                                   
 
 def init():
     # Check out environments
@@ -373,35 +319,7 @@ def init():
             logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
             MANDATORY_ENV_VARS[var]=os.environ.get(var)
-
-    if MANDATORY_ENV_VARS['RANK_MODEL'] == 'personalize':
-        # global personalize
-        # global personalize_runtime
-        # personalize = boto3.client('personalize', MANDATORY_ENV_VARS['AWS_REGION'])
-        # personalize_runtime = boto3.client('personalize-runtime', MANDATORY_ENV_VARS['AWS_REGION'])
-        global dataset_group_arn
-        response = personalize.list_dataset_groups()
-        for dataset_group in response["datasetGroups"]:
-            if dataset_group["name"] == MANDATORY_ENV_VARS['PERSONALIZE_DATASET_GROUP']:
-                logging.info("Dataset Group Arn:{}".format(dataset_group["datasetGroupArn"]))
-                dataset_group_arn = dataset_group["datasetGroupArn"]
-        global campaign_arn
-        solutions = personalize.list_solutions(
-            datasetGroupArn=dataset_group_arn
-        )
-        solution_arn = ''
-        for solution in solutions["solutions"]:
-            if solution['name'] == MANDATORY_ENV_VARS['PERSONALIZE_SOLUTION']:
-                solution_arn = solution["solutionArn"]
-        campaigns = personalize.list_campaigns(
-            solutionArn=solution_arn
-        )
-        for campaign in campaigns["campaigns"]:
-            if campaign["name"] == MANDATORY_ENV_VARS['PERSONALIZE_CAMPAIGN']:
-                logging.info("Campaign Arn:{}".format(campaign["campaignArn"]))
-                campaign_arn = campaign["campaignArn"]
-
-
+    
 def serve(plugin_name):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
     service_pb2_grpc.add_RankServicer_to_server(Rank(), server)

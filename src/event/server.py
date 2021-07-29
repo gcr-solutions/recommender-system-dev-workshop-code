@@ -13,10 +13,6 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-import service_pb2
-import service_pb2_grpc
-from google.protobuf import any_pb2
-import grpc
 
 app = FastAPI()
 api_router = APIRouter()
@@ -38,9 +34,7 @@ MANDATORY_ENV_VARS = {
     'S3_BUCKET': 'aws-gcr-rs-sol-demo-ap-southeast-1-522244679887',
     'S3_PREFIX': 'sample-data',
     'POD_NAMESPACE': 'default',
-    'TEST': 'False',
-    'USE_PERSONALIZE_PLUGIN': 'False',
-    'PERSONALIZE_RECIPE': 'user-personalize'
+    'TEST': 'False'
 }
 
 
@@ -183,9 +177,6 @@ class StateMachineStatusResponse(BaseModel):
     detailUrl: str
     executionArn: str
 
-class UserEntity(BaseModel):
-    user_id: str
-    user_sex: str
 
 def gen_simple_response(message):
     res = SimpleResponse(
@@ -233,27 +224,7 @@ def recall_post(user_id: str, clickItemList: ClickedItemList):
         'user_id': user_id,
         'clicked_item_ids': [item.id for item in clickItemList.clicked_item_list]
     }
-
-    if MANDATORY_ENV_VARS['USE_PERSONALIZE_PLUGIN'] == "True":
-        request = any_pb2.Any()
-        request.value = json.dumps(data).encode('utf-8')
-        logging.info('Invoke personalize plugin to trigger event tracker...')
-        eventTrackerRequest = service_pb2.EventTrackerRequest(apiVersion='v1', metadata='Event',
-                                                                      type='EventTracker')
-        eventTrackerRequest.requestBody.Pack(request)
-        channel = grpc.insecure_channel('localhost:50051')
-        stub = service_pb2_grpc.EventStub(channel)
-        response = stub.EventTracker(eventTrackerRequest)
-
-        if response.code == 0:
-            logging.info("----------event tracker from personalize plugin successful.")
-            message = response.description
-        else:
-            logging.info("----------event tracker from personalize plugin failed.")
-            message = "event tracker from personalize plugin failed."
-    else:
-        message = send_post_request(recall_svc_url, data)
-
+    message = send_post_request(recall_svc_url, data)
     res = gen_simple_response(message)
     return res
 
@@ -262,9 +233,6 @@ def recall_post(user_id: str, clickItemList: ClickedItemList):
 def start_train_post(trainReq: TrainRequest):
     if trainReq.change_type not in ['MODEL', 'CONTENT', 'ACTION']:
         raise HTTPException(status_code=405, detail="invalid change_type")
-
-    # if MANDATORY_ENV_VARS['USE_PERSONALIZE_PLUGIN'] == "True":
-
     res = start_step_funcs(trainReq)
     return res
 
@@ -295,36 +263,6 @@ def offline_status_get(exec_arn: str):
                                          stopDate=res.get('stopDate', None))
                                      )
     return res
-
-
-@api_router.post('/api/v1/event/add_user/{user_id}', response_model=SimpleResponse, tags=["event"])
-def add_new_user(userEntity: UserEntity):
-    logging.info("Add new user to AWS Personalize Service...")
-    user_id = userEntity.user_id
-    user_sex = userEntity.user_sex
-    logging.info("New User Id:{}, Sex:{}".format(user_id, user_sex))
-
-    request = any_pb2.Any()
-    request.value = json.dumps({
-        'userId': user_id,
-        'gender': user_sex
-    }).encode('utf-8')
-    logging.info('Invoke personalize plugin to add new user...')
-    addNewUserRequest = service_pb2.AddNewUserRequest(apiVersion='v1',metadata='Event',
-                                                      type='AddNewUser')
-    addNewUserRequest.requestBody.Pack(request)
-    channel = grpc.insecure_channel('localhost:50051')
-    stub = service_pb2_grpc.EventStub(channel)
-    response = stub.AddNewUser(addNewUserRequest)
-
-    if response.code == 0:
-        logging.info("add user to AWS Personalize Service successful.")
-        message = response.description
-    else:
-        logging.info("add user to AWS Personalize Service failed.")
-        message = "add user to AWS Personalize Service failed."
-
-    return gen_simple_response(message)
 
 
 def start_step_funcs(trainReq):

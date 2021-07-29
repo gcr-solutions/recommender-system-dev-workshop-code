@@ -11,7 +11,6 @@ from threading import Thread
 import sys
 import redis
 
-import requests
 import cache
 import service_pb2
 import service_pb2_grpc
@@ -22,9 +21,7 @@ app = FastAPI()
 MANDATORY_ENV_VARS = {
     'REDIS_HOST': 'localhost',
     'REDIS_PORT': 6379,
-    'RANK_PORT': 5400,
-    'RANK_MODEL': 'personalize',
-    'PERSONALIZE_SERVICE_ENDPOINT': 'http://personalize:6500'
+    'RANK_PORT': 5400
     }
 
 # Notice channel
@@ -92,21 +89,6 @@ def poll_recall_notice_to_rank():
                 logging.info('user_id {}'.format(user_id))
                 logging.info('recall_result {}'.format(recall_result))
 
-                # if MANDATORY_ENV_VARS['use_personalize_ranking']:
-                #     item_list = [str(int(recall_item)) for recall_item in recall_result]
-                #     logging.info("item_list: {}".format(item_list))
-                #     presults = get_rank_from_personalize(user_id, item_list)
-                #     if presults:
-                #         logging.info("------------get rank from personalize success: {}".format(presults))
-                #         rCache.rpush_data_into_list(rank_notice_to_filter, json.dumps({
-                #             'user_id': user_id,
-                #             'recall_result': recall_result,
-                #             'rank_result': presults
-                #         }).encode('utf-8'))
-                #         continue
-                #     else:
-                #         logging.info("-------------get rank from personalize failed, use dkn instead.")
-
                 reqDicts = any_pb2.Any()
                 reqDicts.value = json.dumps({
                     'user_id': user_id,
@@ -142,23 +124,6 @@ def read_stream_messages():
     read_action_model_message()
     read_embedding_message()
     read_pickle_message()
-
-# def get_rank_from_personalize(user_id, item_list):
-#     logging.info("send rank request to personalize...")
-#     headers = {'Content-type': 'application/json'}
-#     req_url = MANDATORY_ENV_VARS['PERSONALIZE_SERVICE_ENDPOINT'] + '/personalize/rerank'
-#     httpResp = requests.post(req_url,data=json.dumps({
-#         'user_id': user_id,
-#         'item_list': item_list
-#     }), headers=headers)
-#     logging.info("status_code: {}".format(httpResp.status_code))
-#     if httpResp.status_code == 200:
-#         presults = httpResp.json()
-#         logging.info("rank_result:{}".format(presults))
-#         return presults
-#     else:
-#         logging.error(httpResp.text)
-
 
 @xasync
 def read_action_model_message():
