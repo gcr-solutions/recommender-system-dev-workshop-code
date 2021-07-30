@@ -204,6 +204,16 @@
                 "states:*"
             ],
             "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecr:Describe*",
+                "ecr:List*",
+                "ecr:Put*",
+                "ecr:Create*"
+            ],
+            "Resource": "*"
         }
     ]  
 }
