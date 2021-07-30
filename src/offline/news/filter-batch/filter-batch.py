@@ -204,6 +204,10 @@ def category_diversity_logic(filter_result, stats_result, dict_category_id, filt
     while catch_count < diversity_count:
         for cate in candidate_category_list:
             sample_try = sample_try + 1
+
+            if str(cate) not in dict_category_id:
+                continue
+
             candidate_id = sample(dict_category_id[str(cate)], 1)[0]
             if candidate_id in filter_result_list:
                 continue
@@ -248,7 +252,7 @@ for user_id, recall_result in dict_recall_result.items():
         # 构建rank_type
         try:
             rank_pos = str(get_dict_pos(
-                int(recall_id), dict_rank_result[str(user_id)]))
+                recall_id, dict_rank_result[str(user_id)]))
         except ValueError as e:
             logging.warning(repr(e))
             rank_pos = 0
