@@ -55,8 +55,9 @@ movie_projects=(
   "model-update-ub"
   "portrait-batch"
   "item-feature-update-batch"
-  "add-item-user-batch"
-  "weight-update-batch"
+  "add-item-batch"
+  "add-user-batch"
+  "user-preprocessing"
   "step-funcs"
 )
 
