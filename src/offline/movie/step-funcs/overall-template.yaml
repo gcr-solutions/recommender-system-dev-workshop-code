@@ -1,0 +1,144 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys StepFuncs
+
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+
+  StepFuncAndLambdaRoleName:
+    Type: String
+    Default: LambdaAndStepFuncsRole
+
+  SagemakerRoleName:
+    Type: String
+    Default: SMRole
+
+  S3UtilLabmda:
+    Type: String
+    Default: S3UtilLabmda
+
+  PreCheckLabmda:
+    Type: String
+    Default: PreCheckLabmda
+
+  SNSMessageLambda:
+    Type: String
+    Default: SNSMessageLambda
+
+
+Resources:
+  OverallStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-OverallStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Detect change type",
+          "TimeoutSeconds": 36000,
+          "States": {
+            "Detect change type": {
+              "Type": "Choice",
+              "Choices": [
+                {
+                  "Variable": "$.change_type",
+                  "IsPresent": false,
+                  "Next": "Batch update"
+                },
+                {
+                  "Variable": "$.change_type",
+                  "StringEquals": "ACTION",
+                  "Next": "Batch update"
+                },
+                {
+                  "Variable": "$.change_type",
+                  "StringEquals": "BATCH",
+                  "Next": "Batch update"
+                },
+                {
+                  "Variable": "$.change_type",
+                  "StringEquals": "USER",
+                  "Next": "User new"
+                },
+                {
+                  "Variable": "$.change_type",
+                  "StringEquals": "CONTENT",
+                  "Next": "Item new"
+                },
+                {
+                  "Variable": "$.change_type",
+                  "StringEquals": "ITEM",
+                  "Next": "Item new"
+                },
+                {
+                  "Variable": "$.change_type",
+                  "StringEquals": "MODEL",
+                  "Next": "Train model"
+                }
+              ],
+              "Default": "Batch update"
+            },
+            "Batch update": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-BatchUpdateStepFunc",
+                "Name.$": "States.Format('oa{}', $$.Execution.Name)"
+              },
+              "End": true
+            },
+            "User new": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-UserNewStepFunc",
+                "Name.$": "States.Format('ou{}', $$.Execution.Name)"
+              },
+              "End": true
+            },
+            "Item new": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-ItemNewStepFunc",
+                "Name.$": "States.Format('oc{}', $$.Execution.Name)"
+              },
+              "End": true
+            },
+            "Train model": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-TrainModelStepFunc",
+                "Name.$": "States.Format('ot{}', $$.Execution.Name)"
+              },
+              "End": true
+            }
+          }
+        }

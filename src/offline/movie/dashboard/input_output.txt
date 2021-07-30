@@ -1,0 +1,10 @@
+INPUT:
+
+system/ingest-data/item/
+system/ingest-data/action/
+system/ingest-data/user/
+
+OUTPUT:
+
+system/dashboard/dashboard.json
+

@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys StepFuncs
+
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+
+  Bucket:
+    Type: String
+
+  S3Prefix:
+    Type: String
+    Default: sample-data-movie
+
+  StepFuncAndLambdaRoleName:
+    Type: String
+    Default: LambdaAndStepFuncsRole
+
+  SagemakerRoleName:
+    Type: String
+    Default: SMRole
+
+  S3UtilLabmda:
+    Type: String
+    Default: S3UtilLabmda
+
+  PreCheckLabmda:
+    Type: String
+    Default: PreCheckLabmda
+
+  SNSMessageLambda:
+    Type: String
+    Default: SNSMessageLambda
+
+Resources:
+  DashboardStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-DashboardStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                   "system/ingest-data/item/",
+                   "system/ingest-data/action/",
+                   "system/ingest-data/user/"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-dashboard",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('Ndashborad{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+
+  DashboardScheduledRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub rs-${Stage}-Movie-DashboardScheduledRule
+      ScheduleExpression: "cron(0/30 * ? * MON-FRI *)"
+      State: "ENABLED"
+      Targets:
+        - Arn: !Ref DashboardStepFunc
+          RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+          Id: "TargetDashboardStepFunc"
+          Input: !Sub |
+            {
+              "Bucket": "${Bucket}",
+              "S3Prefix": "${S3Prefix}"
+            }

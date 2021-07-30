@@ -1,0 +1,35 @@
+version: 0.2
+
+env:
+  variables:
+    APP_NAME: "movie-add-item-batch"
+    DIR_NAME: "movie/add-item-batch"
+    IMAGE_TAG: $Stage
+  secrets-manager:
+    GITHUB_USER: github-rs:githubUser
+    ACCESS_TOKEN: github-rs:accessToken
+    APP_CONF_REPO: github-rs:appConfRepo
+
+phases:
+  install:
+    commands:
+      - export CODEBUILD_GIT_MESSAGE="$(git log -1 --pretty=%B)"
+      - echo $CODEBUILD_GIT_MESSAGE
+      - echo $AWS_DEFAULT_REGION
+      - aws --version
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
+      - ACCOUNT_ID=$(aws sts get-caller-identity|jq -r '.Account')
+      - echo "--------------------------------------------------------------------------------"
+  build:
+    commands:
+      - echo Build started on `date`
+      - export AWS_REGION=$AWS_DEFAULT_REGION
+      - cd $CODEBUILD_SRC_DIR/src/offline/${DIR_NAME}
+      - ./build.sh $Stage
+      - echo "--------------------------------------------------------------------------------"
+  post_build:
+    commands:
+      - echo Build completed on `date`

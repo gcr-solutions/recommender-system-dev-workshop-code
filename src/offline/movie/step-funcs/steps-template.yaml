@@ -1,0 +1,836 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys StepFuncs
+
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+
+  StepFuncAndLambdaRoleName:
+    Type: String
+    Default: LambdaAndStepFuncsRole
+
+  SagemakerRoleName:
+    Type: String
+    Default: SMRole
+
+  S3UtilLabmda:
+    Type: String
+    Default: S3UtilLabmda
+
+  PreCheckLabmda:
+    Type: String
+    Default: PreCheckLabmda
+
+  SNSMessageLambda:
+    Type: String
+    Default: SNSMessageLambda
+
+Resources:
+  SMProcessingStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-SMProcessingStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Run processing",
+          "States": {
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::sagemaker:createProcessingJob.sync",
+              "Parameters": {
+                "AppSpecification": {
+                  "ImageUri.$": "States.Format('${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/{}:${Stage}', $.ImageName)",
+                  "ContainerArguments.$": "$.ContainerArguments"
+                },
+                "ProcessingResources": {
+                  "ClusterConfig": {
+                    "InstanceCount": 1,
+                    "InstanceType.$": "$.InstanceType",
+                    "VolumeSizeInGB": 5
+                  }
+                },
+                "RoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/service-role/rs-${Stage}-${SagemakerRoleName}-${AWS::Region}",
+                "ProcessingJobName.$": "States.Format('{}', $$.Execution.Name)"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "ThrottlingException",
+                    "SageMaker.AmazonSageMakerException"
+                  ],
+                  "IntervalSeconds": 4,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2
+                }
+              ],
+              "ResultSelector": {
+                "ProcessingJobName.$": "$.ProcessingJobName",
+                "ProcessingJobStatus.$": "$.ProcessingJobStatus"
+              },
+              "ResultPath": "$.RunProcessing",
+              "End": true
+            }
+          }
+        }
+
+
+  ActionPreProcessingStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-ActionPreProcessingStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/ingest-data/action/",
+                    "system/user-data/user.csv",
+                    "system/item-data/item.csv"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-action-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('action{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  PrepareTrainingDataStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-PrepareTrainingDataStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/ingest-data/action/",
+                    "system/user-data/user.csv",
+                    "system/item-data/item.csv"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-action-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--only4training', '1' )",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('action{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  UserPreProcessingStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-UserPreProcessingStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/ingest-data/user/"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-user-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('userpre{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  ItemPreProcessingStepFunc:
+      Type: AWS::StepFunctions::StateMachine
+      Properties:
+        RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+        StateMachineName: !Sub rs-${Stage}-Movie-ItemPreProcessingStepFunc
+        DefinitionString: !Sub |
+          {
+            "StartAt": "Pre check",
+            "States": {
+              "Pre check": {
+                "Type": "Task",
+                "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+                "Parameters": {
+                  "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                  "Payload": {
+                    "bucket.$": "$.Bucket",
+                    "prefix.$": "$.S3Prefix",
+                    "file_list": [
+                      "system/ingest-data/item/"
+                    ]
+                  }
+                },
+                "ResultSelector": {
+                  "Payload.$": "$.Payload"
+                },
+                "ResultPath": "$.Precheck",
+                "Next": "Run processing"
+              },
+              "Run processing": {
+                "Type": "Task",
+                "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+                "Parameters": {
+                  "Input": {
+                    "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                    "ImageName": "rs/movie-item-preprocessing",
+                    "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                    "InstanceType": "ml.m5.xlarge"
+                  },
+                  "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                  "Name.$": "States.Format('action{}', $.Precheck.Payload.UID)"
+                },
+                "End": true
+              }
+            }
+          }
+
+  AddItemBatchStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-AddItemBatchStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/item-data/item.csv"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-add-item-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('additemb{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  AddUserBatchStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-AddUserBatchStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/user-data/user.csv"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-add-user-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('adduserb{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  FilterBatchStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-FilterBatchStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "feature/recommend-list/movie/recall_batch_result.pickle",
+                    "feature/recommend-list/movie/rank_batch_result.pickle"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-filter-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('filter{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  InvertedListStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-InvertedListStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/item-data/item.csv"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-inverted-list",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('inverted{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  ItemFeatureUpdateBatchStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-ItemFeatureUpdateBatchStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/item-data/item.csv",
+                    "feature/action/raw_embed_item_mapping.pickle",
+                    "feature/action/raw_embed_user_mapping.pickle",
+                    "feature/content/inverted-list/movie_id_movie_property_dict.pickle"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-item-feature-update-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('itemfeat{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  ModelUpdateDeepfmStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-ModelUpdateDeepfmStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/action-data/train_action.csv",
+                    "feature/action/raw_embed_item_mapping.pickle",
+                    "feature/action/raw_embed_user_mapping.pickle",
+                    "model/recall/youtubednn/user_embeddings.h5"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-model-update-deepfm",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.p2.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('deepfm{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  ModelUpdateUbStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-ModelUpdateUbStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/action-data/action.csv",
+                    "feature/action/raw_embed_item_mapping.pickle",
+                    "feature/action/raw_embed_user_mapping.pickle"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-model-update-ub",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.p2.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('ub{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+
+  PortraitBatchStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-PortraitBatchStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/action-data/action.csv",
+                    "model/recall/youtubednn/user_embeddings.h5",
+                    "feature/action/raw_embed_user_mapping.pickle",
+                    "feature/action/raw_embed_user_mapping.pickle",
+                    "feature/recommend-list/portrait/portrait.pickle",
+                    "feature/content/inverted-list/movie_id_movie_property_dict.pickle"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-portrait-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('portrait{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+
+  RankBatchStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-RankBatchStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "feature/recommend-list/movie/recall_batch_result.pickle",
+                    "feature/recommend-list/portrait/portrait.pickle",
+                    "feature/content/inverted-list/movie_id_movie_property_dict.pickle",
+                    "model/rank/action/deepfm/latest/deepfm_model.tar.gz"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-rank-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('rank{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  RecallBatchStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-RecallBatchStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/action-data/action.csv",
+                    "feature/action/ub_item_vector.index",
+                    "feature/action/embed_raw_item_mapping.pickle",
+                    "feature/recommend-list/portrait/portrait.pickle",
+                    "feature/content/inverted-list/movie_id_movie_property_dict.pickle",
+                    "feature/content/inverted-list/movie_category_movie_ids_dict.pickle",
+                    "feature/content/inverted-list/movie_director_movie_ids_dict.pickle",
+                    "feature/content/inverted-list/movie_actor_movie_ids_dict.pickle",
+                    "feature/content/inverted-list/movie_language_movie_ids_dict.pickle",
+                    "feature/content/inverted-list/movie_level_movie_ids_dict.pickle",
+                    "feature/content/inverted-list/movie_year_movie_ids_dict.pickle",
+                    "model/recall/recall_config.pickle"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-recall-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('recall{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  WeightUpdateBatchStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-WeightUpdateBatchStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/action-data/action.csv",
+                    "model/recall/recall_config.pickle"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/movie-weight-update-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-SMProcessingStepFunc",
+                "Name.$": "States.Format('weight{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
+
+  ######################################
+  #######################################
+
+  NotificationStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub rs-${Stage}-Movie-NotificationStepFunc
+      DefinitionString: !Sub |
+        {
+            "StartAt": "Send notification",
+            "States": {
+                "Send notification": {
+                    "Type": "Task",
+                    "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+                    "Parameters": {
+                        "FunctionName": "rs-${Stage}-${SNSMessageLambda}",
+                        "Payload": {
+                            "file_type.$": "$.file_type",
+                            "message_type": "movie",
+                            "Bucket.$": "$.Bucket",
+                            "S3Prefix.$": "$.S3Prefix"
+                        }
+                    },
+                "End": true
+                }
+            }
+        }
