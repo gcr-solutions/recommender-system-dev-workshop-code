@@ -214,6 +214,13 @@
                 "ecr:Create*"
             ],
             "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:*"
+            ],
+            "Resource": "*"
         }
     ]  
 }
