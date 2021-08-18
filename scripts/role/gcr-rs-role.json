@@ -221,6 +221,13 @@
                 "logs:*"
             ],
             "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sagemaker:*"
+            ],
+            "Resource": "*"
         }
     ]  
 }
