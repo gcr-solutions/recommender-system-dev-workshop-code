@@ -1,0 +1,182 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "ec2:*",
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "elasticloadbalancing:*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "cloudwatch:*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "autoscaling:*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "ssm:*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "logs:*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "ecr:*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "secretsmanager:*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "elasticfilesystem:*",
+      "Resource": "*"
+    },
+    {
+      "Action": "kms:*",
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "eks:*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "codebuild:*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "elasticache:*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "lambda:*",
+      "Resource": "*"
+    },
+    {
+      "Action": "cloudformation:*",
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": "sns:*",
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": "events:*",
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": "sagemaker:*",
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "cloud9:*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "states:*",
+      "Resource": "*"
+    },
+    {
+      "Action": [
+        "codecommit:GetBranch",
+        "codecommit:GetCommit",
+        "codecommit:GetRepository",
+        "codecommit:ListBranches"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codestar-connections:ListConnections",
+        "codestar-connections:GetConnection"
+      ],
+      "Resource": "arn:aws:codestar-connections:*:*:connection/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codestar-notifications:CreateNotificationRule",
+        "codestar-notifications:DescribeNotificationRule",
+        "codestar-notifications:UpdateNotificationRule",
+        "codestar-notifications:Subscribe",
+        "codestar-notifications:Unsubscribe"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringLike": {
+          "codestar-notifications:NotificationsForResource": "arn:aws:codebuild:*"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codestar-notifications:ListNotificationRules",
+        "codestar-notifications:ListEventTypes",
+        "codestar-notifications:ListTargets",
+        "codestar-notifications:ListTagsforResource"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "chatbot:DescribeSlackChannelConfigurations"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ssmmessages:CreateControlChannel",
+        "ssmmessages:CreateDataChannel",
+        "ssmmessages:OpenControlChannel",
+        "ssmmessages:OpenDataChannel"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "tag:GetResources",
+        "xray:GetTraceSummaries",
+        "xray:BatchGetTraces"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+
+
