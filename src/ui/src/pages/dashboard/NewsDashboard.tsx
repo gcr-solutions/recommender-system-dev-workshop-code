@@ -34,7 +34,7 @@ import {
   STORAGE_ACTION_ARN_URL,
   ENUM_SETTING_TYPE,
   RS_ADMIN_USER_NAME,
-  STORAGE_USER_NAME_KEY,
+  STORAGE_USER_NAME_KEY, STORAGE_USER_ARN_ID, STORAGE_USER_ARN_URL,
 } from "common/config/const";
 
 import "./dashboard.scss";
@@ -101,6 +101,7 @@ const NewsDashboard: React.FC = () => {
 
   // Settings Button Disable
   const [contentBtnDisabled, setContentBtnDisabled] = useState(true);
+  const [userBtnDisabled, setUserBtnDisabled] = useState(true);
   const [modelBtnDisabled, setModelBtnDisabled] = useState(true);
   const [actionBtnDisabled, setActionBtnDisabled] = useState(true);
 
@@ -109,6 +110,12 @@ const NewsDashboard: React.FC = () => {
   const [contentSuccess, setContentSuccess] = useState(false);
   const [contentFailed, setContentFailed] = useState(false);
   const [contentArnURL, setContentArnURL] = useState("");
+
+  const [userIsRuning, setUserIsRuning] = useState(true);
+  const [userSuccess, setUserSuccess] = useState(false);
+  const [userFailed, setUserFailed] = useState(false);
+  const [userArnURL, setUserArnURL] = useState("");
+
 
   const [modelIsRuning, setModelIsRuning] = useState(true);
   const [modelSuccess, setModelSuccess] = useState(false);
@@ -179,6 +186,47 @@ const NewsDashboard: React.FC = () => {
       }
     },
     contentIsRuning ? CHECK_DELAY_INTERVAL : null
+  );
+
+  useInterval(
+    () => {
+      // Your custom logic here
+      const storageUserArn =
+        localStorage.getItem(STORAGE_USER_ARN_ID) || "";
+      const storageUserArnUrl =
+        localStorage.getItem(STORAGE_USER_ARN_URL) || "";
+      setUserArnURL(storageUserArnUrl);
+      console.info("storageUserArn:", storageUserArn);
+      if (storageUserArn) {
+        getArnStatus(storageUserArn).then((res) => {
+          console.info("getUserArnStatus:RES:", res);
+          const userStatus = res.data.status;
+          if (userStatus === ACTION_STATUS.RUNNING) {
+            console.info("User Action is RUNING");
+            setUserBtnDisabled(true);
+          }
+          if (
+            userStatus === ACTION_STATUS.FAILED ||
+            userStatus === ACTION_STATUS.ABORTED
+          ) {
+            console.info("User Action is FAILED");
+            setUserFailed(true);
+            setUserIsRuning(false);
+            setUserBtnDisabled(false);
+          }
+          if (userStatus === ACTION_STATUS.SUCCEEDED) {
+            console.info("User Action is SUCCESSED");
+            setUserSuccess(true);
+            setUserIsRuning(false);
+            setUserBtnDisabled(false);
+          }
+        });
+      } else {
+        setUserIsRuning(false);
+        setUserBtnDisabled(false);
+      }
+    },
+    userIsRuning ? CHECK_DELAY_INTERVAL : null
   );
 
   useInterval(
@@ -346,6 +394,11 @@ const NewsDashboard: React.FC = () => {
       setContentBtnDisabled(true);
       setContentArnURL("");
     }
+    if (type === ENUM_SETTING_TYPE.USER) {
+      setUserBtnDisabled(true);
+      setUserArnURL("");
+    }
+
     Axios.post(API_URL + "/start_train", { change_type: type }).then((res) => {
       console.info("res:", res);
       const resArn = res.data?.data?.executionArn || "";
@@ -355,6 +408,13 @@ const NewsDashboard: React.FC = () => {
         localStorage.setItem(STORAGE_CONTENT_ARN_URL, resArnURL);
         setContentIsRuning(true);
       }
+
+      if (type === ENUM_SETTING_TYPE.USER) {
+        localStorage.setItem(STORAGE_USER_ARN_ID, resArn);
+        localStorage.setItem(STORAGE_USER_ARN_URL, resArnURL);
+        setUserIsRuning(true);
+      }
+
       if (type === ENUM_SETTING_TYPE.MODEL) {
         localStorage.setItem(STORAGE_MODEL_ARN_ID, resArn);
         localStorage.setItem(STORAGE_MODEL_ARN_URL, resArnURL);
@@ -597,6 +657,31 @@ const NewsDashboard: React.FC = () => {
               />
               <div className="tips">添加新的物品信息到推荐系统</div>
             </div>
+
+            <div className="btn">
+              <Button
+                disabled={userBtnDisabled}
+                color="primary"
+                variant="contained"
+                onClick={() => {
+                  setUserFailed(false);
+                  setUserSuccess(false);
+                  startSystemTrain(ENUM_SETTING_TYPE.USER);
+                }}
+              >
+                新用户上线
+              </Button>
+
+              <TrainStatus
+                statusRunning={userIsRuning}
+                statusSuccess={userSuccess}
+                statusFailed={userFailed}
+                arnUrl={userArnURL}
+              />
+              <div className="tips">添加新的用户信息到推荐系统</div>
+            </div>
+
+
             <div className="btn">
               <Button
                 disabled={modelBtnDisabled}
