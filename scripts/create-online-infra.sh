@@ -102,7 +102,7 @@ aws ec2 authorize-security-group-ingress --group-id $REDIS_SECURITY_GROUP_ID \
 # 4.4 create elastic cache redis
 aws elasticache create-cache-cluster \
   --cache-cluster-id gcr-rs-dev-workshop-redis-cluster \
-  --cache-node-type cache.r6g.xlarge \
+  --cache-node-type cache.r5.xlarge \
   --engine redis \
   --engine-version 6.x \
   --num-cache-nodes 1 \
