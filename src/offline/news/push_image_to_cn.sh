@@ -15,7 +15,7 @@ if [[ -z $tag ]];then
 fi
 
 if [[ -z $CN_AWS_SECRET_ACCESS_KEY ]]; then
-   CN_AWS_SECRET_ACCESS_KEY="cn-north-1"
+   CN_AWS_DEFAULT_REGION="cn-north-1"
 fi
 
 echo "repoName: $repoName, tag:$tag"

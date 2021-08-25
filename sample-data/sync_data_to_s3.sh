@@ -84,4 +84,8 @@ if [[ $? -ne 0 ]]; then
       exit 1
 fi
 
+if [[ $REGION =~ ^cn.* ]]; then
+   rm ./complete_dkn_word_embedding.npy > /dev/null 2>&1
+fi
+
 OK_print "data sync completed"

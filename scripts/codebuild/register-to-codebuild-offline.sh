@@ -81,7 +81,7 @@ create_codebuild_project () {
   sed -e 's#__Stage__#'${Stage}'#g' ./tmp-codebuild_2.json > ./tmp-codebuild_3.json
   sed -e 's#__GITHUB_USER_NAME__#'${GITHUB_USER}'#g' ./tmp-codebuild_3.json > ./codebuild.json
 
-  if [[ -n $DEPLOY_TO_CN ]]; then
+  if [[ -n $CN_AWS_PROFILE ]]; then
        sed -i -e 's#buildspec.yaml#'buildspec_cn.yaml'#g' ./codebuild.json
   fi
 
@@ -127,7 +127,7 @@ create_codebuild_project () {
 echo "----------------projects-------------------------"
 
 projects_dir=(
-  "lambda"
+  #"lambda"
   "news/item-preprocessing"
   "news/add-item-batch"
   "news/item-feature-update-batch"
@@ -143,7 +143,7 @@ projects_dir=(
   "news/rank-batch"
   "news/filter-batch"
   "news/inverted-list"
-  "news/step-funcs"
+  #"news/step-funcs"
 )
 
 for project in ${projects_dir[@]}; do
