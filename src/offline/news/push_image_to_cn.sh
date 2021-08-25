@@ -64,6 +64,10 @@ docker tag $repoName:$tag ${CN_IMAGE_URI}
 
 echo ">> push ${CN_IMAGE_URI}"
 docker push ${CN_IMAGE_URI}
+if [[ $? != 0 ]];then
+     echo "Error docker push ${CN_IMAGE_URI}"
+     exit 1
+fi
 
 echo "Done"
 
