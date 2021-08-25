@@ -146,6 +146,7 @@ $AWS_CMD ecr get-login-password  --region ${AWS_REGION} | docker login --usernam
 
 docker build -t $repoName . --build-arg REGISTRY_URI=${registry_uri}
 
+docker tag $repoName $repoName:${tag}
 docker tag $repoName ${IMAGEURI}
 
 echo ${IMAGEURI}

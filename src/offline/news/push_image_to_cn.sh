@@ -14,7 +14,7 @@ if [[ -z $tag ]];then
   tag='latest'
 fi
 
-if [[ -z $CN_AWS_SECRET_ACCESS_KEY ]]; then
+if [[ -z $CN_AWS_DEFAULT_REGION ]]; then
    CN_AWS_DEFAULT_REGION="cn-north-1"
 fi
 
@@ -41,8 +41,7 @@ ACCOUNT_ID=$(aws --profile cn sts get-caller-identity --query Account --output t
 
 if [[ $? != 0 ]];then
      echo "Error"
-     len=${#CN_AWS_SECRET_ACCESS_KEY}
-     echo "ID/LEN: $CN_AWS_ACCESS_KEY_ID/$len"
+     echo "ID/LEN: ${#CN_AWS_ACCESS_KEY_ID}/${#CN_AWS_SECRET_ACCESS_KEY}"
      exit 1
 fi
 
