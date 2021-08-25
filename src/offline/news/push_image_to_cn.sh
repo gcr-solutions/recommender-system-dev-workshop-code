@@ -25,27 +25,20 @@ if [[ -z $CN_AWS_ACCESS_KEY_ID || -z $CN_AWS_SECRET_ACCESS_KEY || -z $CN_AWS_DEF
     exit 1
 fi
 
-mkdir ~/.aws/ > /dev/null 2>&1 || true
+#mkdir ~/.aws/ > /dev/null 2>&1 || true
+#
+#echo "[cn]" > ~/.aws/credentials_cn
+#echo "aws_access_key_id = $CN_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials_cn
+#echo "aws_secret_access_key = $CN_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials_cn
+#
+#echo "[profile cn]" > ~/.aws/config_cn
+#echo "region = $CN_AWS_DEFAULT_REGION" >> ~/.aws/config_cn
+#
+#export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials_cn
+#export AWS_CONFIG_FILE=~/.aws/config_cn
 
-echo "[cn]" > ~/.aws/credentials_cn
-echo "aws_access_key_id = $CN_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials_cn
-echo "aws_secret_access_key = $CN_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials_cn
 
-echo "[profile cn]" > ~/.aws/config_cn
-echo "region = $CN_AWS_DEFAULT_REGION" >> ~/.aws/config_cn
-
-export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials_cn
-export AWS_CONFIG_FILE=~/.aws/config_cn
-
-echo "--------"
-echo AWS_CONFIG_FILE:$AWS_CONFIG_FILE
-cat $AWS_CONFIG_FILE
-echo "--------"
-echo AWS_SHARED_CREDENTIALS_FILE:$AWS_SHARED_CREDENTIALS_FILE
-cat $AWS_SHARED_CREDENTIALS_FILE
-echo "--------"
-
-ACCOUNT_ID=$(aws --profile cn sts get-caller-identity --query Account --output text)
+ACCOUNT_ID=$(aws  sts get-caller-identity --query Account --output text)
 
 if [[ $? != 0 ]];then
      echo "Error"
@@ -61,13 +54,13 @@ create_repo () {
 
   echo "create_repo() - name: $name, region: $region"
 
-  aws --profile cn ecr create-repository  \
+  aws  ecr create-repository  \
   --repository-name $name \
   --image-scanning-configuration scanOnPush=true \
   --region $region >/dev/null 2>&1 || true
 }
 
-aws --profile cn ecr get-login-password --region $CN_AWS_DEFAULT_REGION | \
+aws  ecr get-login-password --region $CN_AWS_DEFAULT_REGION | \
 docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$CN_AWS_DEFAULT_REGION.amazonaws.com.cn
 
 create_repo $repoName $CN_AWS_DEFAULT_REGION
