@@ -25,18 +25,6 @@ if [[ -z $CN_AWS_ACCESS_KEY_ID || -z $CN_AWS_SECRET_ACCESS_KEY || -z $CN_AWS_DEF
     exit 1
 fi
 
-#mkdir ~/.aws/ > /dev/null 2>&1 || true
-#
-#echo "[cn]" > ~/.aws/credentials_cn
-#echo "aws_access_key_id = $CN_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials_cn
-#echo "aws_secret_access_key = $CN_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials_cn
-#
-#echo "[profile cn]" > ~/.aws/config_cn
-#echo "region = $CN_AWS_DEFAULT_REGION" >> ~/.aws/config_cn
-#
-#export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials_cn
-#export AWS_CONFIG_FILE=~/.aws/config_cn
-
 export AWS_ACCESS_KEY_ID=$CN_AWS_ACCESS_KEY_ID
 export AWS_SECRET_ACCESS_KEY=$CN_AWS_SECRET_ACCESS_KEY
 export AWS_DEFAULT_REGION=$CN_AWS_DEFAULT_REGION
