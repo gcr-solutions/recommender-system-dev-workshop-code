@@ -18,7 +18,7 @@ if [[ -z $CN_AWS_SECRET_ACCESS_KEY ]]; then
    CN_AWS_DEFAULT_REGION="cn-north-1"
 fi
 
-echo "repoName: $repoName, tag:$tag"
+echo "repoName: $repoName, tag: $tag"
 
 if [[ -z $CN_AWS_ACCESS_KEY_ID ]];then
     echo "CN_AWS_ACCESS_KEY_ID is empty, please set env: CN_AWS_ACCESS_KEY_ID|CN_AWS_SECRET_ACCESS_KEY "
@@ -38,6 +38,15 @@ export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials_cn
 export AWS_CONFIG_FILE=~/.aws/config_cn
 
 ACCOUNT_ID=$(aws --profile cn sts get-caller-identity --query Account --output text)
+
+if [[ $? != 0 ]];then
+     echo "Error"
+     len=${#CN_AWS_SECRET_ACCESS_KEY}
+     echo "ID/LEN: $CN_AWS_ACCESS_KEY_ID/$len"
+     exit 1
+fi
+
+echo "ACCOUNT_ID:$ACCOUNT_ID"
 
 create_repo () {
   name=$1
