@@ -231,7 +231,7 @@ def recall_post(user_id: str, clickItemList: ClickedItemList):
 
 @api_router.post('/api/v1/event/start_train', response_model=StateMachineStatusResponse, tags=["event"])
 def start_train_post(trainReq: TrainRequest):
-    if trainReq.change_type not in ['MODEL', 'CONTENT', 'ACTION']:
+    if trainReq.change_type not in ['MODEL', 'CONTENT', 'ACTION', 'USER']:
         raise HTTPException(status_code=405, detail="invalid change_type")
     res = start_step_funcs(trainReq)
     return res
@@ -239,7 +239,7 @@ def start_train_post(trainReq: TrainRequest):
 
 @api_router.post('/api/v1/event/start_update', response_model=StateMachineStatusResponse, tags=["event"])
 def start_update_post(trainReq: TrainRequest):
-    if trainReq.change_type not in ['MODEL', 'CONTENT', 'ACTION']:
+    if trainReq.change_type not in ['MODEL', 'CONTENT', 'ACTION', 'USER']:
         raise HTTPException(status_code=405, detail="invalid change_type")
     res = start_step_funcs(trainReq)
     return res

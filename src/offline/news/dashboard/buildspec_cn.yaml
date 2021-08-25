@@ -2,12 +2,15 @@ version: 0.2
 
 env:
   variables:
-    APP_NAME: "news-assembled-train-model"
-    DIR_NAME: "news/assembled/train-model"
+    APP_NAME: "news-dashboard"
+    DIR_NAME: "news/dashboard"
   secrets-manager:
     GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
     ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken
     APP_CONF_REPO: gcr-rs-dev-workshop-github:appConfRepo
+  parameter-store:
+    CN_AWS_ACCESS_KEY_ID: gcr-rs-dev-workshop-CN_AWS_ACCESS_KEY_ID
+    CN_AWS_SECRET_ACCESS_KEY: gcr-rs-dev-workshop-CN_AWS_SECRET_ACCESS_KEY
 
 phases:
   install:

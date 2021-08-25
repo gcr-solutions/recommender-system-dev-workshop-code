@@ -81,6 +81,10 @@ create_codebuild_project () {
   sed -e 's#__Stage__#'${Stage}'#g' ./tmp-codebuild_2.json > ./tmp-codebuild_3.json
   sed -e 's#__GITHUB_USER_NAME__#'${GITHUB_USER}'#g' ./tmp-codebuild_3.json > ./codebuild.json
 
+  if [[ -n $DEPLOY_TO_CN ]]; then
+       sed -i -e 's#buildspec.yaml#'buildspec_cn.yaml'#g' ./codebuild.json
+  fi
+
   echo "------------------------------------"
 #  echo ""
 #  cat codebuild.json
