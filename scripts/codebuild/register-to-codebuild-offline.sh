@@ -172,7 +172,8 @@ else
    echo ""
 fi
 
-echo "Done"
+echo "Create offline codebuild projects done"
+sleep 5
 
 
 
