@@ -37,6 +37,14 @@ echo "region = $CN_AWS_DEFAULT_REGION" >> ~/.aws/config_cn
 export AWS_SHARED_CREDENTIALS_FILE=~/.aws/credentials_cn
 export AWS_CONFIG_FILE=~/.aws/config_cn
 
+echo "--------"
+echo AWS_CONFIG_FILE:$AWS_CONFIG_FILE
+cat $AWS_CONFIG_FILE
+echo "--------"
+echo AWS_SHARED_CREDENTIALS_FILE:$AWS_SHARED_CREDENTIALS_FILE
+cat $AWS_SHARED_CREDENTIALS_FILE
+echo "--------"
+
 ACCOUNT_ID=$(aws --profile cn sts get-caller-identity --query Account --output text)
 
 if [[ $? != 0 ]];then
