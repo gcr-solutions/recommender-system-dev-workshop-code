@@ -9,7 +9,12 @@ fi
 
 echo "Stage=$Stage"
 
+
 repoName=rs/news-add-item-batch
+
+if [[ -n $REPO_NAME ]];then
+  repoName=$REPO_NAME
+fi
 
 if [[ $Stage == 'demo' ]]; then
   ../dev2demo.sh $repoName

@@ -11,6 +11,12 @@ echo "Stage=$Stage"
 
 repoName=rs/news-action-preprocessing
 
+if [[ -n $REPO_NAME ]];then
+  repoName=$REPO_NAME
+fi
+
+echo "===== build $repoName ==========="
+
 if [[ $Stage == 'demo' ]]; then
   ../dev2demo.sh $repoName
 else

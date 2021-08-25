@@ -10,6 +10,9 @@ fi
 echo "Stage=$Stage"
 
 repoName=rs/news-dashboard
+if [[ -n $REPO_NAME ]];then
+  repoName=$REPO_NAME
+fi
 
 if [[ $Stage == 'demo' ]]; then
   ../dev2demo.sh $repoName

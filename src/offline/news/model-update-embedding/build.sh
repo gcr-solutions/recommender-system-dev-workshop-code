@@ -9,8 +9,10 @@ fi
 
 echo "Stage=$Stage"
 
-#repoName=rs/news-model-update-embedding-cpu
 repoName=rs/news-model-update-embedding-gpu
+if [[ -n $REPO_NAME ]];then
+  repoName=$REPO_NAME
+fi
 
 if [[ $Stage == 'demo' ]]; then
     ../dev2demo.sh $repoName
