@@ -25,6 +25,8 @@ if [[ -z $CN_AWS_ACCESS_KEY_ID ]];then
     exit 1
 fi
 
+mkdir ~/.aws/ > /dev/null 2>&1 || true
+
 echo "[cn]" > ~/.aws/credentials_cn
 echo "aws_access_key_id = $CN_AWS_ACCESS_KEY_ID"  >> ~/.aws/credentials_cn
 echo "aws_secret_access_key = $CN_AWS_SECRET_ACCESS_KEY"  >> ~/.aws/credentials_cn
