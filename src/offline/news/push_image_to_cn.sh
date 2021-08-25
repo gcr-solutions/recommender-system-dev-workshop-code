@@ -20,8 +20,8 @@ fi
 
 echo "repoName: $repoName, tag: $tag"
 
-if [[ -z $CN_AWS_ACCESS_KEY_ID ]];then
-    echo "CN_AWS_ACCESS_KEY_ID is empty, please set env: CN_AWS_ACCESS_KEY_ID|CN_AWS_SECRET_ACCESS_KEY "
+if [[ -z $CN_AWS_ACCESS_KEY_ID || -z $CN_AWS_SECRET_ACCESS_KEY || -z $CN_AWS_DEFAULT_REGION ]];then
+    echo "CN_AWS_ACCESS_KEY_ID is empty, please set env: CN_AWS_ACCESS_KEY_ID|CN_AWS_SECRET_ACCESS_KEY|CN_AWS_DEFAULT_REGION "
     exit 1
 fi
 

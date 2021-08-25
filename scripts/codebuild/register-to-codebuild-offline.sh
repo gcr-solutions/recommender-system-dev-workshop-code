@@ -113,6 +113,7 @@ create_codebuild_project () {
          echo "Error run aws codebuild start-build"
          exit 1
       fi
+      sleep 5
 
 #     echo "Activing webhook on Github with all events ..."
 #     $AWS_CMD codebuild --region $REGION create-webhook \
