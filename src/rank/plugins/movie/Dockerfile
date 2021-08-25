@@ -1,5 +1,5 @@
 # first stage
-FROM public.ecr.aws/s2e6t6k5/python:3.7 AS builder
+FROM public.ecr.aws/t8u1z3c8/python:3.7 AS builder
 COPY requirements.txt .
 
 # install dependencies to the local user directory (eg. /root/.local)
@@ -9,7 +9,7 @@ RUN python -m grpc_tools.protoc -I./pb  --python_out=. --grpc_python_out=. --exp
 RUN pip uninstall -y grpcio-tools
 
 # second unnamed stage
-FROM public.ecr.aws/s2e6t6k5/python:3.7-slim
+FROM public.ecr.aws/t8u1z3c8/python:3.7-slim
 # FROM 763104351884.dkr.ecr.ap-southeast-1.amazonaws.com/tensorflow-training:1.15.5-gpu-py37-cu110-ubuntu18.04
 # FROM 763104351884.dkr.ecr.ap-southeast-1.amazonaws.com/tensorflow-training:1.15.5-gpu-py36-cu100-ubuntu18.04
 WORKDIR /code
