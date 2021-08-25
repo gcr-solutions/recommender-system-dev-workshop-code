@@ -105,14 +105,14 @@ create_codebuild_project () {
   rm -f codebuild.json
   rm -f tmp-codebuild*.json
 
-  if [[ $app_path == 'news/inverted-list' ]];then
-     echo "Activing webhook on Github with all events [$build_proj_name] ..."
-     $AWS_CMD codebuild create-webhook \
-        --project-name $build_proj_name \
-        --filter-groups '[
-            [{"type": "EVENT", "pattern": "PUSH", "excludeMatchedPattern": false},{"type":"FILE_PATH","pattern": "src/'${app_path}'", "excludeMatchedPattern": false}]
-        ]'
-  fi
+#  if [[ $app_path == 'news/inverted-list' ]];then
+#     echo "Activing webhook on Github with all events [$build_proj_name] ..."
+#     $AWS_CMD codebuild create-webhook \
+#        --project-name $build_proj_name \
+#        --filter-groups '[
+#            [{"type": "EVENT", "pattern": "PUSH", "excludeMatchedPattern": false},{"type":"FILE_PATH","pattern": "src/'${app_path}'", "excludeMatchedPattern": false}]
+#        ]'
+#  fi
 
   if [[ $REGION != 'ap-northeast-1' || $app_path == 'news/inverted-list' || -n $CN_AWS_PROFILE  ]]; then
       echo "Start build: ${build_proj_name}"
