@@ -106,7 +106,7 @@ create_codebuild_project () {
   rm -f tmp-codebuild*.json
 
   # if [[ $app_path != 'news' &&  $app_path != '.' ]]; then
-  if [[ $REGION != 'ap-northeast-1' || $app_path == 'news/inverted-list' ||  $app_path == 'lambda' || $app_path == 'news/step-funcs' ]]; then
+  if [[ $REGION != 'ap-northeast-1' || $app_path == 'news/inverted-list' || -n $CN_AWS_PROFILE  ]]; then
       echo "Start build: ${build_proj_name}"
       $AWS_CMD codebuild start-build --region $REGION --project-name ${build_proj_name} > /dev/null
       if [[ $? != 0 ]];then
