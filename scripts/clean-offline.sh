@@ -36,8 +36,8 @@ rs/news-dashboard
 rs/news-filter-batch
 rs/news-item-feature-update-batch
 rs/news-item-preprocessing
-rs/news-model-update-action-gpu
-rs/news-model-update-embedding-gpu
+rs/news-model-update-action
+rs/news-model-update-embedding
 rs/news-portrait-batch
 rs/news-prepare-training-data
 rs/news-rank-batch
