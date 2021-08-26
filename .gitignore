@@ -30,6 +30,7 @@ share/python-wheels/
 */cdk.out/*
 preprocess/*/*.txt
 MANIFEST
+.DS_Store
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
