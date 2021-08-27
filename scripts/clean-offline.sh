@@ -60,7 +60,10 @@ done
 
 if [[ $CN_AWS_PROFILE ]];then
   export PROFILE=$CN_AWS_PROFILE
-  export CN_REGION='cn-north-1'
+  CN_REGION=$(aws --profile $CN_AWS_PROFILE configure get region)
+  if [[ -z $CN_REGION ]];then
+      CN_REGION='cn-north-1'
+  fi
   export REGION=$CN_REGION
 
   AWS_CMD="aws --profile $PROFILE"
