@@ -129,6 +129,7 @@ echo "----------------projects-------------------------"
 
 projects_dir=(
   #"lambda"
+  #"news/step-funcs"
   "news/item-preprocessing"
   "news/add-item-batch"
   "news/item-feature-update-batch"
@@ -144,7 +145,6 @@ projects_dir=(
   "news/rank-batch"
   "news/filter-batch"
   "news/inverted-list"
-  #"news/step-funcs"
 )
 
 for project in ${projects_dir[@]}; do
