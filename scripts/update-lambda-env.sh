@@ -38,7 +38,7 @@ if [[ -n $PROFILE ]]; then
   AWS_CMD="aws --profile $PROFILE"
 fi
 
-if [[ -n $AWS_DEFAULT_REGION ]];then
+if [[ -n $AWS_DEFAULT_REGION && -z $REGION ]];then
   REGION=$AWS_DEFAULT_REGION
 fi
 
