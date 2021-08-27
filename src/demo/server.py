@@ -317,7 +317,7 @@ def url_get(urlRequest: URLRequest):
     title_str = str(decoded_bytes, "utf-8")
     logging.info("search: {}".format(title_str))
     try:
-        url = search_by_title(title_str, headers, 10)
+        url = search_by_title(title_str, headers, 5)
     except Exception as e1:
         logging.error(repr(e1))
         url = ''
@@ -379,7 +379,7 @@ def search_by_title(title, headers, timeout):
 
     try:
         try_count = 0
-        while try_count < 10:
+        while try_count < 3:
             res = requests.get(url, params=params, headers=headers,
                                timeout=timeout, allow_redirects=True)
             logging.info("res.status_code: {}, try_count:{}, res.text size: {}".format(res.status_code, try_count,
@@ -983,7 +983,7 @@ def get_recommend_movie(userId: str, type: str, curPage: str, pageSize: str):
 def start_train_post(trainReq: TrainRequest):
     logging.info('demo start_train_post start! change type: {}'.format(
         trainReq.change_type))
-    if trainReq.change_type not in ['MODEL', 'CONTENT', 'ACTION']:
+    if trainReq.change_type not in ['MODEL', 'CONTENT', 'ACTION', 'USER']:
         raise HTTPException(status_code=405, detail="invalid change_type")
 
     url = MANDATORY_ENV_VARS['EVENT_SERVICE_ENDPOINT'] + \
