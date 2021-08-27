@@ -13,7 +13,11 @@ AWS_CMD="aws"
 echo "---------------"
 if [[ -n $CN_AWS_PROFILE ]]; then
   PROFILE=$CN_AWS_PROFILE
-  REGION='cn-north-1'
+  CN_REGION=$(aws --profile $CN_AWS_PROFILE configure get region)
+  if [[ -z $CN_REGION ]];then
+      CN_REGION='cn-north-1'
+  fi
+  REGION=$CN_REGION
   echo "You set Env: CN_AWS_PROFILE=$CN_AWS_PROFILE, switch to REGION: $REGION"
   eksctl utils write-kubeconfig --region ${REGION} --cluster gcr-rs-dev-workshop-cluster --profile ${CN_AWS_PROFILE}
   if [[ $? != 0 ]];then

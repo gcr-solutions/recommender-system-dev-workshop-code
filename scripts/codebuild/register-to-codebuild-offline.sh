@@ -82,7 +82,12 @@ create_codebuild_project () {
   sed -e 's#__GITHUB_USER_NAME__#'${GITHUB_USER}'#g' ./tmp-codebuild_3.json > ./codebuild.json
 
   if [[ -n $CN_AWS_PROFILE ]]; then
+       CN_REGION=$(aws --profile $CN_AWS_PROFILE configure get region)
+       if [[ -z $CN_REGION ]];then
+           CN_REGION='cn-north-1'
+       fi
        sed -i -e 's#buildspec.yaml#'buildspec_cn.yaml'#g' ./codebuild.json
+       sed -i -e 's#__CopyToRegion__#'$CN_REGION'#g' ./codebuild.json
   fi
 
   echo "------------------------------------"

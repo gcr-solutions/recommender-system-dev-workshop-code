@@ -32,6 +32,8 @@ phases:
       - export REPO_NAME=rs/$APP_NAME
       - export CN_AWS_ACCESS_KEY_ID=$CN_AWS_ACCESS_KEY_ID
       - export CN_AWS_SECRET_ACCESS_KEY=$CN_AWS_SECRET_ACCESS_KEY
+      - echo "CopyToRegion:$CopyToRegion"
+      - export CN_AWS_DEFAULT_REGION=$CopyToRegion
       - cd $CODEBUILD_SRC_DIR/src/offline/${DIR_NAME}
       - ./build.sh $Stage
       - ../push_image_to_cn.sh $REPO_NAME $Stage
