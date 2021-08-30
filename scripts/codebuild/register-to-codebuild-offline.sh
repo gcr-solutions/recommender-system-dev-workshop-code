@@ -155,6 +155,9 @@ projects_dir=(
 for project in ${projects_dir[@]}; do
   build_name=$(echo ${project} | sed 's#/#-#g')
   build_proj_name="rs-$Stage-offline-${build_name}-build"
+  if [[ -n $CN_REGION ]];then
+    build_proj_name="rs-$Stage-offline-${build_name}-$CN_REGION-build"
+  fi
   app_path=${project}
   if [[ $DELETE_FLAG == 'DELETE' ]];then
       delete_codebuild_project $build_proj_name $app_path
@@ -164,12 +167,9 @@ for project in ${projects_dir[@]}; do
 done
 
 build_proj_name="rs-$Stage-offline-build"
-app_path="."
 if [[ $DELETE_FLAG == 'DELETE' ]];then
-    # delete_codebuild_project $build_proj_name $app_path
     echo ""
 else
-   # create_codebuild_project $build_proj_name $app_path
    echo ""
    echo "Please check result in codebuild:"
    echo "search 'rs-$Stage-offline-'"
