@@ -61,6 +61,8 @@ echo "########################################################"
 Blue_print "aws  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/"
 echo "########################################################"
 
+rm ./complete_dkn_word_embedding.npy > /dev/null 2>&1  || true
+
 $AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/
 if [[ $? -ne 0 ]]; then
       Error_print "error!!! aws  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/"
