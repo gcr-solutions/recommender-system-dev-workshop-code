@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -e
 
+export AWS_PROFILE=default
+export REGION=$(aws configure get region)
+export EKS_CLUSTER=gcr-rs-dev-environment-cluster
+
+echo $AWS_PROFILE
+echo $REGION
+echo $EKS_CLUSTER
+
+eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER --profile $AWS_PROFILE
 # 1 setup argocd server
 kubectl create namespace argocd
 

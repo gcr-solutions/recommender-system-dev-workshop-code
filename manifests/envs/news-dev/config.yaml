@@ -15,4 +15,53 @@ data:
   click_record_bucket: 'aws-gcr-rs-sol-dev-workshop-__AWS_REGION__-__AWS_ACCOUNT_ID__'
   local_data_folder: '/rs-data/news-dev/'
 
+eksctl create iamserviceaccount \
+    --name efs-csi-controller-sa \
+    --namespace kube-system \
+    --cluster gcr-rs-dev-workshop-cluster \
+    --attach-policy-arn arn:aws-cn:iam::aws:policy/AdministratorAccess \
+    --approve \
+    --override-existing-serviceaccounts \
+    --region cn-north-1
+
+
+vpc_id=$(aws eks describe-cluster \
+    --name gcr-rs-dev-workshop-cluster \
+    --query "cluster.resourcesVpcConfig.vpcId" \
+    --output text)
   
+security_group_id=$(aws ec2 create-security-group \
+    --group-name gcr-rs-dev-workshop-efs-nfs-sg \
+    --description "My EFS security group" \
+    --vpc-id $vpc_id \
+    --output text)
+
+aws ec2 authorize-security-group-ingress \
+    --group-id $security_group_id \
+    --protocol tcp \
+    --port 2049 \
+    --cidr $cidr_range
+
+file_system_id=$(aws efs create-file-system \
+    --region cn-north-1 \
+    --performance-mode generalPurpose \
+    --tags Key=Name,Value=GCR-RS-DEV-WORKSHOP-EFS-FileSystem \
+    --query 'FileSystemId' \
+    --encrypted \
+    --output text)
+
+for subnet_id in `echo $SUBNET_IDS`
+do
+  aws efs create-mount-target \
+    --file-system-id $file_system_id \
+    --subnet-id $subnet_id \
+    --security-group $NFS_SECURITY_GROUP_ID
+done
+
+cd ../manifests/envs/news-dev/efs
+cp csi-env.yaml csi-env.yaml.bak
+sed -i 's/file_system_id/'"$EFS_ID"'/g' csi-env.yaml
+cat csi-env.yaml
+kustomize build . |kubectl apply -f - 
+mv csi-env.yaml.bak csi-env.yaml
+cd ../../../../scripts
