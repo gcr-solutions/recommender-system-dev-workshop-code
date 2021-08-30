@@ -3,6 +3,11 @@ set -e
 
 cd codebuild
 
+export EKS_DEV_CLUSTER=gcr-rs-dev-environment-cluster
+export AWS_PROFILE=default
+export REGION=$(aws configure get region)
+eksctl utils write-kubeconfig --region $REGION --cluster $EKS_DEV_CLUSTER
+
 # 1 Create secret manager, store github user, access token and repo name
 ./create-secrets.sh $SECRET_NAME  \
               $GITHUB_USER  \

@@ -1,3 +1,38 @@
+
+Skip to content
+Pull requests
+Issues
+Marketplace
+Explore
+@AoyuQC
+gcr-solutions /
+recommender-system-dev-workshop-code
+
+3
+3
+
+    31
+
+Code
+Issues
+Pull requests
+Actions
+Projects
+Wiki
+Security 6
+Insights
+
+    Settings
+
+recommender-system-dev-workshop-code/scripts/update-lambda-env.sh
+@amliuyong
+amliuyong fix REGION
+Latest commit 1885e3b 3 days ago
+History
+2 contributors
+@amliuyong
+@dengmingtong
+executable file 78 lines (59 sloc) 2.14 KB
 #!/usr/bin/env bash
 set -e
 
@@ -74,5 +109,3 @@ if [[ $? != 0 ]];then
     echo "Error"
     exit 1
 fi
-
-

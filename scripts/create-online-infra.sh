@@ -3,6 +3,12 @@ set -e
 
 export EKS_CLUSTER=gcr-rs-dev-workshop-cluster
 
+if [[ $CN_AWS_PROFILE ]];then
+  export AWS_PROFILE=$CN_AWS_PROFILE
+  export REGION=$(aws configure get region)
+  export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text)
+fi
+
 # 1. Create EKS Cluster
 # # 1.1 Provision EKS cluster 
 eksctl create cluster -f ./eks/nodes-config.yaml
@@ -31,7 +37,25 @@ echo $EKS_VPC_CIDR
 echo $SUBNET_IDS
 
 # 3.2 Install EFS CSI driver 
-kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.1"
+if [[ $CN_AWS_PROFILE ]];then
+  curl -o iam-policy-example.json https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/v1.3.2/docs/iam-policy-example.json
+  aws iam create-policy \
+      --policy-name AmazonEKS_EFS_CSI_Driver_Policy \
+      --policy-document file://iam-policy-example.json
+
+  eksctl create iamserviceaccount \
+      --name efs-csi-controller-sa \
+      --namespace kube-system \
+      --cluster $EKS_CLUSTER \
+      --attach-policy-arn arn:arn:aws-cn::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy \
+      --approve \
+      --override-existing-serviceaccounts \
+      --region $REGION
+  # install EFS driver
+  kubectl appy -f ../manifests/efs/driver-efs-cn.yaml
+else
+  kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.1"
+fi
 
 # 3.3 Create EFS
 EFS_ID=$(aws efs create-file-system \
@@ -68,11 +92,10 @@ done
 
 # 3.7 Apply & create PV/StorageClass
 cd ../manifests/envs/news-dev/efs
-cp csi-env.yaml csi-env.yaml.bak
+cp csi-env-template.yaml csi-env.yaml
 sed -i 's/FILE_SYSTEM_ID/'"$EFS_ID"'/g' csi-env.yaml
 cat csi-env.yaml
 kustomize build . |kubectl apply -f - 
-mv csi-env.yaml.bak csi-env.yaml
 cd ../../../../scripts
 
 # 4 Create redis elastic cache, Provision Elasticache - Redis / Cluster Mode Disabled
@@ -109,3 +132,10 @@ aws elasticache create-cache-cluster \
   --cache-parameter-group default.redis6.x \
   --security-group-ids $REDIS_SECURITY_GROUP_ID \
   --cache-subnet-group-name $CACHE_SUBNET_GROUP_NAME
+
+# create infra for develop environment
+export AWS_PROFILE=default
+export REGION=$(aws configure get region)
+# eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
+
+eksctl create cluster -f ./eks/nodes-dev-config.yaml
