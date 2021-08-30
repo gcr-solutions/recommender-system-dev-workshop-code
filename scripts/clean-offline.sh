@@ -4,66 +4,71 @@
 curr_dir=$(pwd)
 
 Stage=$1
-if [[ -z $Stage ]];then
+if [[ -z $Stage ]]; then
   Stage='dev-workshop'
 fi
 
 if [[ -z $REGION ]]; then
- export REGION='ap-northeast-1'
+  export REGION='ap-northeast-1'
 fi
 
-if [[ -n $AWS_PROFILE ]]; then
-  export PROFILE=$AWS_PROFILE
-fi
+#if [[ -n $AWS_PROFILE ]]; then
+#  export PROFILE=$AWS_PROFILE
+#fi
 
+AWS_CMD='aws'
+
+if [[ -n $PROFILE ]]; then
+  AWS_CMD="aws --profile $PROFILE"
+fi
 
 echo "Stage=$Stage"
 echo "REGION=$REGION"
+echo "AWS_CMD=$AWS_CMD"
 
 sleep 3
-
 
 echo "==== DELETE all codebuild projects ===="
 cd ${curr_dir}/codebuild
 ./register-to-codebuild-offline.sh $Stage DELETE
 
 repo_names=(
-rs/news-inverted-list
-rs/news-action-preprocessing
-rs/news-add-item-batch
-rs/news-add-user-batch
-rs/news-dashboard
-rs/news-filter-batch
-rs/news-item-feature-update-batch
-rs/news-item-preprocessing
-rs/news-model-update-action
-rs/news-model-update-embedding
-rs/news-portrait-batch
-rs/news-prepare-training-data
-rs/news-rank-batch
-rs/news-recall-batch
-rs/news-user-preprocessing
+  rs/news-inverted-list
+  rs/news-action-preprocessing
+  rs/news-add-item-batch
+  rs/news-add-user-batch
+  rs/news-dashboard
+  rs/news-filter-batch
+  rs/news-item-feature-update-batch
+  rs/news-item-preprocessing
+  rs/news-model-update-action
+  rs/news-model-update-embedding
+  rs/news-portrait-batch
+  rs/news-prepare-training-data
+  rs/news-rank-batch
+  rs/news-recall-batch
+  rs/news-user-preprocessing
 )
 
 echo "Delete ECR repositories ..."
-for repo_name in ${repo_names[@]}
-do
+for repo_name in ${repo_names[@]}; do
   if [[ "$AWS_ACCOUNT_ID" != '522244679887' ]]; then
-       echo "Delete repo: '$repo_name ...'"
-       $AWS_CMD ecr delete-repository  --repository-name $repo_name --region ${REGION} --force  > /dev/null 2>&1 || true
+    echo "Delete repo: '$repo_name ...'"
+    $AWS_CMD ecr delete-repository --repository-name $repo_name --region ${REGION} --force >/dev/null 2>&1 || true
   else
-      # our test  account: 522244679887
-      echo "skip deleting repo: '$repo_name ...'"
+    # our test  account: 522244679887
+    echo "skip deleting repo: '$repo_name ...'"
   fi
 done
 
-
-if [[ $CN_AWS_PROFILE ]];then
+if [[ $CN_AWS_PROFILE ]]; then
+  OLD_PROFILE=$PROFILE
   export PROFILE=$CN_AWS_PROFILE
   CN_REGION=$(aws --profile $CN_AWS_PROFILE configure get region)
-  if [[ -z $CN_REGION ]];then
-      CN_REGION='cn-north-1'
+  if [[ -z $CN_REGION ]]; then
+    CN_REGION='cn-north-1'
   fi
+  OLD_REGION=$REGION
   export REGION=$CN_REGION
 
   AWS_CMD="aws --profile $PROFILE"
@@ -86,8 +91,8 @@ cd ${curr_dir}/../src/offline/
 
 echo "All offline resources were deleted"
 
-
-
-
-
+if [[ $CN_AWS_PROFILE ]]; then
+  export REGION=$OLD_REGION
+  export PROFILE=$OLD_PROFILE
+fi
 
