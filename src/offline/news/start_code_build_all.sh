@@ -45,7 +45,8 @@ build_codebuild_project () {
 }
 
 projects_dir=(
-  "lambda"
+#  "lambda"
+#  "news/step-funcs"
   "news/action-preprocessing"
   "news/prepare-training-data"
   "news/user-preprocessing"
@@ -61,7 +62,6 @@ projects_dir=(
   "news/portrait-batch"
   "news/rank-batch"
   "news/recall-batch"
-  "news/step-funcs"
 )
 
 for project in ${projects_dir[@]}; do

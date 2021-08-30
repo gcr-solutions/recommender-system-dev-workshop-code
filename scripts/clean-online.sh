@@ -1,7 +1,17 @@
 #!/usr/bin/env bash
 set -e
 
+##############################delete resource for application##############################
 export EKS_CLUSTER=gcr-rs-dev-workshop-cluster
+export EKS_DEV_CLUSTER=gcr-rs-dev-environment-cluster
+
+if [[ $CN_AWS_PROFILE ]];then
+  export AWS_PROFILE=$CN_AWS_PROFILE
+  export REGION=$(aws configure get region)
+  export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text) 
+  eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
+fi
+
 EKS_VPC_ID=$(aws eks describe-cluster --name $EKS_CLUSTER --query "cluster.resourcesVpcConfig.vpcId" --output text)
 
 echo "################ start clean online resources ################ "
@@ -83,11 +93,27 @@ if [ "$REDIS_SECURITY_GROUP_ID" != "" ]; then
   aws ec2 delete-security-group --group-id $REDIS_SECURITY_GROUP_ID
 fi
 
+##############################delete resource for application##############################
+export EKS_DEV_CLUSTER=gcr-rs-dev-environment-cluster
+
+export AWS_PROFILE=default
+export REGION=$(aws configure get region)
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text) 
+
+eksctl utils write-kubeconfig --region $REGION --cluster $EKS_DEV_CLUSTER
+
 #clean argocd and istio resources
 ./cleanup-argocd-istio.sh
 
 #detach eks cluster roles
-echo "################ Detach eks cluster roles ################ "
+echo "################ Detach eks cluster roles for workshop ################ "
+
+if [[ $CN_AWS_PROFILE ]];then
+  export AWS_PROFILE=$CN_AWS_PROFILE
+  export REGION=$(aws configure get region)
+  export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text) 
+  eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
+fi
 
 ROLE_NAMES=$(aws iam list-roles | jq '.[][].RoleName' -r | grep eksctl-gcr-rs-dev-workshop-cluster*)
 for ROLE_NAME in $(echo $ROLE_NAMES); do
@@ -101,8 +127,31 @@ for ROLE_NAME in $(echo $ROLE_NAMES); do
 done
 
 #remove eks cluster
-echo "################ Delete eks cluster ################ "
+echo "################ Delete eks cluster for workshop ################ "
 eksctl delete cluster --name=$EKS_CLUSTER
+
+#detach eks cluster roles
+echo "################ Detach eks cluster roles for environment ################ "
+
+export AWS_PROFILE=default
+export REGION=$(aws configure get region)
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text) 
+eksctl utils write-kubeconfig --region $REGION --cluster $EKS_DEV_CLUSTER
+
+ROLE_NAMES=$(aws iam list-roles | jq '.[][].RoleName' -r | grep eksctl-gcr-rs-dev-environment-cluster*)
+for ROLE_NAME in $(echo $ROLE_NAMES); do
+  POLICY_ARNS=$(aws iam list-attached-role-policies --role-name $ROLE_NAME | jq '.[][].PolicyArn' -r)
+  for POLICY_ARN in $(echo $POLICY_ARNS); do
+    echo detach policy $POLICY_ARN for role $ROLE_NAME
+    aws iam detach-role-policy --role-name $ROLE_NAME --policy-arn $POLICY_ARN
+  done
+  # echo delete role $ROLE_NAME
+  # aws iam delete-role --role-name $ROLE_NAME
+done
+
+#remove eks cluster
+echo "################ Delete eks cluster for environment ################ "
+eksctl delete cluster --name=$EKS_DEV_CLUSTER
 
 #remove codebuild project
 projects[0]="loader"
@@ -118,17 +167,17 @@ projects[8]="ui"
 for project in ${projects[@]}
 do 
     echo "Deleting ${project} from CodeBuild ..."
-    aws codebuild delete-project --name gcr-rs-dev-workshop-${project}-build || true
+    aws codebuild delete-project --name gcr-rs-dev-environment-${project}-build || true
     echo "Done."
     sleep 5
 done
 
 #delete codebuild role and policy
-echo "Clean codebuild role: gcr-rs-dev-workshop-codebuild-role, policy:gcr-rs-dev-workshop-codebuild-policy"
-ROLE_NAME=gcr-rs-dev-workshop-codebuild-role
-ROLE_POLICY=gcr-rs-dev-workshop-codebuild-policy
+echo "Clean codebuild role: gcr-rs-dev-environment-codebuild-role, policy:gcr-rs-dev-environment-codebuild-policy"
+ROLE_NAME=gcr-rs-dev-environment-codebuild-role
+ROLE_POLICY=gcr-rs-dev-environment-codebuild-policy
 
-ROLE_NAMES=$(aws iam list-roles | jq '.[][] | select(.RoleName=="gcr-rs-dev-workshop-codebuild-role")')
+ROLE_NAMES=$(aws iam list-roles | jq '.[][] | select(.RoleName=="gcr-rs-dev-environment-codebuild-role")')
 if [ "$ROLE_NAMES" == "" ]
 then
     echo "Nothing has been done and all clear."
@@ -159,4 +208,4 @@ else
     aws iam delete-role --role-name ${ROLE_NAME}
     echo "Deleted ${ROLE_NAME}"
 fi
-echo "Clean codebuild role: gcr-rs-dev-workshop-codebuild-role and policy:gcr-rs-dev-workshop-codebuild-policy done!"
+echo "Clean codebuild role: gcr-rs-dev-environment-codebuild-role and policy:gcr-rs-dev-environment-codebuild-policy done!"

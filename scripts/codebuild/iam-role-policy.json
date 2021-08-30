@@ -83,7 +83,8 @@
         "iam:*",
         "codecommit:*",
         "codebuild:*",
-        "events:*"
+        "events:*",
+        "ssm:*"
       ]
     }
   ]

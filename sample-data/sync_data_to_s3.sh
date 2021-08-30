@@ -61,6 +61,8 @@ echo "########################################################"
 Blue_print "aws  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/"
 echo "########################################################"
 
+rm ./complete_dkn_word_embedding.npy > /dev/null 2>&1  || true
+
 $AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/
 if [[ $? -ne 0 ]]; then
       Error_print "error!!! aws  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/"
@@ -73,6 +75,8 @@ s3_file_complete_dkn_word_embedding=s3://aws-gcr-rs-sol-workshop-ap-northeast-1-
 if [[ $REGION =~ ^cn.* ]]; then
   wget https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/dkn_embedding_latest/complete_dkn_word_embedding.npy
   s3_file_complete_dkn_word_embedding="./complete_dkn_word_embedding.npy"
+  # s3_file_complete_dkn_word_embedding=s3://aws-gcr-rs-sol-dev-workshop-cn-north-1-common/dkn_embedding_latest/complete_dkn_word_embedding.npy
+
 fi
 
 $AWS_CMD s3 cp ${s3_file_complete_dkn_word_embedding} \
@@ -82,6 +86,10 @@ s3://${BUCKET_BUILD}/${PREFIX}/model/rank/content/dkn_embedding_latest/complete_
 if [[ $? -ne 0 ]]; then
       Error_print "error!!! Copy $s3_file_complete_dkn_word_embedding"
       exit 1
+fi
+
+if [[ $REGION =~ ^cn.* ]]; then
+   rm ./complete_dkn_word_embedding.npy > /dev/null 2>&1
 fi
 
 OK_print "data sync completed"

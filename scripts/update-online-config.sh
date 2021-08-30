@@ -1,18 +1,22 @@
 #!/usr/bin/env bash
 set -e
 
+if [[ $CN_AWS_PROFILE ]];then
+  export AWS_PROFILE=$CN_AWS_PROFILE
+  export REGION=$(aws configure get region)
+fi
+
 # 1 update redis config
 REDIS_ENDPOINT=$(aws elasticache describe-cache-clusters --cache-cluster-id gcr-rs-dev-workshop-redis-cluster --show-cache-node-info \
 --query "CacheClusters[].CacheNodes[].Endpoint.Address" --output text)
+echo $REDIS_ENDPOINT
 cd ../manifests/envs/news-dev
-sed -i 's/REDIS_HOST_PLACEHOLDER/'"$REDIS_ENDPOINT"'/g' config.yaml
+cat config-template.yaml | sed 's/__REDIS_HOST_PLACEHOLDER__/'"$REDIS_ENDPOINT"'/g' > config_1.yaml
 
 # 2 update kubernetes config map
 if [[ -z $REGION ]];then
-    REGION='ap-northeast-1'
+    REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 fi
-
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
 if [[ $? -ne 0 ]]; then
   echo "error!!! can not get your AWS_ACCOUNT_ID"
@@ -22,9 +26,10 @@ fi
 echo "REGION: $REGION"
 echo "ACCOUNT_ID: $ACCOUNT_ID"
 
-cat config.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > config_1.yaml
-cat config_1.yaml | sed 's/__AWS_ACCOUNT_ID__/'"$ACCOUNT_ID"'/g' >  config.yaml
+cat config_1.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > config_2.yaml
+cat config_2.yaml | sed 's/__AWS_ACCOUNT_ID__/'"$ACCOUNT_ID"'/g' >  config.yaml
 rm config_1.yaml
+rm config_2.yaml
 
 cat config.yaml
 sleep 10

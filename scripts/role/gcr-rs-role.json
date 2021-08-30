@@ -134,7 +134,7 @@
                 "ec2:*"
             ],
             "Resource": "*"
-        }, 
+        },
         {
             "Effect": "Allow",
             "Action": [
@@ -145,7 +145,7 @@
                 "elasticache:DeleteCacheSubnetGroup"
             ],
             "Resource": "*"
-        }, 
+        },
         {
             "Effect": "Allow",
             "Action": "cloudwatch:*",
@@ -164,8 +164,7 @@
         {
             "Effect": "Allow",
             "Action": [
-                "ssm:GetParameter",
-                "ssm:GetParameters"
+                "ssm:*"
             ],
             "Resource": "*"
         },
@@ -175,6 +174,11 @@
                 "lambda:*"
             ],
             "Resource": "*"
+        },
+        {
+            "Action": "sns:*",
+            "Resource": "*",
+            "Effect": "Allow"
         },
         {
             "Action": [
@@ -229,7 +233,7 @@
             ],
             "Resource": "*"
         }
-    ]  
+    ]
 }
 
 

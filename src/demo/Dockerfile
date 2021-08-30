@@ -1,5 +1,5 @@
 # first stage
-FROM public.ecr.aws/s2e6t6k5/python:3.8 AS builder
+FROM public.ecr.aws/t8u1z3c8/python:3.8 AS builder
 COPY requirements.txt .
 
 # install dependencies to the local user directory (eg. /root/.local)
@@ -7,7 +7,7 @@ RUN pip install --user -r requirements.txt
 COPY ./ .
 
 # second unnamed stage
-FROM public.ecr.aws/s2e6t6k5/python:3.8-slim
+FROM public.ecr.aws/t8u1z3c8/python:3.8-slim
 WORKDIR /code
 
 # copy only the dependencies installation from the 1st stage image

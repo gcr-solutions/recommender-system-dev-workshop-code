@@ -20,6 +20,9 @@ fi
 echo "REGION: $REGION"
 
 repoName=rs/news-inverted-list
+if [[ -n $REPO_NAME ]];then
+  repoName=$REPO_NAME
+fi
 
 if [[ $Stage == 'demo' ]]; then
    ../dev2demo.sh $repoName

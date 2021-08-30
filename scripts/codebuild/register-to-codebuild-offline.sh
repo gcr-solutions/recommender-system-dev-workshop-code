@@ -81,6 +81,15 @@ create_codebuild_project () {
   sed -e 's#__Stage__#'${Stage}'#g' ./tmp-codebuild_2.json > ./tmp-codebuild_3.json
   sed -e 's#__GITHUB_USER_NAME__#'${GITHUB_USER}'#g' ./tmp-codebuild_3.json > ./codebuild.json
 
+  if [[ -n $CN_AWS_PROFILE ]]; then
+       CN_REGION=$(aws --profile $CN_AWS_PROFILE configure get region)
+       if [[ -z $CN_REGION ]];then
+           CN_REGION='cn-north-1'
+       fi
+       sed -i -e 's#buildspec.yaml#'buildspec_cn.yaml'#g' ./codebuild.json
+       sed -i -e 's#__CopyToRegion__#'$CN_REGION'#g' ./codebuild.json
+  fi
+
   echo "------------------------------------"
 #  echo ""
 #  cat codebuild.json
@@ -101,29 +110,31 @@ create_codebuild_project () {
   rm -f codebuild.json
   rm -f tmp-codebuild*.json
 
-  # if [[ $app_path != 'news' &&  $app_path != '.' ]]; then
-  if [[ $REGION != 'ap-northeast-1' || $app_path == 'news/inverted-list' ||  $app_path == 'lambda' || $app_path == 'news/step-funcs' ]]; then
+  if [[ $app_path == 'news/inverted-list' ]];then
+     echo "Activing webhook on Github with all events [$build_proj_name] ..."
+     $AWS_CMD codebuild create-webhook \
+        --project-name $build_proj_name \
+        --filter-groups '[
+            [{"type": "EVENT", "pattern": "PUSH", "excludeMatchedPattern": false},{"type":"FILE_PATH","pattern": "src/offline/'${app_path}'", "excludeMatchedPattern": false}]
+        ]'
+  fi
+
+  if [[ $REGION != 'ap-northeast-1' || $app_path == 'news/inverted-list' || -n $CN_AWS_PROFILE  ]]; then
       echo "Start build: ${build_proj_name}"
       $AWS_CMD codebuild start-build --region $REGION --project-name ${build_proj_name} > /dev/null
       if [[ $? != 0 ]];then
          echo "Error run aws codebuild start-build"
          exit 1
       fi
-
-#     echo "Activing webhook on Github with all events ..."
-#     $AWS_CMD codebuild --region $REGION create-webhook \
-#           --project-name $build_proj_name \
-#           --filter-groups '[
-#               [{"type": "EVENT", "pattern": "PUSH", "excludeMatchedPattern": false},
-#                {"type":"FILE_PATH", "pattern": "src/offline/'${app_path}'", "excludeMatchedPattern": false}]
-#           ]'
+      sleep 5
   fi
 }
 
 echo "----------------projects-------------------------"
 
 projects_dir=(
-  "lambda"
+  #"lambda"
+  #"news/step-funcs"
   "news/item-preprocessing"
   "news/add-item-batch"
   "news/item-feature-update-batch"
@@ -139,7 +150,6 @@ projects_dir=(
   "news/rank-batch"
   "news/filter-batch"
   "news/inverted-list"
-  "news/step-funcs"
 )
 
 for project in ${projects_dir[@]}; do
@@ -167,7 +177,8 @@ else
    echo ""
 fi
 
-echo "Done"
+echo "Create offline codebuild projects done"
+sleep 5
 
 
 

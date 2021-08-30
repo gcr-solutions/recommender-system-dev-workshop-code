@@ -861,7 +861,7 @@ Resources:
               "Resource": "arn:${AWS::Partition}:states:::sagemaker:createTrainingJob.sync",
               "Parameters": {
                 "AlgorithmSpecification": {
-                  "TrainingImage": "${ECRPrefix}/rs/news-model-update-embedding-gpu:${Stage}",
+                  "TrainingImage": "${ECRPrefix}/rs/news-model-update-embedding:${Stage}",
                   "TrainingInputMode": "File",
                   "MetricDefinitions": [
                     {
@@ -929,7 +929,7 @@ Resources:
               "Resource": "arn:${AWS::Partition}:states:::sagemaker:createTrainingJob.sync",
               "Parameters": {
                 "AlgorithmSpecification": {
-                  "TrainingImage": "${ECRPrefix}/rs/news-model-update-action-gpu:${Stage}",
+                  "TrainingImage": "${ECRPrefix}/rs/news-model-update-action:${Stage}",
                   "TrainingInputMode": "File",
                   "MetricDefinitions": [
                     {
