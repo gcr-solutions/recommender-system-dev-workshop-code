@@ -30,7 +30,7 @@ AWS_CMD="aws --profile default"
 if [[ -n $PROFILE ]]; then
   AWS_CMD="aws --profile $PROFILE"
 fi
-echo echo "AWS_CMD=$AWS_CMD"
+echo "AWS_CMD=$AWS_CMD"
 
 AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Account --output text)
 
