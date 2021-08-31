@@ -91,7 +91,7 @@ create_codebuild_project () {
   if [[ -n $CN_AWS_PROFILE ]]; then
        sed -i -e 's#buildspec.yaml#'buildspec_cn.yaml'#g' ./codebuild.json
        sed -i -e 's#__CopyToRegion__#'$CN_REGION'#g' ./codebuild.json
-       echo "__CopyToRegion__:$CN_REGION"
+       #echo "__CopyToRegion__:$CN_REGION"
   fi
 
   echo "------------------------------------"
