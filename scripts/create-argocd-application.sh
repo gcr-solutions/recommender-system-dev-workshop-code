@@ -4,7 +4,7 @@ set -e
 # create infra for develop environment
 export AWS_PROFILE=default
 export REGION=$(aws configure get region)
-export EKS_CLUSTER=gcr-rs-dev-environment-cluster
+export EKS_CLUSTER=gcr-rs-dev-operation-cluster
 
 echo $AWS_PROFILE
 echo $REGION
@@ -34,13 +34,13 @@ argocd --insecure login $endpoint:443 --username admin --password $ARGOCD_PASSWO
 #     export AWS_REGION=cn-north-1
 #     export REGION=$AWS_REGION
 #     echo $REGION
-#      eksctl utils write-kubeconfig --region cn-north-1 --cluster gcr-rs-dev-workshop-cluster --profile rs-dev-cn-bjs
+#      eksctl utils write-kubeconfig --region cn-north-1 --cluster gcr-rs-dev-application-cluster --profile rs-dev-cn-bjs
 # fi
 
-if [[ $CN_AWS_PROFILE ]];then
-  export AWS_PROFILE=$CN_AWS_PROFILE
+if [[ $REGION=～ ^cn.* ]];then
+  export AWS_PROFILE=$REGION=～ ^cn.*
   export REGION=$(aws configure get region)
-  export EKS_CLUSTER=gcr-rs-dev-workshop-cluster
+  export EKS_CLUSTER=gcr-rs-dev-application-cluster
   echo $AWS_PROFILE
   echo $REGION
   echo $EKS_CLUSTER
@@ -53,7 +53,7 @@ echo "update-lambda-env"
 
 export AWS_PROFILE=default
 export REGION=$(aws configure get region)
-export EKS_CLUSTER=gcr-rs-dev-environment-cluster
+export EKS_CLUSTER=gcr-rs-dev-operation-cluster
 
 echo $AWS_PROFILE
 echo $REGION
@@ -67,12 +67,12 @@ eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER --profile 
 
 # argocd app create gcr-recommender-system-news-dev --repo https://${ACCESS_TOKEN}@github.com/${GITHUB_USER}/recommender-system-dev-workshop-code.git --path manifests/envs/news-dev --dest-namespace \
 # rs-news-dev-ns --dest-server ${APISERVER} --auth-token ${TOKEN} --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1
-# eksctl utils write-kubeconfig --region cn-north-1 --cluster gcr-rs-dev-workshop-cluster --profile rs-dev-cn-bjs
+# eksctl utils write-kubeconfig --region cn-north-1 --cluster gcr-rs-dev-application-cluster --profile rs-dev-cn-bjs
 
-if [[ $CN_AWS_PROFILE ]];then
-  export AWS_PROFILE=$CN_AWS_PROFILE
+if [[ $REGION=～ ^cn.* ]];then
+  export AWS_PROFILE=$REGION=～ ^cn.*
   export REGION=$(aws configure get region)
-  export EKS_CLUSTER=gcr-rs-dev-workshop-cluster
+  export EKS_CLUSTER=gcr-rs-dev-application-cluster
   echo $AWS_PROFILE
   echo $REGION
   echo $EKS_CLUSTER
@@ -84,7 +84,7 @@ APISERVER=$(kubectl config view --minify | grep server | cut -f 2- -d ":" | tr -
 argocd cluster add rs-online-user@$EKS_CLUSTER.$REGION.eksctl.io
 # export AWS_PROFILE=default
 # export REGION=$(aws configure get region)
-# export EKS_CLUSTER=gcr-rs-dev-environment-cluster
+# export EKS_CLUSTER=gcr-rs-dev-operation-cluster
 
 
 # echo $AWS_PROFILE

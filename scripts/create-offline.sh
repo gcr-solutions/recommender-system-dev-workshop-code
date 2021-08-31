@@ -42,10 +42,10 @@ echo "1. ========= Create codebuild =============="
 cd ${curr_dir}/codebuild
 ./register-to-codebuild-offline.sh $Stage
 
-if [[ $CN_AWS_PROFILE ]];then
+if [[ $REGION=～ ^cn.* ]];then
   OLD_PROFILE=$PROFILE
-  export PROFILE=$CN_AWS_PROFILE
-  CN_REGION=$(aws --profile $CN_AWS_PROFILE configure get region)
+  export PROFILE=$REGION=～ ^cn.*
+  CN_REGION=$(aws --profile $REGION=～ ^cn.* configure get region)
   if [[ -z $CN_REGION ]]; then
     CN_REGION='cn-north-1'
   fi
@@ -85,7 +85,7 @@ echo '{
 }'
 echo ""
 
-if [[ $CN_AWS_PROFILE ]]; then
+if [[ $REGION=～ ^cn.* ]]; then
   export REGION=$OLD_REGION
   export PROFILE=$OLD_PROFILE
 fi

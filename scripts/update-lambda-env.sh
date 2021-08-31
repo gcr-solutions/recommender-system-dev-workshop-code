@@ -1,38 +1,3 @@
-
-Skip to content
-Pull requests
-Issues
-Marketplace
-Explore
-@AoyuQC
-gcr-solutions /
-recommender-system-dev-workshop-code
-
-3
-3
-
-    31
-
-Code
-Issues
-Pull requests
-Actions
-Projects
-Wiki
-Security 6
-Insights
-
-    Settings
-
-recommender-system-dev-workshop-code/scripts/update-lambda-env.sh
-@amliuyong
-amliuyong fix REGION
-Latest commit 1885e3b 3 days ago
-History
-2 contributors
-@amliuyong
-@dengmingtong
-executable file 78 lines (59 sloc) 2.14 KB
 #!/usr/bin/env bash
 set -e
 
@@ -46,15 +11,15 @@ echo "Stage=$Stage"
 AWS_CMD="aws"
 
 echo "---------------"
-if [[ -n $CN_AWS_PROFILE ]]; then
-  PROFILE=$CN_AWS_PROFILE
-  CN_REGION=$(aws --profile $CN_AWS_PROFILE configure get region)
+if [[ -n $REGION=～ ^cn.* ]]; then
+  PROFILE=$REGION=～ ^cn.*
+  CN_REGION=$(aws --profile $REGION=～ ^cn.* configure get region)
   if [[ -z $CN_REGION ]];then
       CN_REGION='cn-north-1'
   fi
   REGION=$CN_REGION
-  echo "You set Env: CN_AWS_PROFILE=$CN_AWS_PROFILE, switch to REGION: $REGION"
-  eksctl utils write-kubeconfig --region ${REGION} --cluster gcr-rs-dev-workshop-cluster --profile ${CN_AWS_PROFILE}
+  echo "You set Env: REGION=～ ^cn.*=$REGION=～ ^cn.*, switch to REGION: $REGION"
+  eksctl utils write-kubeconfig --region ${REGION} --cluster gcr-rs-dev-application-cluster --profile ${REGION=～ ^cn.*}
   if [[ $? != 0 ]];then
     echo "Error"
     exit 1

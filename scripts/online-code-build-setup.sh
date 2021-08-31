@@ -3,7 +3,7 @@ set -e
 
 cd codebuild
 
-export EKS_DEV_CLUSTER=gcr-rs-dev-environment-cluster
+export EKS_DEV_CLUSTER=gcr-rs-dev-operation-cluster
 export AWS_PROFILE=default
 export REGION=$(aws configure get region)
 eksctl utils write-kubeconfig --region $REGION --cluster $EKS_DEV_CLUSTER

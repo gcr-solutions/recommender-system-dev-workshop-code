@@ -2,15 +2,8 @@
 set -e
 
 ##############################delete resource for application##############################
-export EKS_CLUSTER=gcr-rs-dev-workshop-cluster
-export EKS_DEV_CLUSTER=gcr-rs-dev-environment-cluster
-
-if [[ $CN_AWS_PROFILE ]];then
-  export AWS_PROFILE=$CN_AWS_PROFILE
-  export REGION=$(aws configure get region)
-  export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text) 
-  eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
-fi
+export EKS_CLUSTER=gcr-rs-dev-application-cluster
+export EKS_DEV_CLUSTER=gcr-rs-dev-operation-cluster
 
 EKS_VPC_ID=$(aws eks describe-cluster --name $EKS_CLUSTER --query "cluster.resourcesVpcConfig.vpcId" --output text)
 
@@ -94,13 +87,6 @@ if [ "$REDIS_SECURITY_GROUP_ID" != "" ]; then
 fi
 
 ##############################delete resource for application##############################
-export EKS_DEV_CLUSTER=gcr-rs-dev-environment-cluster
-
-export AWS_PROFILE=default
-export REGION=$(aws configure get region)
-export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text) 
-
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_DEV_CLUSTER
 
 #clean argocd and istio resources
 ./cleanup-argocd-istio.sh
@@ -108,14 +94,7 @@ eksctl utils write-kubeconfig --region $REGION --cluster $EKS_DEV_CLUSTER
 #detach eks cluster roles
 echo "################ Detach eks cluster roles for workshop ################ "
 
-if [[ $CN_AWS_PROFILE ]];then
-  export AWS_PROFILE=$CN_AWS_PROFILE
-  export REGION=$(aws configure get region)
-  export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text) 
-  eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
-fi
-
-ROLE_NAMES=$(aws iam list-roles | jq '.[][].RoleName' -r | grep eksctl-gcr-rs-dev-workshop-cluster*)
+ROLE_NAMES=$(aws iam list-roles | jq '.[][].RoleName' -r | grep eksctl-gcr-rs-dev-application-cluster*)
 for ROLE_NAME in $(echo $ROLE_NAMES); do
   POLICY_ARNS=$(aws iam list-attached-role-policies --role-name $ROLE_NAME | jq '.[][].PolicyArn' -r)
   for POLICY_ARN in $(echo $POLICY_ARNS); do
@@ -128,17 +107,13 @@ done
 
 #remove eks cluster
 echo "################ Delete eks cluster for workshop ################ "
+eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
 eksctl delete cluster --name=$EKS_CLUSTER
 
 #detach eks cluster roles
 echo "################ Detach eks cluster roles for environment ################ "
 
-export AWS_PROFILE=default
-export REGION=$(aws configure get region)
-export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text) 
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_DEV_CLUSTER
-
-ROLE_NAMES=$(aws iam list-roles | jq '.[][].RoleName' -r | grep eksctl-gcr-rs-dev-environment-cluster*)
+ROLE_NAMES=$(aws iam list-roles | jq '.[][].RoleName' -r | grep eksctl-gcr-rs-dev-operation-cluster*)
 for ROLE_NAME in $(echo $ROLE_NAMES); do
   POLICY_ARNS=$(aws iam list-attached-role-policies --role-name $ROLE_NAME | jq '.[][].PolicyArn' -r)
   for POLICY_ARN in $(echo $POLICY_ARNS); do
@@ -151,6 +126,7 @@ done
 
 #remove eks cluster
 echo "################ Delete eks cluster for environment ################ "
+eksctl utils write-kubeconfig --region $REGION --cluster $EKS_DEV_CLUSTER
 eksctl delete cluster --name=$EKS_DEV_CLUSTER
 
 #remove codebuild project
