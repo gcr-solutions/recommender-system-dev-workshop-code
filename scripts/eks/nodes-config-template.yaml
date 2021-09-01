@@ -2,14 +2,14 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: gcr-rs-dev-operation-cluster
-  region: ap-northeast-2
+  name: gcr-rs-dev-application-cluster
+  region: __AWS_REGION__
   version: "1.20"
 
 nodeGroups:
   - name: rs-cpu-ng
     labels: { role: rs-cpu-ng }
-    instanceType: m5.large
+    instanceType: r5.4xlarge
     minSize: 2
     maxSize: 4
     volumeSize: 80
@@ -37,4 +37,4 @@ nodeGroups:
         cloudWatch: true
     tags:
       k8s.io/cluster-autoscaler/enabled: "true"
-      k8s.io/cluster-autoscaler/gcr-rs-dev-operation-cluster: "owned"
+      k8s.io/cluster-autoscaler/gcr-rs-dev-application-cluster: "owned"

@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-export EKS_CLUSTER=gcr-rs-dev-workshop-cluster
-
-if [[ $CN_AWS_PROFILE ]];then
-  export AWS_PROFILE=$CN_AWS_PROFILE
-  export REGION=$(aws configure get region)
-  export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text)
-fi
+export EKS_CLUSTER=gcr-rs-dev-application-cluster
 
 # 1. Create EKS Cluster
 # # 1.1 Provision EKS cluster 
+cat ./eks/nodes-config-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > nodes-config.yaml
 eksctl create cluster -f ./eks/nodes-config.yaml
 
 # # 1.2 Create EKS cluster namespace
@@ -37,7 +32,7 @@ echo $EKS_VPC_CIDR
 echo $SUBNET_IDS
 
 # 3.2 Install EFS CSI driver 
-if [[ $CN_AWS_PROFILE ]];then
+if [[ $REGION=～ ^cn.* ]];then
   curl -o iam-policy-example.json https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/v1.3.2/docs/iam-policy-example.json
   aws iam create-policy \
       --policy-name AmazonEKS_EFS_CSI_Driver_Policy \
@@ -47,7 +42,7 @@ if [[ $CN_AWS_PROFILE ]];then
       --name efs-csi-controller-sa \
       --namespace kube-system \
       --cluster $EKS_CLUSTER \
-      --attach-policy-arn arn:arn:aws-cn::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy \
+      --attach-policy-arn arn:aws-cn::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy \
       --approve \
       --override-existing-serviceaccounts \
       --region $REGION
@@ -95,7 +90,7 @@ cd ../manifests/envs/news-dev/efs
 cp csi-env-template.yaml csi-env.yaml
 sed -i 's/FILE_SYSTEM_ID/'"$EFS_ID"'/g' csi-env.yaml
 cat csi-env.yaml
-kustomize build . |kubectl apply -f - 
+kubectl kustomize build . |kubectl apply -f - 
 cd ../../../../scripts
 
 # 4 Create redis elastic cache, Provision Elasticache - Redis / Cluster Mode Disabled
@@ -134,8 +129,5 @@ aws elasticache create-cache-cluster \
   --cache-subnet-group-name $CACHE_SUBNET_GROUP_NAME
 
 # create infra for develop environment
-export AWS_PROFILE=default
-export REGION=$(aws configure get region)
-# eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
-
+cat ./eks/nodes-config-dev-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > nodes-dev-config.yaml
 eksctl create cluster -f ./eks/nodes-dev-config.yaml

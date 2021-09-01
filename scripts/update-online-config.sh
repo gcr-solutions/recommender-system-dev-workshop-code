@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-if [[ $CN_AWS_PROFILE ]];then
-  export AWS_PROFILE=$CN_AWS_PROFILE
+if [[ $REGION=～ ^cn.* ]];then
+  export AWS_PROFILE=$REGION=～ ^cn.*
   export REGION=$(aws configure get region)
 fi
 
