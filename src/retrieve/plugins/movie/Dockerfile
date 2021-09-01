@@ -24,4 +24,4 @@ COPY ./ .
 ENV PATH=/root/.local:$PATH
 ENV PYTHONPATH=/root/.local:/root/.local/python3.8/site-packages
 
-CMD [ "python", "./server.py" ]
+CMD [ "python", "./service.py" ]

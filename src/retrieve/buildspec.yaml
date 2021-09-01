@@ -3,12 +3,13 @@ version: 0.2
 env:
   variables:
     APP_NAME: "retrieve"
-    SCENARIOS: "news"
+    PLUGIN_NAME: "retrieve-plugin"
+    SCENARIOS: "news movie"
 
   secrets-manager:
-    GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
-    ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken
-    APP_CONF_REPO: gcr-rs-dev-workshop-github:appConfRepo
+    GITHUB_USER: github-rs:githubUser
+    ACCESS_TOKEN: github-rs:accessToken
+    APP_CONF_REPO: github-rs:appConfRepo
 
 phases:
     install:
@@ -36,6 +37,15 @@ phases:
               --image-scanning-configuration scanOnPush=true \
               --region $AWS_DEFAULT_REGION || true
             echo "--------------------------------------------------------------------------------"
+          - |
+            echo "-------------------pre_build plugin---------------------------------------------"
+            PLUGIN_IMAGE=rs/$PLUGIN_NAME
+            PLUGIN_REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$PLUGIN_IMAGE
+            aws ecr create-repository \
+              --repository-name $PLUGIN_IMAGE \
+              --image-scanning-configuration scanOnPush=true \
+              --region $AWS_DEFAULT_REGION || true
+            echo "--------------------------------------------------------------------------------"
     build:
         commands:
           - echo Build started on `date`
@@ -48,6 +58,21 @@ phases:
             echo Tagging $APP_REPOSITORY_URI:$IMAGE_TAG...
             docker tag $APP_IMAGE:$IMAGE_TAG $APP_REPOSITORY_URI:$IMAGE_TAG
             echo "--------------------------------------------------------------------------------"
+          - |
+            echo "------------------build plugin--------------------------------------------------"
+            set -e
+            for SCENARIO in $SCENARIOS
+            do
+              echo "start build plugin" $SCENARIO
+              cd $CODEBUILD_SRC_DIR/src/$APP_NAME/plugins/$SCENARIO
+              echo Building $PLUGIN_IMAGE:$SCENARIO-$IMAGE_TAG
+              cp -r ../../pb .
+              docker build . -t $PLUGIN_IMAGE:$SCENARIO-$IMAGE_TAG
+              echo Tagging $PLUGIN_REPOSITORY_URI:$SCENARIO-$IMAGE_TAG...
+              docker tag $PLUGIN_IMAGE:$SCENARIO-$IMAGE_TAG $PLUGIN_REPOSITORY_URI:$SCENARIO-$IMAGE_TAG
+              echo "build plugin " $SCENARIO "end"
+            done
+              echo "------------------build plugin end--------------------------------------------------"
 
     post_build:
         commands:
@@ -56,21 +81,34 @@ phases:
             echo "------------------push app image------------------------------------------------"
             docker push $APP_REPOSITORY_URI:$IMAGE_TAG
             echo "--------------------------------------------------------------------------------"
+          - |
+            echo "------------------push plugin image---------------------------------------------"
+            for SCENARIO in $SCENARIOS
+            do
+              echo "push " $SCENARIO
+              docker push $PLUGIN_REPOSITORY_URI:$SCENARIO-$IMAGE_TAG
+            done
+            echo "--------------------------------------------------------------------------------"
 
-          - cd; mkdir workspace; cd workspace 
+          - cd; mkdir workspace; cd workspace
           - git clone https://$ACCESS_TOKEN:x-oauth-basic@github.com/$GITHUB_USER/$APP_CONF_REPO.git
           - git config --global user.email "robot@codebuild.aws"
           - git config --global user.name "robot"
           - cd $APP_CONF_REPO
-          - cd manifests/envs
+          - cd manifests
+          - kustomize edit set image rs/$APP_NAME=$APP_REPOSITORY_URI:$IMAGE_TAG
+          - kustomize edit set image rs/$PLUGIN_NAME=$PLUGIN_REPOSITORY_URI:news-$IMAGE_TAG
+          - cat kustomization.yaml
           - |
+            cd envs
             for SCENARIO in $SCENARIOS
-            do          
+            do
               cd $SCENARIO-dev
               kustomize edit set image rs/$APP_NAME=$APP_REPOSITORY_URI:$IMAGE_TAG
-              cat kustomization.yaml  
-              cd ../          
-            done 
+              kustomize edit set image rs/$PLUGIN_NAME=$PLUGIN_REPOSITORY_URI:$SCENARIO-$IMAGE_TAG
+              cat kustomization.yaml
+              cd ../
+            done
             cd ../../
           - git add -A
           - git commit -m "${CODEBUILD_GIT_MESSAGE}"
