@@ -15,3 +15,5 @@ data:
   click_record_bucket: 'aws-gcr-rs-sol-dev-workshop-__AWS_REGION__-__AWS_ACCOUNT_ID__'
   local_data_folder: '/rs-data/news-dev/'
   method: "customize"
+  scenario: "news"
+  stage: "dev-workshop"

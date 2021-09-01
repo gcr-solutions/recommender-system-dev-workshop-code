@@ -41,9 +41,10 @@ MANDATORY_ENV_VARS = {
     'S3_PREFIX': 'sample-data',
     'POD_NAMESPACE': 'default',
     'TEST': 'False',
-    'METHOD': 'ps-complete',
+    'METHOD': 'customize',
     'PS_CONFIG': 'ps_config.json',
     'SCENARIO': 'news',
+    'Stage': 'dev-workshop',
     'LOCAL_DATA_FOLDER': '/tmp/rs-data/'
 }
 
@@ -477,23 +478,28 @@ def init():
     logging.info('redis status is {}'.format(rCache.connection_status()))
 
 def get_step_funcs_name():
-    namespace = MANDATORY_ENV_VARS['POD_NAMESPACE']
-    known_mappings = {
-        'rs-news-dev-ns': 'rs-dev-News-OverallStepFunc',
-        'rs-movie-dev-ns': 'rs-dev-Movie-OverallStepFunc',
-        'rs-news-demo-ns': 'rs-demo-News-OverallStepFunc',
-        'rs-movie-demo-ns': 'rs-demo-Movie-OverallStepFunc',
-        'rs-beta': 'rsdemo-News-OverallStepFunc'
-    }
-    step_funcs_name = known_mappings.get(namespace, 'rsdemo-News-OverallStepFunc')
-
-    # change for dev-workshop
-    s3bucket = MANDATORY_ENV_VARS['S3_BUCKET']
-    if '-dev-workshop-' in s3bucket and namespace == 'rs-news-dev-ns':
-        step_funcs_name = 'rs-dev-workshop-News-OverallStepFunc'
-
-    logging.info("get_step_funcs_name return: namespace: {}, step funcs name: {}".format(namespace, step_funcs_name))
+    step_funcs_name = 'rs-{}-{}-{}-OverallStepFunc'.format(MANDATORY_ENV_VARS['SCENARIO'],
+                                                           MANDATORY_ENV_VARS['METHOD'],
+                                                           MANDATORY_ENV_VARS['Stage'])
+    logging.info("step funcs name: {}".format(step_funcs_name))
     return step_funcs_name
+    # namespace = MANDATORY_ENV_VARS['POD_NAMESPACE']
+    # known_mappings = {
+    #     'rs-news-dev-ns': 'rs-dev-News-OverallStepFunc',
+    #     'rs-movie-dev-ns': 'rs-dev-Movie-OverallStepFunc',
+    #     'rs-news-demo-ns': 'rs-demo-News-OverallStepFunc',
+    #     'rs-movie-demo-ns': 'rs-demo-Movie-OverallStepFunc',
+    #     'rs-beta': 'rsdemo-News-OverallStepFunc'
+    # }
+    # step_funcs_name = known_mappings.get(namespace, 'rsdemo-News-OverallStepFunc')
+    #
+    # # change for dev-workshop
+    # s3bucket = MANDATORY_ENV_VARS['S3_BUCKET']
+    # if '-dev-workshop-' in s3bucket and namespace == 'rs-news-dev-ns':
+    #     step_funcs_name = 'rs-dev-workshop-News-OverallStepFunc'
+    #
+    # logging.info("get_step_funcs_name return: namespace: {}, step funcs name: {}".format(namespace, step_funcs_name))
+    # return step_funcs_name
 
 
 if __name__ == "__main__":

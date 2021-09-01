@@ -148,3 +148,17 @@ vars:
     apiVersion: v1
     kind: ConfigMap
     name: rs-news-dev-config
+- fieldref:
+    fieldPath: data.scenario
+  name: SCENARIO
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-news-dev-config
+- fieldref:
+    fieldPath: data.stage
+  name: Stage
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-news-dev-config
