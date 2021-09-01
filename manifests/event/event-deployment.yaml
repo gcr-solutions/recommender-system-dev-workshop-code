@@ -47,6 +47,8 @@ spec:
             value: $(S3_BUCKET)
           - name: S3_PREFIX
             value: $(S3_PREFIX)
+          - name: LOCAL_DATA_FOLDER
+            value: $(LOCAL_DATA_FOLDER)
           - name: METHOD
             value: $(METHOD)
           - name: PS_CONFIG

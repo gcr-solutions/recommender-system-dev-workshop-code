@@ -343,7 +343,7 @@ def load_config(file):
     logging.info("load_config start load {}".format(file))
     file_path = MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'] + file
     if os.path.isfile(file_path):
-        infile = open(file, 'rb')
+        infile = open(file_path, 'rb')
         dict = json.load(infile)
         infile.close()
         logging.info("load_json completed, key len:{}".format(len(dict)))
