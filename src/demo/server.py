@@ -155,6 +155,9 @@ def login(loginRequest: LoginRequest):
             s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
                 Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
 
+        # AddUser to AWS Personalize
+        call_personalize_add_user(user_id, temp_array[1])
+
         return response_success({
             "message": "Login as anonymous user!",
             "data": {
@@ -188,6 +191,9 @@ def login(loginRequest: LoginRequest):
         login_new_user(user_name, user_id)
         user_id_in_sever = user_id
 
+        # AddUser to AWS Personalize
+        call_personalize_add_user(user_id, temp_array[1])
+
     visit_count = increase_visit_count(user_name)
     response = {
         "message": "Login success",
@@ -206,6 +212,17 @@ def get_random_sex():
 
 def get_random_age():
     return str(random.randint(15, 60))
+
+
+def call_personalize_add_user(user_id, user_sex):
+    logging.info("Add new user to AWS Personalize, user id:{}, user sex:{}".format(user_id, user_sex))
+    url = MANDATORY_ENV_VARS['EVENT_SERVICE_ENDPOINT'] + \
+          '/api/v1/event/add_user/' + user_id
+
+    return send_post_request(url, {
+        'user_id': user_id,
+        'user_sex': user_sex
+    })
 
 
 @app.get('/api/v1/demo/news', tags=["demo"])
