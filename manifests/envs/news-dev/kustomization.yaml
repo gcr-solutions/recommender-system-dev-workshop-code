@@ -141,3 +141,10 @@ vars:
     apiVersion: v1
     kind: ConfigMap
     name: rs-news-dev-config
+- fieldref:
+    fieldPath: data.method
+  name: METHOD
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-news-dev-config

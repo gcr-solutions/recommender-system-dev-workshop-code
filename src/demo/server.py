@@ -71,7 +71,8 @@ MANDATORY_ENV_VARS = {
     'CLICK_RECORD_BUCKET': 'gcr-rs-ops-ap-southeast-1-522244679887',
     'CLICK_RECORD_FILE_PATH': 'system/ingest-data/action/',
     'USER_RECORD_FILE_PATH': 'system/ingest-data/user/',
-    'TEST': ''
+    'TEST': '',
+    'METHOD': 'customize'
 }
 
 REDIS_KEY_USER_ID_CLICK_DICT = 'user_id_click_dict'
@@ -155,8 +156,9 @@ def login(loginRequest: LoginRequest):
             s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
                 Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
 
-        # AddUser to AWS Personalize
-        call_personalize_add_user(user_id, temp_array[1])
+        if MANDATORY_ENV_VARS['METHOD'] != 'customize':
+            # AddUser to AWS Personalize
+            call_personalize_add_user(user_id, temp_array[1])
 
         return response_success({
             "message": "Login as anonymous user!",
@@ -191,8 +193,9 @@ def login(loginRequest: LoginRequest):
         login_new_user(user_name, user_id)
         user_id_in_sever = user_id
 
-        # AddUser to AWS Personalize
-        call_personalize_add_user(user_id, temp_array[1])
+        if MANDATORY_ENV_VARS['METHOD'] != 'customize':
+            # AddUser to AWS Personalize
+            call_personalize_add_user(user_id, temp_array[1])
 
     visit_count = increase_visit_count(user_name)
     response = {
