@@ -1,0 +1,138 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys StepFuncs
+
+
+Parameters:
+  NamePrefix:
+    Type: String
+    Default: rs-news-ps-complete-dev
+
+  Stage:
+    Type: String
+    Default: dev
+
+  StepFuncAndLambdaRoleName:
+    Type: String
+    Default: LambdaAndStepFuncsRole
+
+  PreCheckLabmda:
+    Type: String
+    Default: PreCheckLabmda
+
+  CreateDatasetImportJobLambda:
+    Type: String
+    Default: CreateDatasetImportJobLambda
+
+  CheckDatasetImportJobStatusLambda:
+    Type: String
+    Default: CheckDatasetImportJobStatusLambda
+
+Resources:
+  UserNewStepFuncPersonalize:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub ${NamePrefix}-PrepareUserData
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "TimeoutSeconds": 36000,
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/ps-ingest-data/user/ps_user.csv"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Create User Dataset Import Job"
+            },
+            "Create User Dataset Import Job": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${CreateDatasetImportJobLambda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "datasetType": "USER"
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.CreateUserDatasetImportJob",
+              "Next": "Wait 5 Minutes For Dataset Import Job"
+            },
+            "Wait 5 Minutes For Dataset Import Job": {
+              "Type": "Wait",
+              "Seconds": 300,
+              "Next": "Check User Dataset Import Job Status"
+            },
+            "Check User Dataset Import Job Status": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${CheckDatasetImportJobStatusLambda}",
+                "Payload": {
+                  "createDatasetImportJob.$": "$.CreateUserDatasetImportJob"
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.CheckUserDatsetImportJobStatus",
+              "Next": "User Dataset Import Job Status Choice"
+            },
+            "User Dataset Import Job Status Choice": {
+              "Type": "Choice",
+              "Choices": [
+                {
+                  "Or": [
+                    {
+                      "Variable": "$.CheckUserDatsetImportJobStatus.Payload.dataset_import_job_status",
+                      "StringEquals": "CREATE PENDING"
+                    },
+                    {
+                      "Variable": "$.CheckUserDatsetImportJobStatus.Payload.dataset_import_job_status",
+                      "StringEquals": "CREATE IN_PROGRESS"
+                    }
+                  ],
+                  "Next": "Wait 5 Minutes For Dataset Import Job"
+                },
+                {
+                  "Variable": "$.CheckUserDatsetImportJobStatus.Payload.dataset_import_job_status",
+                  "StringEquals": "ACTIVE",
+                  "Next": "Succeed"
+                },
+                {
+                  "Variable": "$.CheckUserDatsetImportJobStatus.Payload.dataset_import_job_status",
+                  "StringEquals": "CREATE FAILED",
+                  "Next": "Fail"
+                }
+              ],
+              "Default": "Fail"
+            },
+            "Fail": {
+              "Type": "Fail",
+              "Error": "Dataset Import Job Failed"
+            },
+            "Succeed": {
+              "Type": "Succeed"
+            }
+          }
+        }
