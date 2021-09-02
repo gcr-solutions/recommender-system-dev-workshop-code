@@ -14,6 +14,7 @@ usermod -a -G docker ec2-user
 yum install git -y
 yum install jq -y
 
+# config AWS ENV
 AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 
