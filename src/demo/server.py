@@ -156,21 +156,30 @@ def login(loginRequest: LoginRequest):
         if s3_body != '':
             s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
                 Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
+        if not user_name:
+            return response_success({
+                "message": "Login as anonymous user!",
+                "data": {
+                    "userId": user_id,
+                    "visitCount": 1
+                }
+            })
 
-    visit_count = 1
-    if user_name:
-        if not get_user_id_by_name(user_name):
-            login_new_user(user_name, user_id)
-            if MANDATORY_ENV_VARS['METHOD'] != 'customize':
-                # AddUser to AWS Personalize
-                call_personalize_add_user(dict(zip(user_dict_key, temp_array)))
-        else:
-            visit_count = increase_visit_count(user_name)
+    user_id_in_server = get_user_id_by_name(user_name)
+    logging.info('login_post() - user_id_in_server: {}'.format(user_id_in_server))
 
+    if not user_id_in_server:
+        login_new_user(user_name, user_id)
+        user_id_in_server = user_id
+        if MANDATORY_ENV_VARS['METHOD'] != 'customize':
+            # AddUser to AWS Personalize
+            call_personalize_add_user(dict(zip(user_dict_key, temp_array)))
+
+    visit_count = increase_visit_count(user_name)
     response = {
         "message": "Login success",
         "data": {
-            "userId": user_id,
+            "userId": user_id_in_server,
             "visitCount": visit_count
         }
     }
