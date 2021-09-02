@@ -3,7 +3,7 @@ Parameters:
   KeyPairParam:
     Type: AWS::EC2::KeyPair::KeyName
     Description: Key Pair to access EC2
-  SsmParameterValueForImageId:
+  SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
 Resources:
@@ -205,7 +205,7 @@ Resources:
       IamInstanceProfile:
         Ref: gcrRsDevWorkshopEc2Ec2InstanceInstanceProfileDA785039
       ImageId:
-        Ref: SsmParameterValueForImageId
+        Ref: SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter
       InstanceType: t2.xlarge
       KeyName:
         Ref: KeyPairParam
@@ -233,8 +233,19 @@ Resources:
           service docker start
           usermod -a -G docker ec2-user
 
-          # git
+          # software
           yum install git -y
+          yum install jq -y
+
+          # config AWS ENV
+          AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
+          ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
+
+          aws configure set default.region ${AWS_REGION}
+          aws configure get default.region
+          echo "export ACCOUNT_ID=${ACCOUNT_ID}" | tee -a ~/.bash_profile
+          echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
+          echo "export REGION=${AWS_REGION}" | tee -a ~/.bash_profile
 
           # httpd
           yum install -y httpd
