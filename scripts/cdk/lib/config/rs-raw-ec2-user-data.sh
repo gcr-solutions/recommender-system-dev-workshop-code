@@ -10,8 +10,18 @@ amazon-linux-extras install docker -y
 service docker start
 usermod -a -G docker ec2-user
 
-# git
+# software
 yum install git -y
+yum install jq -y
+
+AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
+ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
+
+aws configure set default.region ${AWS_REGION}
+aws configure get default.region
+echo "export ACCOUNT_ID=${ACCOUNT_ID}" | tee -a ~/.bash_profile
+echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
+echo "export REGION=${AWS_REGION}" | tee -a ~/.bash_profile
 
 # httpd
 yum install -y httpd
