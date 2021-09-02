@@ -82,6 +82,7 @@ TRIGGER_RECALL_WINDOW = 3
 news_records_dict = 'news_records_dict'
 movie_records_dict = 'movie_records_dict'
 user_id_action_dict = 'user_id_action_dict'
+user_dict_key = ['user_id', 'gender', 'age', 'timestamp', 'name']
 
 lNewsCfgCompleteType = ['news_story', 'news_culture', 'news_entertainment', 'news_sports', 'news_finance', 'news_house',
                         'news_car', 'news_edu', 'news_tech', 'news_military', 'news_travel', 'news_world', 'news_agriculture', 'news_game']
@@ -138,70 +139,38 @@ def login(loginRequest: LoginRequest):
     logging.info('Start demo->login()...')
     user_id = loginRequest.userId
     user_name = loginRequest.userName
-    if user_name == None:
+    temp_array = []
+    if not user_name or not get_user_id_by_name(user_name):
         s3_body = ''
         current_timestamp = str(calendar.timegm(time.gmtime()))
-        temp_array = []
         temp_array.append(user_id)
         temp_array.append(get_random_sex())
         temp_array.append(get_random_age())
         temp_array.append(current_timestamp)
-        temp_array.append('anonymous')
+        temp_array.append(user_name if user_name else 'anonymous')
         connector = '_!_'
         s3_body = connector.join(temp_array)
-        logging.info("store anonymous user data{} ".format(s3_body))
+        logging.info("store user data{} ".format(s3_body))
 
         s3client = boto3.resource('s3')
         if s3_body != '':
             s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
                 Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
 
-        if MANDATORY_ENV_VARS['METHOD'] != 'customize':
-            # AddUser to AWS Personalize
-            call_personalize_add_user(user_id, temp_array[1])
+    visit_count = 1
+    if user_name:
+        if not get_user_id_by_name(user_name):
+            login_new_user(user_name, user_id)
+            if MANDATORY_ENV_VARS['METHOD'] != 'customize':
+                # AddUser to AWS Personalize
+                call_personalize_add_user(dict(zip(user_dict_key, temp_array)))
+        else:
+            visit_count = increase_visit_count(user_name)
 
-        return response_success({
-            "message": "Login as anonymous user!",
-            "data": {
-                "userId": user_id,
-                "visitCount": 1
-            }
-        })
-
-    user_id_in_sever = get_user_id_by_name(user_name)
-    logging.info(
-        'login_post() - user_id_in_sever: {}'.format(user_id_in_sever))
-
-    if not user_id_in_sever:
-        s3_body = ''
-        current_timestamp = str(calendar.timegm(time.gmtime()))
-        temp_array = []
-        temp_array.append(user_id)
-        temp_array.append(get_random_sex())
-        temp_array.append(get_random_age())
-        temp_array.append(current_timestamp)
-        temp_array.append(user_name)
-        connector = '_!_'
-        s3_body = connector.join(temp_array)
-        logging.info("store anonymous user data{} ".format(s3_body))
-
-        s3client = boto3.resource('s3')
-        if s3_body != '':
-            s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
-                Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
-
-        login_new_user(user_name, user_id)
-        user_id_in_sever = user_id
-
-        if MANDATORY_ENV_VARS['METHOD'] != 'customize':
-            # AddUser to AWS Personalize
-            call_personalize_add_user(user_id, temp_array[1])
-
-    visit_count = increase_visit_count(user_name)
     response = {
         "message": "Login success",
         "data": {
-            "userId": user_id_in_sever,
+            "userId": user_id,
             "visitCount": visit_count
         }
     }
