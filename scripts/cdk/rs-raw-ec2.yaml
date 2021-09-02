@@ -277,6 +277,11 @@ Outputs:
           - Fn::GetAtt:
               - gcrRsDevWorkshopEc2Ec2Instance916D1980
               - PublicIp
+  EC2IP:
+    Value:
+      Fn::GetAtt:
+        - gcrRsDevWorkshopEc2Ec2Instance916D1980
+        - PublicIp
 Conditions:
   CDKMetadataAvailable:
     Fn::Or:

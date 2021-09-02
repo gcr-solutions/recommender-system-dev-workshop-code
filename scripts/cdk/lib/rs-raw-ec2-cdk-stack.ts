@@ -74,5 +74,9 @@ export class RsRawEC2CdkStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'SSH Command', {
       value: `ssh -i ${keyPairParam.valueAsString}.pem -o IdentitiesOnly=yes ec2-user@${ec2Instance.instancePublicIp}`  
     });
+
+    new cdk.CfnOutput(this, 'EC2 IP', {
+      value: ec2Instance.instancePublicIp
+    });
   }
 }
