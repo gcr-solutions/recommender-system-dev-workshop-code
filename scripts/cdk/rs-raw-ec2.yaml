@@ -3,7 +3,7 @@ Parameters:
   KeyPairParam:
     Type: AWS::EC2::KeyPair::KeyName
     Description: Key Pair to access EC2
-  SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter:
+  SsmParameterValueForImageId:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
 Resources:
@@ -205,7 +205,7 @@ Resources:
       IamInstanceProfile:
         Ref: gcrRsDevWorkshopEc2Ec2InstanceInstanceProfileDA785039
       ImageId:
-        Ref: SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter
+        Ref: SsmParameterValueForImageId
       InstanceType: t2.xlarge
       KeyName:
         Ref: KeyPairParam
