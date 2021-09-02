@@ -173,7 +173,7 @@ def login(loginRequest: LoginRequest):
         user_id_in_server = user_id
         if MANDATORY_ENV_VARS['METHOD'] != 'customize':
             # AddUser to AWS Personalize
-            call_personalize_add_user(dict(zip(user_dict_key, temp_array)))
+            call_personalize_add_user(user_id, dict(zip(user_dict_key, temp_array)))
 
     visit_count = increase_visit_count(user_name)
     response = {
@@ -195,14 +195,14 @@ def get_random_age():
     return str(random.randint(15, 60))
 
 
-def call_personalize_add_user(user_id, user_sex):
-    logging.info("Add new user to AWS Personalize, user id:{}, user sex:{}".format(user_id, user_sex))
+def call_personalize_add_user(user_id, user_dict):
+    logging.info("Start add new user: {}".format(user_dict))
     url = MANDATORY_ENV_VARS['EVENT_SERVICE_ENDPOINT'] + \
           '/api/v1/event/add_user/' + user_id
 
     return send_post_request(url, {
-        'user_id': user_id,
-        'user_sex': user_sex
+        "user_id": user_id,
+        "user_properties": user_dict
     })
 
 

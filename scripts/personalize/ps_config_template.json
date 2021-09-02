@@ -1,6 +1,7 @@
 {
   "DatasetGroupName": "GCR-RS-News-Dataset-Group",
   "DatasetGroupArn": "arn:aws:personalize:__REGION__:__AccountID__:dataset-group/GCR-RS-News-Dataset-Group",
+  "UserProperties": "gender",
   "UserDatasetName": "NewsUserDataset",
   "UserDatasetArn": "arn:aws:personalize:__REGION__:__AccountID__:dataset/GCR-RS-News-Dataset-Group/USERS",
   "ItemDatasetName": "NewsItemDataset",

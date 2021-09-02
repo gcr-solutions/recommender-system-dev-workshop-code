@@ -200,7 +200,7 @@ class StateMachineStatusResponse(BaseModel):
 
 class UserEntity(BaseModel):
     user_id: str
-    user_sex: str
+    user_properties: Dict[str, Any]
 
 
 def gen_simple_response(message):
@@ -219,15 +219,18 @@ def ping():
 def add_new_user(userEntity: UserEntity):
     logging.info("Add new user to AWS Personalize Service...")
     user_id = userEntity.user_id
-    user_sex = userEntity.user_sex
+    user_properties_val = userEntity.user_properties
+    user_properties_key = ps_config['UserProperties'].split(",")
+    user_properties_dict = {}
+    for user_property in user_properties_key:
+        user_properties_dict[user_property] = user_properties_val[user_property]
+    logging.info("user_id: {} has properties: {}".format(user_id, user_properties_dict))
     personalize_events.put_users(
         datasetArn=ps_config["UserDatasetArn"],
         users=[
             {
                 "userId": user_id,
-                "properties": json.dumps({
-                    "gender": user_sex
-                })
+                "properties": json.dumps(user_properties_dict)
             },
         ]
     )
