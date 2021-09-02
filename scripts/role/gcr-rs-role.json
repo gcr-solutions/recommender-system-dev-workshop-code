@@ -191,14 +191,7 @@
         {
             "Effect": "Allow",
             "Action": [
-                "cloudformation:Describe*",
-                "cloudformation:EstimateTemplateCost",
-                "cloudformation:Get*",
-                "cloudformation:List*",
-                "cloudformation:ValidateTemplate",
-                "cloudformation:Detect*",
-                "cloudformation:Create*",
-                "cloudformation:DeleteStack"
+                "cloudformation:*"
             ],
             "Resource": "*"
         },
