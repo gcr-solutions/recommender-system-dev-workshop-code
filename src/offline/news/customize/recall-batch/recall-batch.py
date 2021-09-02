@@ -1,17 +1,10 @@
 from __future__ import print_function
-import os
-import sys
-import math
 import pickle
 import boto3
 import os
-import numpy as np
 import pandas as pd
 from tqdm import tqdm
-import time
 import argparse
-import logging
-import re
 import service_impl
 
 # tqdm.pandas()

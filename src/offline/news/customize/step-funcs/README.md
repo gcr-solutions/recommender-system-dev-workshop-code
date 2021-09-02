@@ -11,13 +11,13 @@
 |N|N|Y| `新用户上线` |
 
 ## 训练模型
-[训练模型流程](./train-model.md)
+[训练模型流程](train-model.md)
 
 ## 批量更新
 [批量更新流程](./action-new.md)
 
 ## 新物品上线
-[新物品上线流程](./item-new.md)
+[新物品上线流程](item-new.md)
 
 ## 新用户上线
-[新用户上线流程](./user-new.md)
+[新用户上线流程](user-new.md)
