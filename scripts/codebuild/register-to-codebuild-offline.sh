@@ -46,13 +46,6 @@ echo "roleArn: $roleArn"
 echo "DELETE_FLAG: $DELETE_FLAG"
 echo ""
 
-if [[ -n $REGION=～ ^cn.* ]]; then
-    CN_REGION=$(aws --profile $REGION=～ ^cn.* configure get region)
-     if [[ -z $CN_REGION ]];then
-         CN_REGION='cn-north-1'
-    fi
-    echo "CN_REGION:$CN_REGION"
-fi
 sleep 5
 
 delete_codebuild_project () {
