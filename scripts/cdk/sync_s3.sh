@@ -8,6 +8,7 @@ AWS_CMD="aws --profile rsops"
 
 cdk synth RsRawEC2CdkStack > rs-raw-ec2.yaml
 sed -i -e 's/SsmParameterValueawsserviceamiamazonlinuxlatestamzn2ami.*Parameter/SsmParameterValueForImageId/g' ./rs-raw-ec2.yaml
+sed -i -e 's#--stack RsRawEC2CdkStack#--stack ${AWS::StackName}#g' ./rs-raw-ec2.yaml
 $AWS_CMD s3 cp ./rs-raw-ec2.yaml s3://aws-gcr-rs-sol-workshop-ap-northeast-1-common/rs-dev-workshop-code/latest/ --acl public-read
 
 
