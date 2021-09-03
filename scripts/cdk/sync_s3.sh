@@ -27,6 +27,5 @@ if [[ $StableVersion == 'v1' ]]; then
     echo 'https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/stable_v1/rs-raw-ec2.yaml'
 fi 
 
-rm ./rs-raw-ec2.yaml-e || true
 rm main.zip
 
