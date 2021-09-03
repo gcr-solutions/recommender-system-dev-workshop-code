@@ -110,7 +110,7 @@ create_codebuild_project () {
         ]'
   fi
 
-  if [[ $REGION != 'ap-northeast-1' || $app_path == 'news/inverted-list' || -n $REGION=～ ^cn.*  ]]; then
+  if [[ 1 -eq 1 || $REGION != 'ap-northeast-1' || $app_path == 'news/inverted-list' || $REGION =~ ^cn.* ]]; then
       echo "Start build: ${build_proj_name}"
       $AWS_CMD codebuild start-build --region $REGION --project-name ${build_proj_name} > /dev/null
       if [[ $? != 0 ]];then
