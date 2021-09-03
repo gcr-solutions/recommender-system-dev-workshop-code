@@ -274,13 +274,6 @@ Resources:
           yum install jq -y
 
 
-          # set python
-          rm -f /usr/bin/python || true
-          ln -s /usr/bin/python3 /usr/bin/python
-          rm -f /bin/pip || true
-          ln -s /bin/pip3   /bin/pip
-
-
           AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
           ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 

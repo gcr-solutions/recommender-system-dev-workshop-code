@@ -16,13 +16,6 @@ yum install git -y
 yum install jq -y
 
 
-# set python
-rm -f /usr/bin/python || true
-ln -s /usr/bin/python3 /usr/bin/python
-rm -f /bin/pip || true
-ln -s /bin/pip3   /bin/pip
-
-
 AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 
@@ -74,11 +67,11 @@ echo "export REGION=${AWS_REGION}" | tee -a /home/ec2-user/.bash_profile
 EOS
 
 # httpd
-# yum install -y httpd
-# systemctl start httpd
-# systemctl enable httpd
+yum install -y httpd
+systemctl start httpd
+systemctl enable httpd
 
-# echo "<h1>Hello World from AWS EC2 $(hostname -f)</h1><br><hr><h2>Start Time: $(date -'u' )</h2>" > /var/www/html/index.html
+echo "<h1>Hello World from AWS EC2 $(hostname -f)</h1><br><hr><h2>Start Time: $(date -'u' )</h2>" > /var/www/html/index.html
 
 echo "End time: $(date '-u')"
 exit 0
