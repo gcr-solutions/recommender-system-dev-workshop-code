@@ -69,7 +69,7 @@ export class RsRawEC2CdkStack extends cdk.Stack {
     };
 
     const ec2Instance = new ec2.Instance(this, `${namePrefix}Ec2Instance`, {
-      resourceSignalTimeout: Duration.minutes(10),
+      resourceSignalTimeout: Duration.minutes(20),
       vpc,
       vpcSubnets: {
         subnetType: ec2.SubnetType.PUBLIC,
