@@ -33,7 +33,7 @@ Parameters:
     
 #  ECRPrefix:
 #    Type: String
-#    Default: 522244679887.dkr.ecr.ap-northeast-1.amazonaws.com
+#    Default: 522244679887.dkr.ecr.ap-northeast-1.${AWS::URLSuffix}
 
 Resources:
   SMProcessingStepFunc:
@@ -50,7 +50,7 @@ Resources:
               "Resource": "arn:${AWS::Partition}:states:::sagemaker:createProcessingJob.sync",
               "Parameters": {
                 "AppSpecification": {
-                  "ImageUri.$": "States.Format('${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/{}:${Stage}', $.ImageName)",
+                  "ImageUri.$": "States.Format('${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix}/{}:${Stage}', $.ImageName)",
                   "ContainerArguments.$": "$.ContainerArguments"
                 },
                 "ProcessingResources": {
@@ -813,7 +813,7 @@ Resources:
               "Resource": "arn:${AWS::Partition}:states:::sagemaker:createTrainingJob.sync",
               "Parameters": {
                 "AlgorithmSpecification": {
-                  "TrainingImage": "${ECRPrefix}/rs/news-model-update-embedding:${Stage}",
+                  "TrainingImage": "${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix}/rs/news-model-update-embedding:${Stage}",
                   "TrainingInputMode": "File",
                   "MetricDefinitions": [
                     {
@@ -881,7 +881,7 @@ Resources:
               "Resource": "arn:${AWS::Partition}:states:::sagemaker:createTrainingJob.sync",
               "Parameters": {
                 "AlgorithmSpecification": {
-                  "TrainingImage": "${ECRPrefix}/rs/news-model-update-action:${Stage}",
+                  "TrainingImage": "${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix}/rs/news-model-update-action:${Stage}",
                   "TrainingInputMode": "File",
                   "MetricDefinitions": [
                     {
