@@ -1,8 +1,11 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from "@aws-cdk/aws-ec2";
 import * as iam from '@aws-cdk/aws-iam';
+import * as codecommit from '@aws-cdk/aws-codecommit';
 import * as path from 'path';
-import {readFileSync} from 'fs';
+import {
+  readFileSync
+} from 'fs';
 
 export class RsRawEC2CdkStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props ? : cdk.StackProps) {
@@ -10,7 +13,7 @@ export class RsRawEC2CdkStack extends cdk.Stack {
     super(scope, id, props);
 
     this.templateOptions.description = "(SO8010) CDK for GCR solution: recommender system"
-    
+
     const keyPairParam = new cdk.CfnParameter(this, 'KeyPairParam', {
       type: 'AWS::EC2::KeyPair::KeyName',
       description: "Key Pair to access EC2"
@@ -20,11 +23,10 @@ export class RsRawEC2CdkStack extends cdk.Stack {
 
     const vpc = new ec2.Vpc(this, `${namePrefix}VPC`, {
       subnetConfiguration: [{
-          cidrMask: 24,
-          name: `${namePrefix}PublicSubnet`,
-          subnetType: ec2.SubnetType.PUBLIC,
-        }
-      ]
+        cidrMask: 24,
+        name: `${namePrefix}PublicSubnet`,
+        subnetType: ec2.SubnetType.PUBLIC,
+      }]
     });
 
     const securityGroup = new ec2.SecurityGroup(this, `${namePrefix}Ec2SecurityGroup`, {
@@ -41,6 +43,16 @@ export class RsRawEC2CdkStack extends cdk.Stack {
     });
 
     role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('PowerUserAccess'))
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        resources: ['*'],
+        actions: ['iam:*'],
+      }));
+
+    const repo = new codecommit.Repository(this, `${namePrefix}Repository`, {
+      repositoryName: 'recommender-system-dev-workshop-code',
+      description: 'CodeCommit Repository'
+    });
 
     const ami = new ec2.AmazonLinuxImage({
       generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
@@ -66,13 +78,15 @@ export class RsRawEC2CdkStack extends cdk.Stack {
       role: role,
       blockDevices: [rootVolume]
     });
-
+    
+    repo.grantPullPush(ec2Instance);
     const userDataFile = path.join(__dirname, './config/rs-raw-ec2-user-data.sh')
     const userDataScript = readFileSync(userDataFile, 'utf8');
     ec2Instance.addUserData(userDataScript)
+    ec2Instance.node.addDependency(repo)
 
     new cdk.CfnOutput(this, 'SSH Command', {
-      value: `ssh -i ${keyPairParam.valueAsString}.pem -o IdentitiesOnly=yes ec2-user@${ec2Instance.instancePublicIp}`  
+      value: `ssh -i ${keyPairParam.valueAsString}.pem -o IdentitiesOnly=yes ec2-user@${ec2Instance.instancePublicIp}`
     });
 
     new cdk.CfnOutput(this, 'EC2 IP', {

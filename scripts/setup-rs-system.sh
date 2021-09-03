@@ -6,7 +6,6 @@ ACCESS_TOKEN=$(aws secretsmanager get-secret-value --secret-id $SECRET_NAME  | j
 GITHUB_USER=$(aws secretsmanager get-secret-value --secret-id $SECRET_NAME  | jq -r  '.SecretString | fromjson.githubUser')
 
 echo "GITHUB_USER: $GITHUB_USER"
-echo "APP_CONF_REPO: $APP_CONF_REPO"
 
 if [[ -z $GITHUB_USER ]];then
   echo "Error: GITHUB_USER is empty"
@@ -21,7 +20,7 @@ fi
 export GITHUB_USER=$GITHUB_USER
 export ACCESS_TOKEN=$ACCESS_TOKEN
 export APP_CONF_REPO=recommender-system-dev-workshop-code
-
+echo "APP_CONF_REPO: $APP_CONF_REPO"
 
 input=$1
 

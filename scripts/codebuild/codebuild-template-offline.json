@@ -28,10 +28,6 @@
       {
         "name": "Stage",
         "value": "__Stage__"
-      },
-      {
-        "name": "CopyToRegion",
-        "value": "__CopyToRegion__"
       }
     ]
   },

@@ -46,13 +46,6 @@ echo "roleArn: $roleArn"
 echo "DELETE_FLAG: $DELETE_FLAG"
 echo ""
 
-if [[ -n $REGION=～ ^cn.* ]]; then
-    CN_REGION=$(aws --profile $REGION=～ ^cn.* configure get region)
-     if [[ -z $CN_REGION ]];then
-         CN_REGION='cn-north-1'
-    fi
-    echo "CN_REGION:$CN_REGION"
-fi
 sleep 5
 
 delete_codebuild_project () {
@@ -88,12 +81,6 @@ create_codebuild_project () {
   sed -e 's#__Stage__#'${Stage}'#g' ./tmp-codebuild_2.json > ./tmp-codebuild_3.json
   sed -e 's#__GITHUB_USER_NAME__#'${GITHUB_USER}'#g' ./tmp-codebuild_3.json > ./codebuild.json
 
-  if [[ -n $REGION=～ ^cn.* ]]; then
-       sed -i -e 's#buildspec.yaml#'buildspec_cn.yaml'#g' ./codebuild.json
-       sed -i -e 's#__CopyToRegion__#'$CN_REGION'#g' ./codebuild.json
-       #echo "__CopyToRegion__:$CN_REGION"
-  fi
-
   echo "------------------------------------"
 #  echo ""
 #  cat codebuild.json
@@ -123,7 +110,7 @@ create_codebuild_project () {
         ]'
   fi
 
-  if [[ $REGION != 'ap-northeast-1' || $app_path == 'news/inverted-list' || -n $REGION=～ ^cn.*  ]]; then
+  if [[ 1 -eq 1 || $REGION != 'ap-northeast-1' || $app_path == 'news/inverted-list' || $REGION =~ ^cn.* ]]; then
       echo "Start build: ${build_proj_name}"
       $AWS_CMD codebuild start-build --region $REGION --project-name ${build_proj_name} > /dev/null
       if [[ $? != 0 ]];then
