@@ -21,7 +21,7 @@ $AWS_CMD s3 cp main.zip  s3://aws-gcr-rs-sol-workshop-ap-northeast-1-common/rs-d
 
 if [[ $StableVersion == 'v1' ]]; then
     echo "copy to stable_v1"
-    sed -i -e 's#rs-dev-workshop-code/latest/main.zip#rs-dev-workshop-code/stable_v1/main.zip' ./rs-raw-ec2.yaml
+    sed -i -e 's#rs-dev-workshop-code/latest/main.zip#rs-dev-workshop-code/stable_v1/main.zip#g' ./rs-raw-ec2.yaml
     $AWS_CMD s3 cp main.zip s3://aws-gcr-rs-sol-workshop-ap-northeast-1-common/rs-dev-workshop-code/stable_v1/ --acl public-read
     $AWS_CMD s3 cp ./rs-raw-ec2.yaml s3://aws-gcr-rs-sol-workshop-ap-northeast-1-common/rs-dev-workshop-code/stable_v1/ --acl public-read
     echo 'https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/stable_v1/rs-raw-ec2.yaml'
