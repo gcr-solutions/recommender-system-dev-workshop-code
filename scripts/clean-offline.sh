@@ -61,25 +61,6 @@ for repo_name in ${repo_names[@]}; do
   fi
 done
 
-if [[ $REGION=～ ^cn.* ]]; then
-  OLD_PROFILE=$PROFILE
-  export PROFILE=$REGION=～ ^cn.*
-  CN_REGION=$(aws --profile $REGION=～ ^cn.* configure get region)
-  if [[ -z $CN_REGION ]]; then
-    CN_REGION='cn-north-1'
-  fi
-  OLD_REGION=$REGION
-  export REGION=$CN_REGION
-
-  AWS_CMD="aws --profile $PROFILE"
-  AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${CN_REGION} --query Account --output text)
-
-  echo "--------------$REGION-------------------------"
-  echo "change PROFILE to $PROFILE"
-  echo "change AWS_ACCOUNT_ID to $AWS_ACCOUNT_ID"
-  echo "change REGION to $REGION"
-  sleep 5
-fi
 
 echo "==== Clean sample data in S3 ===="
 cd ${curr_dir}/../sample-data/
@@ -90,9 +71,4 @@ cd ${curr_dir}/../src/offline/
 ./clean_up.sh $Stage
 
 echo "All offline resources were deleted"
-
-if [[ $REGION=～ ^cn.* ]]; then
-  export REGION=$OLD_REGION
-  export PROFILE=$OLD_PROFILE
-fi
 

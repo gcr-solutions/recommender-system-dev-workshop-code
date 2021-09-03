@@ -1,21 +1,37 @@
 #!/usr/bin/env bash
 set -e
 
-export SECRET_NAME=gcr-rs-dev-workshop-github
-export GITHUB_USER=<github_user_name>
-export ACCESS_TOKEN=<github_access_token>
+SECRET_NAME=gcr-rs-dev-workshop-github
+ACCESS_TOKEN=$(aws secretsmanager get-secret-value --secret-id $SECRET_NAME  | jq -r  '.SecretString | fromjson.accessToken')
+GITHUB_USER=$(aws secretsmanager get-secret-value --secret-id $SECRET_NAME  | jq -r  '.SecretString | fromjson.githubUser')
+
+echo "GITHUB_USER: $GITHUB_USER"
+
+if [[ -z $GITHUB_USER ]];then
+  echo "Error: GITHUB_USER is empty"
+  exit 1
+fi
+
+if [[ -z $ACCESS_TOKEN ]];then
+  echo "Error: ACCESS_TOKEN is empty"
+  exit 1
+fi
+
+export GITHUB_USER=$GITHUB_USER
+export ACCESS_TOKEN=$ACCESS_TOKEN
 export APP_CONF_REPO=recommender-system-dev-workshop-code
+echo "APP_CONF_REPO: $APP_CONF_REPO"
 
 input=$1
 
-if [ $input = "online-codebuild" ]
-then
-    echo "start create online codebuild project!"
-    ./online-code-build-setup.sh
-elif [ $input = "deploy-offline" ]
+if [ $input = "deploy-offline"  ]
 then
     echo "start create offline codebuild project!"
-    ./create-offline.sh    
+    ./create-offline.sh
+elif [ $input = "online-codebuild" ]
+then
+     echo "start create online codebuild project!"
+    ./online-code-build-setup.sh
 elif [ $input = "infra" ]
 then
     echo "start create online infrastructure!"

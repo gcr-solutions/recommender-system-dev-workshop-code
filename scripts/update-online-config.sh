@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-if [[ $REGION=～ ^cn.* ]];then
-  export AWS_PROFILE=$REGION=～ ^cn.*
-  export REGION=$(aws configure get region)
-fi
-
 # 1 update redis config
 REDIS_ENDPOINT=$(aws elasticache describe-cache-clusters --cache-cluster-id gcr-rs-dev-workshop-redis-cluster --show-cache-node-info \
 --query "CacheClusters[].CacheNodes[].Endpoint.Address" --output text)

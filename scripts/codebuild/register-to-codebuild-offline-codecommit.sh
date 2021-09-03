@@ -62,24 +62,18 @@ create_codebuild_project () {
   build_proj_name=$1
   app_path=$2
 
-  if [[ -z $GITHUB_USER ]]; then
-     echo "error!!! can not get your GITHUB_USER"
-     exit 1
-  fi
-  echo "GITHUB_USER: ${GITHUB_USER}"
-
   echo "========== $build_proj_name ==============="
   echo "app_path:$app_path"
-  echo "Deleting $build_proj_name from CodeBuild ..."
+  # echo "Deleting $build_proj_name from CodeBuild ..."
   $AWS_CMD codebuild --region $REGION delete-project --name $build_proj_name || true
   echo "Done."
   sleep 1
 
   echo "Re-creating $build_proj_name into CodeBuild ..."
-  sed -e 's/__app_name__/'${build_proj_name}'/g' ./codebuild-template-offline.json >./tmp-codebuild.json
+  sed -e 's/__app_name__/'${build_proj_name}'/g' ./codebuild-template-offline-codecommit.json >./tmp-codebuild.json
   sed -e 's#__app_path__#'${app_path}'#g' ./tmp-codebuild.json > tmp-codebuild_2.json
   sed -e 's#__Stage__#'${Stage}'#g' ./tmp-codebuild_2.json > ./tmp-codebuild_3.json
-  sed -e 's#__GITHUB_USER_NAME__#'${GITHUB_USER}'#g' ./tmp-codebuild_3.json > ./codebuild.json
+  sed -e 's#__AWS_REGION__#'${REGION}'#g' ./tmp-codebuild_3.json > ./codebuild.json
 
   echo "------------------------------------"
 #  echo ""
@@ -96,36 +90,24 @@ create_codebuild_project () {
      exit 1
   fi
 
-  sleep 2
+  sleep 1
 
   rm -f codebuild.json
   rm -f tmp-codebuild*.json
 
-  if [[ $app_path == 'news/inverted-list' ]];then
-     echo "Activing webhook on Github with all events [$build_proj_name] ..."
-     $AWS_CMD codebuild create-webhook \
-        --project-name $build_proj_name \
-        --filter-groups '[
-            [{"type": "EVENT", "pattern": "PUSH", "excludeMatchedPattern": false},{"type":"FILE_PATH","pattern": "src/offline/'${app_path}'", "excludeMatchedPattern": false}]
-        ]'
-  fi
-
-  if [[ 1 -eq 1 || $REGION != 'ap-northeast-1' || $app_path == 'news/inverted-list' || $REGION =~ ^cn.* ]]; then
-      echo "Start build: ${build_proj_name}"
-      $AWS_CMD codebuild start-build --region $REGION --project-name ${build_proj_name} > /dev/null
-      if [[ $? != 0 ]];then
+  echo "Start build: ${build_proj_name}"
+  $AWS_CMD codebuild start-build --region $REGION --project-name ${build_proj_name} > /dev/null
+  if [[ $? != 0 ]];then
          echo "Error run aws codebuild start-build"
          exit 1
-      fi
-      sleep 5
   fi
 }
 
 echo "----------------projects-------------------------"
 
 projects_dir=(
-  #"lambda"
-  #"news/step-funcs"
+  "lambda"
+  "news/step-funcs"
   "news/item-preprocessing"
   "news/add-item-batch"
   "news/item-feature-update-batch"

@@ -1,17 +1,16 @@
 {
   "name": "__app_name__",
   "source": {
-    "type": "GITHUB",
-    "location": "https://github.com/__GITHUB_USER_NAME__/recommender-system-dev-workshop-code.git",
+    "type": "CODECOMMIT",
+    "location": "https://git-codecommit.__AWS_REGION__.amazonaws.com/v1/repos/recommender-system-dev-workshop-code",
     "gitCloneDepth": 0,
     "gitSubmodulesConfig": {
       "fetchSubmodules": true
     },
     "buildspec": "src/offline/__app_path__/buildspec.yaml",
-    "reportBuildStatus": false,
     "insecureSsl": false
   },
-  "sourceVersion": "main",
+  "sourceVersion": "refs/heads/master",
   "artifacts": {
     "type": "NO_ARTIFACTS"
   },

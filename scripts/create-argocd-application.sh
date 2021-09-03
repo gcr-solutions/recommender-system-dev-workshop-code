@@ -37,15 +37,6 @@ argocd --insecure login $endpoint:443 --username admin --password $ARGOCD_PASSWO
 #      eksctl utils write-kubeconfig --region cn-north-1 --cluster gcr-rs-dev-application-cluster --profile rs-dev-cn-bjs
 # fi
 
-if [[ $REGION=～ ^cn.* ]];then
-  export AWS_PROFILE=$REGION=～ ^cn.*
-  export REGION=$(aws configure get region)
-  export EKS_CLUSTER=gcr-rs-dev-application-cluster
-  echo $AWS_PROFILE
-  echo $REGION
-  echo $EKS_CLUSTER
-  eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER --profile $AWS_PROFILE
-fi
 
 echo "update-lambda-env"
 ./update-lambda-env.sh
@@ -69,15 +60,7 @@ eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER --profile 
 # rs-news-dev-ns --dest-server ${APISERVER} --auth-token ${TOKEN} --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1
 # eksctl utils write-kubeconfig --region cn-north-1 --cluster gcr-rs-dev-application-cluster --profile rs-dev-cn-bjs
 
-if [[ $REGION=～ ^cn.* ]];then
-  export AWS_PROFILE=$REGION=～ ^cn.*
-  export REGION=$(aws configure get region)
-  export EKS_CLUSTER=gcr-rs-dev-application-cluster
-  echo $AWS_PROFILE
-  echo $REGION
-  echo $EKS_CLUSTER
-  eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER --profile $AWS_PROFILE
-fi
+
 APISERVER=$(kubectl config view --minify | grep server | cut -f 2- -d ":" | tr -d " ")
 # TOKEN=$(kubectl describe secret $SECRET_NAME | grep -E '^token' | cut -f2 -d':' | tr -d " ")
 

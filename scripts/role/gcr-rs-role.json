@@ -34,7 +34,8 @@
                 "arn:aws:iam::<account_id>:oidc-provider/*",
                 "arn:aws:iam::<account_id>:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup",
                 "arn:aws:iam::<account_id>:role/gcr-rs-dev-workshop-codebuild-role",
-                "arn:aws:iam::<account_id>:policy/gcr-rs-dev-workshop-codebuild-policy"
+                "arn:aws:iam::<account_id>:policy/gcr-rs-dev-workshop-codebuild-policy",
+                "arn:aws:iam::<account_id>:role/rs-dev-workshop-LambdaAndStepFuncsRole-*"
             ]
         },
         {
@@ -191,14 +192,7 @@
         {
             "Effect": "Allow",
             "Action": [
-                "cloudformation:Describe*",
-                "cloudformation:EstimateTemplateCost",
-                "cloudformation:Get*",
-                "cloudformation:List*",
-                "cloudformation:ValidateTemplate",
-                "cloudformation:Detect*",
-                "cloudformation:Create*",
-                "cloudformation:DeleteStack"
+                "cloudformation:*"
             ],
             "Resource": "*"
         },
