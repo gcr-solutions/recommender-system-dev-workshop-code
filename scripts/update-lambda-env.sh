@@ -11,20 +11,6 @@ echo "Stage=$Stage"
 AWS_CMD="aws"
 
 echo "---------------"
-if [[ -n $REGION=～ ^cn.* ]]; then
-  PROFILE=$REGION=～ ^cn.*
-  CN_REGION=$(aws --profile $REGION=～ ^cn.* configure get region)
-  if [[ -z $CN_REGION ]];then
-      CN_REGION='cn-north-1'
-  fi
-  REGION=$CN_REGION
-  echo "You set Env: REGION=～ ^cn.*=$REGION=～ ^cn.*, switch to REGION: $REGION"
-  eksctl utils write-kubeconfig --region ${REGION} --cluster gcr-rs-dev-application-cluster --profile ${REGION=～ ^cn.*}
-  if [[ $? != 0 ]];then
-    echo "Error"
-    exit 1
-  fi
-fi
 
 echo "current-context:"
 kubectl config current-context

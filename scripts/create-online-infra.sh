@@ -32,7 +32,7 @@ echo $EKS_VPC_CIDR
 echo $SUBNET_IDS
 
 # 3.2 Install EFS CSI driver 
-if [[ $REGION=～ ^cn.* ]];then
+if [[ $REGION =~ ^cn.* ]];then
   curl -o iam-policy-example.json https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/v1.3.2/docs/iam-policy-example.json
   aws iam create-policy \
       --policy-name AmazonEKS_EFS_CSI_Driver_Policy \
