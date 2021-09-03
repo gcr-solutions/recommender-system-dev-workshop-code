@@ -23,7 +23,7 @@ rm ${todayStr}-rs-raw-ec2.yaml
 
 rm main.zip > /dev/null 2>&1 || true
 
-wget https://github.com/gcr-solutions/recommender-system-dev-workshop-code/archive/refs/heads/main.zip
+wget https://github.com/gcr-solutions/recommender-system-dev-workshop-code/archive/refs/heads/main.zip > /dev/null
 
 $AWS_CMD s3 cp main.zip  s3://${bucket}/rs-dev-workshop-code/latest/ --acl public-read
 $AWS_CMD s3 cp main.zip  s3://${bucket}/rs-dev-workshop-code/${todayStr}/ --acl public-read
