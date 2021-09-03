@@ -16,12 +16,12 @@ echo 'https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.am
 
 wget https://github.com/gcr-solutions/recommender-system-dev-workshop-code/archive/refs/heads/main.zip
 
-$AWS_CMD s3 cp main.zip rsops s3://aws-gcr-rs-sol-workshop-ap-northeast-1-common/rs-dev-workshop-code/latest/ --acl public-read
-$AWS_CMD s3 cp main.zip rsops s3://aws-gcr-rs-sol-workshop-ap-northeast-1-common/rs-dev-workshop-code/$(date +"%Y-%m-%d")/ --acl public-read
+$AWS_CMD s3 cp main.zip  s3://aws-gcr-rs-sol-workshop-ap-northeast-1-common/rs-dev-workshop-code/latest/ --acl public-read
+$AWS_CMD s3 cp main.zip  s3://aws-gcr-rs-sol-workshop-ap-northeast-1-common/rs-dev-workshop-code/$(date +"%Y-%m-%d")/ --acl public-read
 
 if [[ $Stable -eq 1 ]]; then
     echo "copy to stable_v1"
-    $AWS_CMD s3 cp main.zip rsops s3://aws-gcr-rs-sol-workshop-ap-northeast-1-common/rs-dev-workshop-code/stable_v1/ --acl public-read
+    $AWS_CMD s3 cp main.zip s3://aws-gcr-rs-sol-workshop-ap-northeast-1-common/rs-dev-workshop-code/stable_v1/ --acl public-read
 fi 
 
 rm main.zip
