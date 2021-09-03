@@ -9,7 +9,7 @@ fi
 
 echo "Stage=$Stage"
 
-repoName=rs/news-filter-batch
+repoName=rs/news-customize-filter-batch
 if [[ -n $REPO_NAME ]];then
   repoName=$REPO_NAME
 fi

@@ -9,7 +9,7 @@ fi
 
 echo "Stage=$Stage"
 
-repoName=rs/news-model-update-embedding
+repoName=rs/news-customize-model-update-embedding
 if [[ -n $REPO_NAME ]];then
   repoName=$REPO_NAME
 fi

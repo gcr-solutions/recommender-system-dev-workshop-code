@@ -9,7 +9,7 @@ fi
 
 echo "Stage=$Stage"
 
-repoName=rs/news-prepare-training-data
+repoName=rs/news-customize-prepare-training-data
 if [[ -n $REPO_NAME ]];then
   repoName=$REPO_NAME
 fi

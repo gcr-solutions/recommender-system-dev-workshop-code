@@ -2,8 +2,8 @@ version: 0.2
 
 env:
   variables:
-    APP_NAME: "news-item-feature-update-batch"
-    DIR_NAME: "news/item-feature-update-batch"
+    APP_NAME: "news-customize-item-feature-update-batch"
+    DIR_NAME: "news/customize/item-feature-update-batch"
 #  secrets-manager:
 #    GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
 #    ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken

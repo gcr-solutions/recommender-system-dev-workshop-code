@@ -8,7 +8,7 @@ if [[ -z $Stage ]];then
 fi
 
 echo "Stage=$Stage"
-repoName=rs/news-portrait-batch
+repoName=rs/news-customize-portrait-batch
 if [[ -n $REPO_NAME ]];then
   repoName=$REPO_NAME
 fi

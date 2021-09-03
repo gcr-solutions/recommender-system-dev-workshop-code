@@ -19,7 +19,7 @@ fi
 
 echo "REGION: $REGION"
 
-repoName=rs/news-inverted-list
+repoName=rs/news-customize-inverted-list
 if [[ -n $REPO_NAME ]];then
   repoName=$REPO_NAME
 fi

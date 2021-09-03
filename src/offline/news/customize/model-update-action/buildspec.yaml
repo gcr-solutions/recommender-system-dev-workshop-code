@@ -2,8 +2,8 @@ version: 0.2
 
 env:
   variables:
-    APP_NAME: "news-model-update-action"
-    DIR_NAME: "news/model-update-action"
+    APP_NAME: "news-customize-model-update-action"
+    DIR_NAME: "news/customize/model-update-action"
 #  secrets-manager:
 #    GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
 #    ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken

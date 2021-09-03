@@ -8,7 +8,7 @@ if [[ -z $Stage ]];then
 fi
 
 echo "Stage=$Stage"
-repoName=rs/news-item-preprocessing
+repoName=rs/news-customize-item-preprocessing
 if [[ -n $REPO_NAME ]];then
   repoName=$REPO_NAME
 fi

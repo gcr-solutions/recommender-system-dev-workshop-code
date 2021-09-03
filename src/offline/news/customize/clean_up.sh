@@ -29,21 +29,21 @@ if [[ $? -ne 0 ]]; then
 fi
 
 repo_names=(
-rs/news-inverted-list
-rs/news-action-preprocessing
-rs/news-add-item-batch
-rs/news-add-user-batch
-rs/news-dashboard
-rs/news-filter-batch
-rs/news-item-feature-update-batch
-rs/news-item-preprocessing
-rs/news-model-update-action
-rs/news-model-update-embedding
-rs/news-portrait-batch
-rs/news-prepare-training-data
-rs/news-rank-batch
-rs/news-recall-batch
-rs/news-user-preprocessing
+rs/customize-news-action-preprocessing
+rs/customize-news-add-item-batch
+rs/customize-news-add-user-batch
+rs/customize-news-dashboard
+rs/customize-news-filter-batch
+rs/customize-news-inverted-list
+rs/customize-news-item-feature-update-batch
+rs/customize-news-item-preprocessing
+rs/customize-news-model-update-action-gpu
+rs/customize-news-model-update-embedding-gpu
+rs/customize-news-portrait-batch
+rs/customize-news-prepare-training-data
+rs/customize-news-rank-batch
+rs/customize-news-recall-batch
+rs/customize-news-user-preprocessing
 )
 
 curr_dir=$(pwd)

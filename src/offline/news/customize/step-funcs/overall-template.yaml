@@ -7,6 +7,10 @@ Description: >
 
 
 Parameters:
+  NamePrefix:
+    Type: String
+    Default: rs-news-customize-dev
+
   Stage:
     Type: String
     Default: dev
@@ -37,11 +41,11 @@ Resources:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-      StateMachineName: !Sub rs-${Stage}-News-OverallStepFunc
+      StateMachineName: !Sub ${NamePrefix}-OverallStepFunc
       DefinitionString: !Sub |
         {
           "StartAt": "Detect change type",
-          "TimeoutSeconds": 36000,
+          "TimeoutSeconds": 72000,
           "States": {
             "Detect change type": {
               "Type": "Choice",
@@ -93,7 +97,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-BatchUpdateStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-BatchUpdateStepFunc",
                 "Name.$": "States.Format('oa{}', $$.Execution.Name)"
               },
               "End": true
@@ -107,7 +111,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-UserNewStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-UserNewStepFunc",
                 "Name.$": "States.Format('ou{}', $$.Execution.Name)"
               },
               "End": true
@@ -121,7 +125,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-ItemNewStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-ItemNewStepFunc",
                 "Name.$": "States.Format('oc{}', $$.Execution.Name)"
               },
               "End": true
@@ -135,7 +139,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-News-TrainModelStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-TrainModelStepFunc",
                 "Name.$": "States.Format('ot{}', $$.Execution.Name)"
               },
               "End": true

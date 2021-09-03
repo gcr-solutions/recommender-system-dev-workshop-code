@@ -2,8 +2,8 @@ version: 0.2
 
 env:
   variables:
-    APP_NAME: "news-user-preprocessing"
-    DIR_NAME: "news/user-preprocessing"
+    APP_NAME: "news-customize-user-preprocessing"
+    DIR_NAME: "news/customize/user-preprocessing"
 #  secrets-manager:
 #    GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
 #    ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken

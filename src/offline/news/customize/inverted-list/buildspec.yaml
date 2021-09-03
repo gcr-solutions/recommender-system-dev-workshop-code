@@ -2,8 +2,8 @@ version: 0.2
 
 env:
   variables:
-    APP_NAME: "news-inverted-list"
-    DIR_NAME: "news/inverted-list"
+    APP_NAME: "news-customize-inverted-list"
+    DIR_NAME: "news/customize/inverted-list"
 #  secrets-manager:
 #    GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
 #    ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken

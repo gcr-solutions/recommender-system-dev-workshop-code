@@ -9,7 +9,7 @@ fi
 
 echo "Stage=$Stage"
 
-repoName=rs/news-user-preprocessing
+repoName=rs/news-customize-user-preprocessing
 if [[ -n $REPO_NAME ]];then
   repoName=$REPO_NAME
 fi

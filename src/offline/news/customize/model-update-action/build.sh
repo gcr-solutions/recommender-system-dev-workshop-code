@@ -9,7 +9,7 @@ fi
 
 echo "Stage=$Stage"
 
-repoName=rs/news-model-update-action
+repoName=rs/news-customize-model-update-action
 if [[ -n $REPO_NAME ]];then
   repoName=$REPO_NAME
 fi

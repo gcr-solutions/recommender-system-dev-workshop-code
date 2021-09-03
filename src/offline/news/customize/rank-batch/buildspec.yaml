@@ -2,8 +2,8 @@ version: 0.2
 
 env:
   variables:
-    APP_NAME: "news-rank-batch"
-    DIR_NAME: "news/rank-batch"
+    APP_NAME: "news-customize-rank-batch"
+    DIR_NAME: "news/customize/rank-batch"
 #  secrets-manager:
 #    GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
 #    ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken

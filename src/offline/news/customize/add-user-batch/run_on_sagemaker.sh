@@ -18,7 +18,7 @@ AWS_PROFILE=$PROFILE
 TIMESTAMP=$(date '+%Y%m%dT%H%M%S')
 account_id=$(aws --profile ${AWS_PROFILE} sts get-caller-identity --query Account --output text)
 
-repo_name=rs/add-user-batch
+repo_name=rs/news-customize-add-user-batch
 
 JOB_NAME=${repo_name}-${TIMESTAMP}-${RANDOM}
 JOB_NAME=$(echo $JOB_NAME | sed 's/\//-/g')

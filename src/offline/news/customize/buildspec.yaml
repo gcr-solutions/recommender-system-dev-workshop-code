@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     APP_NAME: "news"
-    DIR_NAME: "news"
+    DIR_NAME: "news/customize"
   secrets-manager:
     GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
     ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken

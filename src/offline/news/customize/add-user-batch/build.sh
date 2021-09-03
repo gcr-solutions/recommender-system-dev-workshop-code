@@ -9,7 +9,7 @@ fi
 
 echo "Stage=$Stage"
 
-repoName=rs/news-add-user-batch
+repoName=rs/news-customize-add-user-batch
 if [[ -n $REPO_NAME ]];then
   repoName=$REPO_NAME
 fi

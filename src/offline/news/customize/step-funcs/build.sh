@@ -37,7 +37,8 @@ echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 BUCKET=aws-gcr-rs-sol-$Stage-${REGION}-${AWS_ACCOUNT_ID}
 S3Prefix=sample-data-news
 
-PARAMETER_OVERRIDES="Bucket=$BUCKET S3Prefix=$S3Prefix Stage=$Stage"
+NamePrefix=rs-news-customize-$Stage
+PARAMETER_OVERRIDES="Stage=$Stage NamePrefix=${NamePrefix} Bucket=$BUCKET S3Prefix=$S3Prefix"
 echo PARAMETER_OVERRIDES:$PARAMETER_OVERRIDES
 
 all_stepfuncs=(
@@ -54,7 +55,7 @@ overall
 for name in ${all_stepfuncs[@]};
 do
 
-    STACK_NAME=rs-$Stage-news-${name}-stack
+    STACK_NAME=${NamePrefix}-${name}-stack
     template_file=${name}-template.yaml
     echo "----"
     echo "STACK_NAME: ${STACK_NAME}"

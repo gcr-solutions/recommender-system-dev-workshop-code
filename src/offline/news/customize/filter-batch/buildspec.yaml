@@ -2,8 +2,8 @@ version: 0.2
 
 env:
   variables:
-    APP_NAME: "news-filter-batch"
-    DIR_NAME: "news/filter-batch"
+    APP_NAME: "news-customize-filter-batch"
+    DIR_NAME: "news/customize/filter-batch"
 #  secrets-manager:
 #    GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
 #    ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken
