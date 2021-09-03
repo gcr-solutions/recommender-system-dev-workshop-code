@@ -106,8 +106,8 @@ create_codebuild_project () {
 echo "----------------projects-------------------------"
 
 projects_dir=(
-  #"lambda"
-  #"news/step-funcs"
+  "lambda"
+  "news/step-funcs"
   "news/item-preprocessing"
   "news/add-item-batch"
   "news/item-feature-update-batch"
