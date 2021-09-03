@@ -61,7 +61,13 @@ export class RsEC2CdkStack extends cdk.Stack {
       assumedBy: new iam.ServicePrincipal(`ec2.${this.urlSuffix}`)
     })
 
-    role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'))
+    role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('PowerUserAccess'))
+
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        resources: ['*'],
+        actions: ['iam:*'],
+      }));
 
     const ami = new ec2.AmazonLinuxImage({
       generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
