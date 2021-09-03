@@ -3,10 +3,10 @@ version: 0.2
 env:
   variables:
     APP_NAME: "step-funcs"
-  secrets-manager:
-    GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
-    ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken
-    APP_CONF_REPO: gcr-rs-dev-workshop-github:appConfRepo
+#  secrets-manager:
+#    GITHUB_USER: gcr-rs-dev-workshop-github:githubUser
+#    ACCESS_TOKEN: gcr-rs-dev-workshop-github:accessToken
+#    APP_CONF_REPO: gcr-rs-dev-workshop-github:appConfRepo
 
 phases:
     install:

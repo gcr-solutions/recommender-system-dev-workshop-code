@@ -1,0 +1,41 @@
+{
+  "name": "__app_name__",
+  "source": {
+    "type": "CODECOMMIT",
+    "location": "https://git-codecommit.__AWS_REGION__.amazonaws.com/v1/repos/recommender-system-dev-workshop-code",
+    "gitCloneDepth": 0,
+    "gitSubmodulesConfig": {
+      "fetchSubmodules": true
+    },
+    "buildspec": "src/offline/__app_path__/buildspec.yaml",
+    "insecureSsl": false
+  },
+  "sourceVersion": "refs/heads/master",
+  "artifacts": {
+    "type": "NO_ARTIFACTS"
+  },
+  "cache": {
+    "type": "NO_CACHE"
+  },
+  "environment": {
+    "type": "LINUX_CONTAINER",
+    "image": "aws/codebuild/amazonlinux2-x86_64-standard:3.0",
+    "computeType": "BUILD_GENERAL1_MEDIUM",
+    "privilegedMode": true,
+    "imagePullCredentialsType": "CODEBUILD",
+    "environmentVariables": [
+      {
+        "name": "Stage",
+        "value": "__Stage__"
+      }
+    ]
+  },
+  "timeoutInMinutes": 60,
+  "queuedTimeoutInMinutes": 480,
+  "badgeEnabled": true,
+  "logsConfig": {
+    "cloudWatchLogs": {
+      "status": "ENABLED"
+    }
+  }
+}
