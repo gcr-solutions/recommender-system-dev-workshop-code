@@ -40,7 +40,7 @@ sleep 3
 
 echo "1. ========= Create codebuild =============="
 cd ${curr_dir}/codebuild
-./register-to-codebuild-offline.sh $Stage
+./register-to-codebuild-offline-codecommit.sh $Stage
 
 echo "2. ========= sync sample data to S3 =============="
 cd ${curr_dir}/../sample-data
