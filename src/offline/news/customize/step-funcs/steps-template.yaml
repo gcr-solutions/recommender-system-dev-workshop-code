@@ -118,7 +118,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-action-preprocessing",
+                  "ImageName": "rs/news-customize-action-preprocessing",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
@@ -164,7 +164,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-action-preprocessing",
+                  "ImageName": "rs/news-customize-action-preprocessing",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--only4popularity', '1')",
                   "InstanceType": "ml.m5.xlarge"
                 },
@@ -212,7 +212,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-prepare-training-data",
+                  "ImageName": "rs/news-customize-prepare-training-data",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
@@ -258,7 +258,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-user-preprocessing",
+                  "ImageName": "rs/news-customize-user-preprocessing",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
@@ -304,7 +304,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-add-item-batch",
+                  "ImageName": "rs/news-customize-add-item-batch",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
@@ -351,7 +351,7 @@ Resources:
                 "Parameters": {
                   "Input": {
                     "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                    "ImageName": "rs/news-add-user-batch",
+                    "ImageName": "rs/news-customize-add-user-batch",
                     "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                     "InstanceType": "ml.m5.xlarge"
                   },
@@ -402,7 +402,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-inverted-list",
+                  "ImageName": "rs/news-customize-inverted-list",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
@@ -449,7 +449,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-item-preprocessing",
+                  "ImageName": "rs/news-customize-item-preprocessing",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
@@ -497,7 +497,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-portrait-batch",
+                  "ImageName": "rs/news-customize-portrait-batch",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
@@ -551,7 +551,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-recall-batch",
+                  "ImageName": "rs/news-customize-recall-batch",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
@@ -601,7 +601,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-weight-update-batch",
+                  "ImageName": "rs/news-customize-weight-update-batch",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
@@ -651,7 +651,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-filter-batch",
+                  "ImageName": "rs/news-customize-filter-batch",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
@@ -703,7 +703,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-rank-batch",
+                  "ImageName": "rs/news-customize-rank-batch",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
@@ -758,7 +758,7 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-item-feature-update-batch",
+                  "ImageName": "rs/news-customize-item-feature-update-batch",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
                   "InstanceType": "ml.m5.xlarge"
                 },
