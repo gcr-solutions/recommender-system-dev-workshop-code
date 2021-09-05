@@ -40,20 +40,26 @@ MANDATORY_ENV_VARS = {
 
     'LOCAL_DATA_FOLDER': '/tmp/rs-data/',
 
-    'RECALL_PER_NEWS_ID': 10, 
-    'SIMILAR_ENTITY_THRESHOLD': 20, 
-    'RECALL_THRESHOLD': 2.0, 
+    'RECALL_PER_NEWS_ID': 10,
+    'SIMILAR_ENTITY_THRESHOLD': 20,
+    'RECALL_THRESHOLD': 2.0,
     'RECALL_MERGE_NUMBER': 20,
 
     'REDIS_HOST': 'localhost',
     'REDIS_PORT': 6379,
 
-    'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300'
+    'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300',
+    'PS_CONFIG': 'ps_config.json',
+    'AWS_REGION': 'ap-northeast-1',
+    'METHOD': "ps-complete",
+    'PS_SIMS_BATCH_RESULT': 'ps-sims-batch.out'
 }
 
 embedding_type = 'embedding'
 pickle_type = 'inverted-list'
 vector_index_type = 'vector-index'
+json_type = 'ps-result'
+out_type = 'ps-sims-dict'
 
 # lastUpdate
 localtime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
@@ -77,16 +83,16 @@ class Recall(service_pb2_grpc.RecallServicer):
 
         # self.reload_embedding_files(local_data_folder, [MANDATORY_ENV_VARS['ENTITY_EMBEDDING_NPY']])
 
-        # # Ignored if files were not existed 
+        # # Ignored if files were not existed
         # if self.entity_index != None and self.word_index != None and self.entity_embedding.size != 0:
 
         #     logging.debug('Initial self.serviceImpl...')
-        #     self.serviceImpl = service_impl.ServiceImpl(recall_per_news_id=MANDATORY_ENV_VARS['RECALL_PER_NEWS_ID'], 
-        #                 similar_entity_threshold=MANDATORY_ENV_VARS['SIMILAR_ENTITY_THRESHOLD'], 
-        #                 recall_threshold=MANDATORY_ENV_VARS['RECALL_THRESHOLD'], 
+        #     self.serviceImpl = service_impl.ServiceImpl(recall_per_news_id=MANDATORY_ENV_VARS['RECALL_PER_NEWS_ID'],
+        #                 similar_entity_threshold=MANDATORY_ENV_VARS['SIMILAR_ENTITY_THRESHOLD'],
+        #                 recall_threshold=MANDATORY_ENV_VARS['RECALL_THRESHOLD'],
         #                 recall_merge_number=MANDATORY_ENV_VARS['RECALL_MERGE_NUMBER'],
         #                 entity_index_l=self.entity_index,
-        #                 word_index_l=self.word_index, 
+        #                 word_index_l=self.word_index,
         #                 entity_embedding_l=self.entity_embedding)
 
         # Load pickle files
@@ -100,6 +106,12 @@ class Recall(service_pb2_grpc.RecallServicer):
         pickle_file_list.append(MANDATORY_ENV_VARS['NEWS_ID_PROPERTY'])
         self.reload_pickle_file(local_data_folder, pickle_file_list)
 
+        json_file_list = [MANDATORY_ENV_VARS['PS_CONFIG']]
+        self.reload_json_file(local_data_folder, json_file_list)
+
+        out_file_list = [MANDATORY_ENV_VARS['PS_SIMS_BATCH_RESULT']]
+        self.reload_out_file(local_data_folder, out_file_list)
+
     def reload_vector_index(self, file_path, file_list):
         logging.info('reload_vector_index file strat')
         for file_name in file_list:
@@ -109,7 +121,7 @@ class Recall(service_pb2_grpc.RecallServicer):
                     logging.info('reload_vector_index vector_index_file_path {}'.format(vector_index_file_path))
                     self.entity_index = faiss.read_index(vector_index_file_path)
                 else:
-                    logging.info('vector_index_file_path file is empty') 
+                    logging.info('vector_index_file_path file is empty')
             if 'word' in vector_index_file_path:
                 if os.path.isfile(vector_index_file_path):
                     logging.info('reload_vector_index vector_index_file_path {}'.format(vector_index_file_path))
@@ -127,19 +139,19 @@ class Recall(service_pb2_grpc.RecallServicer):
                 self.news_id_news_property_dict = self.load_pickle(pickle_path)
             if MANDATORY_ENV_VARS['ENTITY_ID_NEWS_IDS'] in pickle_path:
                 logging.info('reload entity_id_news_ids_dict file {}'.format(pickle_path))
-                self.entity_id_news_ids_dict = self.load_pickle(pickle_path)  
+                self.entity_id_news_ids_dict = self.load_pickle(pickle_path)
             if MANDATORY_ENV_VARS['WORD_ID_NEWS_IDS'] in pickle_path:
                 logging.info('reload word_id_news_ids_dict file {}'.format(pickle_path))
-                self.word_id_news_ids_dict = self.load_pickle(pickle_path) 
+                self.word_id_news_ids_dict = self.load_pickle(pickle_path)
             if MANDATORY_ENV_VARS['NEWS_TYPE_NEWS_IDS'] in pickle_path:
                 logging.info('reload news_type_news_ids_dict file {}'.format(pickle_path))
-                self.news_type_news_ids_dict = self.load_pickle(pickle_path) 
+                self.news_type_news_ids_dict = self.load_pickle(pickle_path)
             if MANDATORY_ENV_VARS['KEYWORD_NEWS_IDS'] in pickle_path:
                 logging.info('reload keyword_news_ids_dict file {}'.format(pickle_path))
-                self.keywords_news_ids_dict = self.load_pickle(pickle_path)                                                                                          
+                self.keywords_news_ids_dict = self.load_pickle(pickle_path)
             if MANDATORY_ENV_VARS['RECALL_CONFIG'] in pickle_path:
                 logging.info('reload recall_config file {}'.format(pickle_path))
-                self.recall_config = self.load_pickle(pickle_path) 
+                self.recall_config = self.load_pickle(pickle_path)
 
     def reload_embedding_files(self, file_path, file_list):
         logging.info('reload_embedding_files  strat')
@@ -151,7 +163,7 @@ class Recall(service_pb2_grpc.RecallServicer):
                     logging.info('reload entity_embed')
                     self.entity_embedding = np.load(embedding_path)
                 else:
-                    logging.info('entity_embed is empty') 
+                    logging.info('entity_embed is empty')
 
     def load_pickle(self, file):
         if os.path.isfile(file):
@@ -168,7 +180,7 @@ class Recall(service_pb2_grpc.RecallServicer):
         check_again_flag = False
         check_file_list = []
         for file_name in file_list:
-            pickle_path = file_path + file_name 
+            pickle_path = file_path + file_name
             if not os.path.isfile(pickle_path):
                 check_again_flag = True
                 check_file_list.append(file_name)
@@ -192,7 +204,7 @@ class Recall(service_pb2_grpc.RecallServicer):
         logging.info('file_type -> {}'.format(file_type))
         logging.info('file_list -> {}'.format(file_list))
 
-        self.check_files_ready(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list, 0) 
+        self.check_files_ready(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list, 0)
         if file_type == embedding_type:
             self.reload_embedding_files(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
         elif file_type == pickle_type:
@@ -228,7 +240,7 @@ class Recall(service_pb2_grpc.RecallServicer):
         recall_id = uuid.uuid4().__str__()
         localtime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
         logging.info('Generated recall_id -> %s at %s', recall_id, localtime)
-        # Retrieve request data        
+        # Retrieve request data
         reqDicts = any_pb2.Any()
         request.dicts.Unpack(reqDicts)
 
@@ -238,7 +250,7 @@ class Recall(service_pb2_grpc.RecallServicer):
         clicked_item_ids = reqDictsJson['clicked_item_ids']
         logging.info('user_id -> %s', user_id)
         logging.info('clicked_item_ids -> %s', clicked_item_ids)
-        
+
         # Prevent failure due to ignore intial at very begining
         try:
             self.serviceImpl
@@ -264,7 +276,9 @@ class Recall(service_pb2_grpc.RecallServicer):
         recall_wrap['dict_wrap']['entities'] = self.entity_id_news_ids_dict
         recall_wrap['dict_wrap']['words'] = self.word_id_news_ids_dict
         recall_wrap['dict_wrap']['keywords'] = self.keywords_news_ids_dict
+        recall_wrap['dict_wrap']['ps-sims'] = self.ps_sims_news_ids_dict
         recall_wrap['config'] = self.recall_config
+        config_dict['method'] = MANDATORY_ENV_VARS['METHOD']
         config_dict['recall_wrap'] = recall_wrap
         config_dict['user_portrait'] = user_portrait_result
         # user_click_records[reviewerID] = pos_list
@@ -288,7 +302,7 @@ def init():
             logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
             MANDATORY_ENV_VARS[var]=os.environ.get(var)
-    
+
     # Initial redis connection
     global rCache
     rCache = cache.RedisCache(host=MANDATORY_ENV_VARS['REDIS_HOST'], port=MANDATORY_ENV_VARS['REDIS_PORT'])

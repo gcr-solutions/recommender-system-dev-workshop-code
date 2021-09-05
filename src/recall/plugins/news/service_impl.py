@@ -2,6 +2,7 @@ import logging
 import numpy as np
 import json
 import itertools
+import boto3
 
 logging.basicConfig(level=logging.INFO)
 
@@ -81,7 +82,31 @@ class ServiceImpl:
                     logging.info("method {} find {} candidates".format(
                         mt, len(current_list_with_score)))
                     recall_items.append(single_recall_result)
-#         # 根据用户画像做相似性召回
+
+    def recall_by_personalize(self, news_ids, recall_wrap, recall_items, multiple_shot_record):
+        dict_wrap = recall_wrap['dict_wrap']
+        topn_wrap = recall_wrap['config']['mt_topn']
+        weights = recall_wrap['config']['pos_weights']
+        mt = recall_wrap['config']['ps_mt']
+
+        for news_id in news_ids:
+            logging.info("top n {} method for news id: {}".format(mt, news_id))
+            if news_id not in dict_wrap[mt]:
+                logging.info("ps_sims_news_ids_dict doesn't contain news id: {}".format(news_id))
+                continue
+            single_recall_result = {}
+            current_list_with_score = []
+            current_list_with_score = current_list_with_score + \
+                                      self.recall_pos_score(news_id, dict_wrap[mt][news_id][0:topn_wrap[mt]],
+                                                            weights[mt], multiple_shot_record)
+            single_recall_result['method'] = mt
+            single_recall_result['list'] = current_list_with_score
+            logging.info("ps-sims method find {} candidates".format(len(current_list_with_score)))
+            logging.info("single_recall_result:{}".format(single_recall_result))
+            recall_items.append(single_recall_result)
+
+
+    #         # 根据用户画像做相似性召回
 #         # 1. ub: 用户行为/YoutubeDNN
 #         user_ub_embedding = user_portrait['ub_embeddding']
 #         ub_faiss_index = recall_wrap['ub_index']
@@ -140,6 +165,10 @@ class ServiceImpl:
         # 根据用户画像做召回
         # comment for dev workshop
         # self.recall_by_portrait(user_portrait, recall_wrap, recall_items, multiple_shot_record)
+        # 根据personalize-sims做召回
+        logging.info(config_dict['method'])
+        if config_dict['method'] == "ps-sims":
+            self.recall_by_personalize(news_ids, recall_wrap, recall_items, multiple_shot_record)
 
         # recall_merge_cnt = 100
         n_last_len = recall_wrap['config']['merge_cnt']
