@@ -1,0 +1,55 @@
+{
+  "mt_topn": {
+    "type": 5,
+    "keywords": 10,
+    "entities": 10,
+    "words": 10,
+    "portrait_type": 5,
+    "portrait_keywords": 10
+  },
+  "pos_weights": {
+    "type": {
+      "w": 0.5,
+      "b": 0.2
+    },
+    "keywords": {
+      "w": 0.5,
+      "b": 0.2
+    },
+    "entities": {
+      "w": 0.5,
+      "b": 0.2
+    },
+    "words": {
+      "w": 0.5,
+      "b": 0.2
+    },
+    "portrait_type": {
+      "w": 0.5,
+      "b": 0.2
+    },
+    "portrait_keywords": {
+      "w": 0.5,
+      "b": 0.2
+    }
+  },
+  "mt_weights": {
+    "type": 0.8,
+    "keywords": 0.7,
+    "entities": 1.0,
+    "words": 0.1,
+    "portrait_type": 0.8,
+    "portrait_keywords": 0.7
+  },
+  "pop_mt_list": [
+    "type",
+    "keywords",
+    "entities",
+    "words"
+  ],
+  "portrait_mt_list": [
+    "type",
+    "keywords"
+  ],
+  "merge_cnt": 100
+}
