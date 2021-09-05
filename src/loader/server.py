@@ -88,6 +88,10 @@ def notice(loadRequest: LoadRequest):
                 init_data_file(file_path, file)
             elif file_type == 'embedding':
                 init_data_file(file_path, file)
+            elif file_type == 'ps-result':
+                init_data_file(file_path, file)
+            elif file_type == 'ps-sims-dict':
+                init_data_file(file_path, file)
     time.sleep(10)
     notice_service_to_reload(
         file_type, MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
