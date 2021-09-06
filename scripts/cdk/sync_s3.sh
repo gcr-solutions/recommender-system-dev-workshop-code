@@ -38,6 +38,7 @@ if [[ $ReleaseVersion =~ v.* ]]; then
     sed -i -e "s#rs-dev-workshop-code/latest/main.zip#rs-dev-workshop-code/release/$ReleaseVersion/main.zip#g" ./rs-raw-ec2.yaml
     $AWS_CMD s3 cp main.zip s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/ --acl public-read
     $AWS_CMD s3 cp ./rs-raw-ec2.yaml s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/ --acl public-read
+    rm -rf ./doc/ > /dev/null 2>&1  || true
     mkidr ./doc/
     cd ./doc/
     wget https://github.com/gcr-solutions/recommender-system-dev-workshop/archive/refs/heads/main.zip || {
