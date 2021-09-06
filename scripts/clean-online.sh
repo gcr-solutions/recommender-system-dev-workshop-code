@@ -3,7 +3,6 @@ set -e
 
 ##############################delete resource for application##############################
 export EKS_CLUSTER=gcr-rs-dev-application-cluster
-export EKS_DEV_CLUSTER=gcr-rs-dev-operation-cluster
 
 EKS_VPC_ID=$(aws eks describe-cluster --name $EKS_CLUSTER --query "cluster.resourcesVpcConfig.vpcId" --output text)
 
@@ -109,25 +108,6 @@ done
 echo "################ Delete eks cluster for workshop ################ "
 eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
 eksctl delete cluster --name=$EKS_CLUSTER
-
-#detach eks cluster roles
-echo "################ Detach eks cluster roles for environment ################ "
-
-ROLE_NAMES=$(aws iam list-roles | jq '.[][].RoleName' -r | grep eksctl-gcr-rs-dev-operation-cluster*)
-for ROLE_NAME in $(echo $ROLE_NAMES); do
-  POLICY_ARNS=$(aws iam list-attached-role-policies --role-name $ROLE_NAME | jq '.[][].PolicyArn' -r)
-  for POLICY_ARN in $(echo $POLICY_ARNS); do
-    echo detach policy $POLICY_ARN for role $ROLE_NAME
-    aws iam detach-role-policy --role-name $ROLE_NAME --policy-arn $POLICY_ARN
-  done
-  # echo delete role $ROLE_NAME
-  # aws iam delete-role --role-name $ROLE_NAME
-done
-
-#remove eks cluster
-echo "################ Delete eks cluster for environment ################ "
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_DEV_CLUSTER
-eksctl delete cluster --name=$EKS_DEV_CLUSTER
 
 #remove codebuild project
 projects[0]="loader"

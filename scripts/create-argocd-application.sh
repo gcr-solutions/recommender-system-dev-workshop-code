@@ -4,7 +4,7 @@ set -e
 # create infra for develop environment
 export AWS_PROFILE=default
 export REGION=$(aws configure get region)
-export EKS_CLUSTER=gcr-rs-dev-operation-cluster
+export EKS_CLUSTER=gcr-rs-dev-application-cluster
 
 echo $AWS_PROFILE
 echo $REGION
@@ -42,15 +42,14 @@ echo "update-lambda-env"
 ./update-lambda-env.sh
 
 
-export AWS_PROFILE=default
-export REGION=$(aws configure get region)
-export EKS_CLUSTER=gcr-rs-dev-operation-cluster
+# export AWS_PROFILE=default
+# export REGION=$(aws configure get region)
 
-echo $AWS_PROFILE
-echo $REGION
-echo $EKS_CLUSTER
+# echo $AWS_PROFILE
+# echo $REGION
+# echo $EKS_CLUSTER
 
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER --profile $AWS_PROFILE
+# eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER --profile $AWS_PROFILE
 
 # 3 Create argocd application
 # argocd app create gcr-recommender-system-news-dev --repo https://${ACCESS_TOKEN}@github.com/${GITHUB_USER}/recommender-system-dev-workshop-code.git --path manifests/envs/news-dev --dest-namespace \
@@ -65,14 +64,6 @@ APISERVER=$(kubectl config view --minify | grep server | cut -f 2- -d ":" | tr -
 # TOKEN=$(kubectl describe secret $SECRET_NAME | grep -E '^token' | cut -f2 -d':' | tr -d " ")
 
 argocd cluster add rs-online-user@$EKS_CLUSTER.$REGION.eksctl.io
-# export AWS_PROFILE=default
-# export REGION=$(aws configure get region)
-# export EKS_CLUSTER=gcr-rs-dev-operation-cluster
-
-
-# echo $AWS_PROFILE
-# echo $REGION
-# echo $EKS_CLUSTER
 
 # eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER --profile $AWS_PROFILE
 

@@ -5,7 +5,6 @@ cd ../manifests
 echo "################ start clean istio and argocd resources ################ "
 
 export EKS_CLUSTER=gcr-rs-dev-application-cluster
-export EKS_DEV_CLUSTER=gcr-rs-dev-operation-cluster
 
 eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
 
@@ -41,7 +40,7 @@ echo "start check argocd server security group"
 j=1
 ARGOCD_SG_ID=""
 while true; do
-  ARGOCD_SG_ID=$(aws ec2 describe-security-groups --filter Name=tag:kubernetes.io/cluster/gcr-rs-dev-operation-cluster,Values=owned Name=description,Values=*argocd/argocd-server* --query "SecurityGroups[*].[GroupId]" --output text)
+  ARGOCD_SG_ID=$(aws ec2 describe-security-groups --filter Name=tag:kubernetes.io/cluster/gcr-rs-dev-application-cluster,Values=owned Name=description,Values=*argocd/argocd-server* --query "SecurityGroups[*].[GroupId]" --output text)
   if [ "$ARGOCD_SG_ID" == "" ]; then
     echo "delete argocd security group successfully!"
     break
