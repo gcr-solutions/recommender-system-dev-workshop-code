@@ -8,6 +8,10 @@ ReleaseVersion=$1
 
 AWS_CMD="aws --profile rsops"
 
+if [[ -n $PROFILE ]]; then
+   AWS_CMD="aws --profile $PROFILE"
+fi
+
 todayStr=$(date +"%Y-%m-%d")
 bucket=aws-gcr-rs-sol-workshop-ap-northeast-1-common
 
