@@ -13,6 +13,7 @@ if [[ -n $PROFILE ]]; then
 fi
 
 version_id=$(git rev-parse HEAD)
+echo $version_id > gitCommitId
 
 todayStr=$(date +"%Y-%m-%d")
 bucket=aws-gcr-rs-sol-workshop-ap-northeast-1-common
@@ -43,12 +44,10 @@ $AWS_CMD s3 cp main.zip  s3://${bucket}/rs-dev-workshop-code/${todayStr}/ --acl 
 
 if [[ $ReleaseVersion =~ v.* ]]; then
     echo "release $ReleaseVersion"
-    echo $version_id > gitCommitId
     sed -i -e "s#rs-dev-workshop-code/latest/main.zip#rs-dev-workshop-code/release/$ReleaseVersion/main.zip#g" ./rs-raw-ec2.yaml
     $AWS_CMD s3 cp main.zip s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/ --acl public-read
     $AWS_CMD s3 cp ./rs-raw-ec2.yaml s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/ --acl public-read
     $AWS_CMD s3 cp gitCommitId s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/
-    rm gitCommitId
     rm -rf ./doc/ > /dev/null 2>&1  || true
     mkdir ./doc/
     cd ./doc/
@@ -63,6 +62,7 @@ fi
 
 rm main.zip
 rm rs-raw-ec2.yaml-e > /dev/null 2>&1  || true
+rm gitCommitId
 
 echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/rs-raw-ec2.yaml"
 echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/${todayStr}/rs-raw-ec2.yaml"
