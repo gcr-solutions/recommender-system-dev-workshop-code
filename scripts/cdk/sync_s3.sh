@@ -39,7 +39,7 @@ if [[ $ReleaseVersion =~ v.* ]]; then
     $AWS_CMD s3 cp main.zip s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/ --acl public-read
     $AWS_CMD s3 cp ./rs-raw-ec2.yaml s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/ --acl public-read
     rm -rf ./doc/ > /dev/null 2>&1  || true
-    mkidr ./doc/
+    mkdir ./doc/
     cd ./doc/
     wget https://github.com/gcr-solutions/recommender-system-dev-workshop/archive/refs/heads/main.zip || {
        echo "fail to download recommender-system-dev-workshop"
