@@ -9,7 +9,7 @@ cd codebuild
 # 2 import credential into CodeBuild
 # ./import-source-credential.sh $ACCESS_TOKEN $GITHUB_USER
 # 3 create codebuild role
-./create-iam-role.sh
+# ./create-iam-role.sh
 sleep 20
 # 4 create code build project for each service
 ./register-to-codebuild.sh
