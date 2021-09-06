@@ -275,7 +275,8 @@ Resources:
 
 
           AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
-          ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
+          echo AWS_REGION=$AWS_REGION
+          ACCOUNT_ID=$(aws sts get-caller-identity --region $AWS_REGION --output text --query Account)
 
           # code
           echo "==== setup code ======"
@@ -284,7 +285,7 @@ Resources:
           #https://git-codecommit.ap-northeast-1.amazonaws.com/v1/repos/gcrRsDevWorkshopRepo
 
           url_suffix='com'
-          if [[ AWS_REGION =~ ^cn.* ]];then
+          if [[ $AWS_REGION =~ ^cn.* ]];then
               url_suffix='com.cn'
           fi 
           repo_name="https://git-codecommit.$AWS_REGION.amazonaws.${url_suffix}/v1/repos/recommender-system-dev-workshop-code"
@@ -299,6 +300,15 @@ Resources:
           git config --global --list
           echo ""
 
+          # UNAME=$(uname -s)
+          # curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_${UNAME}_amd64.tar.gz" | tar xz -C /tmp
+          # mv /tmp/eksctl /usr/local/bin
+          # eksctl version
+
+          # curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+          # chmod +x ./kubectl
+          # mv ./kubectl /usr/local/bin/kubectl
+          # kubectl version --client
 
           echo "==== config AWS ENV ======"
           # config AWS ENV
@@ -313,7 +323,7 @@ Resources:
           mkdir /home/ec2-user/environment
           cd /home/ec2-user/environment
           #wget https://github.com/gcr-solutions/recommender-system-dev-workshop-code/archive/refs/heads/main.zip
-          wget https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/main.zip
+          wget https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/release/v1/main.zip
           unzip main.zip
 
           echo "git clone ${repo_name}"
@@ -324,6 +334,7 @@ Resources:
           rm -rf recommender-system-dev-workshop-code-main
           cd ./recommender-system-dev-workshop-code/
           git add . && git commit -m 'first commit' && git push
+
 
           EOS
 
@@ -345,7 +356,7 @@ Resources:
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
-      Analytics: v2:deflate64:H4sIAAAAAAAAE1VQwW7CMAz9lt1DoBw27TbUA+JE1U7cU9dogTauEmeoivrvS1qg7ORn+/nZfpkMWfYpN29f6uZW0FzXQBZlqFjBVeRnUyirOmS0KTl67j2LnIxj64FTrURH3gImHBuNZk1mFNl286oaEggIWxlOPSTuqchF4etWQ+Vrg5PWgkryjN+qbnGpL7WdcwRapU1PcgIHEw+NzL1ivKnhvuae7Tj+9NOhYVEheKt52Fvy/bTgX+EQ31MG7pIzHoVWnQwlzRdNsaB4/bRlQQ9+Yems2zgG1CBQ12mO09iT00x2mJ17ZGOiJdtfzXw6P8a2iSry4ta/2bv8iMZenNYr6w3rDmU5xz+zIEEyzAEAAA==
+      Analytics: v2:deflate64:H4sIAAAAAAAAA1VRwW6DMAz9lt1pCr3ttopD1dMQVL0H42ppSYwSZxWK+Pcl0JbulGf7+T3bKUQoik+Rf3zJu9tAd9sCWRShYQm3rLyYSlqpkdGm4Nvz4DkryTi2HjjlanTkLWDCsdApVmSmrNjl76ohgYCwE+E8QOKeqzKrfNsraHxrcNZaUU2e8STbHtf8mts7R6BkcnqREziaOGhkHiTjXY4Pm0e057jTj0bDWYPgreLxYMkPs8G/xDGuJw08JBc8ZUpqEWpaJprfiuL0s8uKnvzK0kX1sQ2oQyCtFcduHMgpJjsul3tGU6Kls78f83X5KZZNVBFXt/0tcjH/19UptbHesNIo6uX9A6Gt2EzNAQAA
     Metadata:
       aws:cdk:path: RsRawEC2CdkStack/CDKMetadata/Default
     Condition: CDKMetadataAvailable
