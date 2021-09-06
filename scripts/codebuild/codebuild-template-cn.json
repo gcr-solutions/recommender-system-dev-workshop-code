@@ -2,7 +2,7 @@
     "name": "gcr-rs-dev-workshop-__app_name__-build",
     "source": {
         "type": "CODECOMMIT",
-        "location": "https://git-codecommit.__REGION__.amazonaws.com/v1/repos/__REPO_NAME__",
+        "location": "https://git-codecommit.__REGION__.amazonaws.com.cn/v1/repos/__REPO_NAME__",
         "gitCloneDepth": 0,
         "gitSubmodulesConfig": {
             "fetchSubmodules": true

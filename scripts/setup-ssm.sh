@@ -16,7 +16,7 @@ if [[ -z $GITHUB_USER  ]]; then
    exit 1
 fi
 
-SECRET_NAME=gcr-rs-dev-workshop-github
+SECRET_NAME=gcr-rs-dev-workshop-secret
 APP_CONF_REPO=recommender-system-dev-workshop-code
 
 echo "GITHUB_USER: $GITHUB_USER"

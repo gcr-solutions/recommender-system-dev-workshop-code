@@ -1,24 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-SECRET_NAME=gcr-rs-dev-workshop-github
-ACCESS_TOKEN=$(aws secretsmanager get-secret-value --secret-id $SECRET_NAME  | jq -r  '.SecretString | fromjson.accessToken')
-GITHUB_USER=$(aws secretsmanager get-secret-value --secret-id $SECRET_NAME  | jq -r  '.SecretString | fromjson.githubUser')
-
-echo "GITHUB_USER: $GITHUB_USER"
-
-if [[ -z $GITHUB_USER ]];then
-  echo "Error: GITHUB_USER is empty"
-  exit 1
-fi
-
-if [[ -z $ACCESS_TOKEN ]];then
-  echo "Error: ACCESS_TOKEN is empty"
-  exit 1
-fi
-
-export GITHUB_USER=$GITHUB_USER
-export ACCESS_TOKEN=$ACCESS_TOKEN
+export SECRET_NAME=gcr-rs-dev-workshop-secret
 export APP_CONF_REPO=recommender-system-dev-workshop-code
 echo "APP_CONF_REPO: $APP_CONF_REPO"
 
