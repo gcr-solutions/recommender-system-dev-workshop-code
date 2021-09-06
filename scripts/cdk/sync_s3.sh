@@ -37,7 +37,7 @@ if [[ $ReleaseVersion =~ v.* ]]; then
 fi
 
 rm main.zip
-rm rs-raw-ec2.yaml-e > /dev/null 2>&1
+rm rs-raw-ec2.yaml-e > /dev/null 2>&1  || true
 
 echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/rs-raw-ec2.yaml"
 echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/${todayStr}/rs-raw-ec2.yaml"
