@@ -5,9 +5,11 @@ export EKS_CLUSTER=gcr-rs-dev-application-cluster
 
 # 1. Create EKS Cluster
 # # 1.1 Provision EKS cluster 
-cat ./eks/nodes-config-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > nodes-config.yaml
+cat ./eks/nodes-config-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > ./eks/nodes-config.yaml
+if [[ $REGION =~ us-east* ]];then
+  cat ./eks/nodes-config-template.yaml | sed 's/#__AVAILABILITYZONE__#/'"availabilityZones: ['us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-1d', 'us-east-1f']"'/g' > ./eks/nodes-config.yaml
+fi
 eksctl create cluster -f ./eks/nodes-config.yaml
-
 # # 1.2 Create EKS cluster namespace
 kubectl apply -f ../manifests/envs/news-dev/ns.yaml
 
@@ -129,5 +131,8 @@ aws elasticache create-cache-cluster \
   --cache-subnet-group-name $CACHE_SUBNET_GROUP_NAME
 
 # create infra for develop environment
-cat ./eks/nodes-config-dev-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > nodes-dev-config.yaml
+cat ./eks/nodes-config-dev-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > ./eks/nodes-dev-config.yaml
+if [[ $REGION =~ us-east* ]];then
+  cat ./eks/nodes-config-template.yaml | sed 's/#__AVAILABILITYZONE__#/'"availabilityZones: ['us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-1d', 'us-east-1f']"'/g' > ./eks/nodes-dev-config.yaml
+fi
 eksctl create cluster -f ./eks/nodes-dev-config.yaml
