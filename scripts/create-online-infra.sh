@@ -133,4 +133,15 @@ aws elasticache create-cache-cluster \
   --num-cache-nodes 1 \
   --cache-parameter-group default.redis6.x \
   --security-group-ids $REDIS_SECURITY_GROUP_ID \
+<<<<<<< HEAD
   --cache-subnet-group-name $CACHE_SUBNET_GROUP_NAME
+=======
+  --cache-subnet-group-name $CACHE_SUBNET_GROUP_NAME
+
+# create infra for develop environment
+cat ./eks/nodes-config-dev-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > ./eks/nodes-dev-config.yaml
+if [[ $REGION =~ us-east* ]];then
+  cat ./eks/nodes-config-template.yaml | sed 's/#__AVAILABILITYZONE__#/'"availabilityZones: ['us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-1d', 'us-east-1f']"'/g' > ./eks/nodes-dev-config.yaml
+fi
+eksctl create cluster -f ./eks/nodes-dev-config.yaml
+>>>>>>> 11f5e89 (update infra code)
