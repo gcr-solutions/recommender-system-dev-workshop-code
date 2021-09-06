@@ -27,7 +27,7 @@ export HOME=/home/ec2-user
 #https://git-codecommit.ap-northeast-1.amazonaws.com/v1/repos/gcrRsDevWorkshopRepo
 
 url_suffix='com'
-if [[ AWS_REGION =~ ^cn.* ]];then
+if [[ $AWS_REGION =~ ^cn.* ]];then
     url_suffix='com.cn'
 fi 
 repo_name="https://git-codecommit.$AWS_REGION.amazonaws.${url_suffix}/v1/repos/recommender-system-dev-workshop-code"
