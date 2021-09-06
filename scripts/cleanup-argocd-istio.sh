@@ -10,16 +10,11 @@ eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
 
 kubectl delete -f istio-ingress-gateway.yaml
 
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_DEV_CLUSTER
-
 kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 sleep 10
 
 echo "start check istio ingress gateway security group"
-
-
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
 
 i=1
 ISTIO_SG_ID=""
@@ -33,8 +28,6 @@ while true; do
   fi
   sleep 10
 done
-
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_DEV_CLUSTER
 
 echo "start check argocd server security group"
 j=1
@@ -53,14 +46,10 @@ done
 echo $ISTIO_SG_ID
 echo $ARGOCD_SG_ID
 
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
-
 if [ "$ISTIO_SG_ID" != "" ]; then
   echo "delete istio security group!"
   aws ec2 delete-security-group --group-id $ISTIO_SG_ID
 fi
-
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_DEV_CLUSTER
 
 if [ "$ARGOCD_SG_ID" != "" ]; then
   echo "delete argocd security group!"
