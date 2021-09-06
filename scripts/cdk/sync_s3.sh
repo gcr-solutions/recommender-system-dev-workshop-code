@@ -29,6 +29,9 @@ wget https://github.com/gcr-solutions/recommender-system-dev-workshop-code/archi
 $AWS_CMD s3 cp main.zip  s3://${bucket}/rs-dev-workshop-code/latest/ --acl public-read
 $AWS_CMD s3 cp main.zip  s3://${bucket}/rs-dev-workshop-code/${todayStr}/ --acl public-read
 
+if [[ $ReleaseVersion ]];then
+   echo $ReleaseVersion
+fi
 
 if [[ $ReleaseVersion =~ v.* ]]; then
     echo "release $ReleaseVersion"
