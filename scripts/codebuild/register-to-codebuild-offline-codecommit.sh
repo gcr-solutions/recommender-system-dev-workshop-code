@@ -41,8 +41,9 @@ if [[ $REGION =~ cn.* ]];then
   AWS_P='aws-cn'
 fi
 
-roleArn=$(cat role.arn) ||  roleArn=''
+roleArn=$(cat _role.arn) ||  roleArn=''
 if [[ -z $roleArn ]]; then
+  ./create-iam-role.sh
   #echo "ERROR: cannot read file role.arn, please set your codebuild role in file: 'role.arn' or run ./create-iam-role.sh firstly"
   roleArn="arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-${Stage}-codebuild-role"
   #exit 1
