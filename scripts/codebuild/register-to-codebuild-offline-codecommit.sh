@@ -80,6 +80,10 @@ create_codebuild_project () {
   sed -e 's#__Stage__#'${Stage}'#g' ./tmp-codebuild_2.json > ./tmp-codebuild_3.json
   sed -e 's#__AWS_REGION__#'${REGION}'#g' ./tmp-codebuild_3.json > ./codebuild.json
 
+  if [[ $REGION =~ cn.* ]];then
+     sed -i -e 's#amazonaws.com#amazonaws.com.cn#g' ./codebuild.json
+  fi
+
   echo "------------------------------------"
 #  echo ""
 #  cat codebuild.json
