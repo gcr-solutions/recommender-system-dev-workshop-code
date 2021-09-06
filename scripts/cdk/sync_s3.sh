@@ -24,7 +24,11 @@ rm github-rs-raw-ec2.yaml
 
 rm main.zip > /dev/null 2>&1 || true
 
-wget https://github.com/gcr-solutions/recommender-system-dev-workshop-code/archive/refs/heads/main.zip
+wget https://github.com/gcr-solutions/recommender-system-dev-workshop-code/archive/refs/heads/main.zip || {
+   echo "fail to download recommender-system-dev-workshop-code"
+   exit 1
+ }
+
 
 $AWS_CMD s3 cp main.zip  s3://${bucket}/rs-dev-workshop-code/latest/ --acl public-read
 $AWS_CMD s3 cp main.zip  s3://${bucket}/rs-dev-workshop-code/${todayStr}/ --acl public-read
@@ -34,6 +38,14 @@ if [[ $ReleaseVersion =~ v.* ]]; then
     sed -i -e "s#rs-dev-workshop-code/latest/main.zip#rs-dev-workshop-code/release/$ReleaseVersion/main.zip#g" ./rs-raw-ec2.yaml
     $AWS_CMD s3 cp main.zip s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/ --acl public-read
     $AWS_CMD s3 cp ./rs-raw-ec2.yaml s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/ --acl public-read
+    mkidr ./doc/ && cd ./doc/
+    wget https://github.com/gcr-solutions/recommender-system-dev-workshop/archive/refs/heads/main.zip || {
+       echo "fail to download recommender-system-dev-workshop"
+       exit 1
+    }
+    $AWS_CMD s3 cp ./main.zip s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/doc/
+    cd ..
+    rm -rf ./doc/
 fi
 
 rm main.zip
