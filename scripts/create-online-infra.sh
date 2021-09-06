@@ -92,7 +92,8 @@ cd ../manifests/envs/news-dev/efs
 cp csi-env-template.yaml csi-env.yaml
 sed -i 's/FILE_SYSTEM_ID/'"$EFS_ID"'/g' csi-env.yaml
 cat csi-env.yaml
-kubectl kustomize build . |kubectl apply -f - 
+docker pull public.ecr.aws/t8u1z3c8/k8s.gcr.io/kustomize/kustomize:v3.8.7
+docker run --rm --entrypoint /app/kustomize --workdir /app/src -v $(pwd):/app/src public.ecr.aws/t8u1z3c8/k8s.gcr.io/kustomize/kustomize:v3.8.7 build . |kubectl apply -f - 
 cd ../../../../scripts
 
 # 4 Create redis elastic cache, Provision Elasticache - Redis / Cluster Mode Disabled
