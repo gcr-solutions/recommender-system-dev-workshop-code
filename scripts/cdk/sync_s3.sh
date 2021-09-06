@@ -41,4 +41,5 @@ if [[ $StableVersion == 'v1' ]]; then
 fi 
 
 rm main.zip
+rm rs-raw-ec2.yaml-e > /dev/null 2>&1
 
