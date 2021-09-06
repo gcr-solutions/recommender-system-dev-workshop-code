@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-export EKS_CLUSTER=gcr-rs-dev-operation-cluster
+export EKS_CLUSTER=gcr-rs-dev-application-cluster
 
 echo $EKS_CLUSTER
 
