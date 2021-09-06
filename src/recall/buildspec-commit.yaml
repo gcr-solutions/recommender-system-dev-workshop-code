@@ -2,13 +2,11 @@ version: 0.2
 
 env:
   variables:
-    APP_NAME: "portrait"
-    PLUGIN_NAME: "portrait-plugin"
+    APP_NAME: "recall"
+    PLUGIN_NAME: "recall-plugin"
     SCENARIOS: "news"
   secrets-manager:
-    GITHUB_USER: gcr-rs-dev-workshop-secret:githubUser
-    ACCESS_TOKEN: gcr-rs-dev-workshop-secret:accessToken
-    APP_CONF_REPO: gcr-rs-dev-workshop-secret:appConfRepo
+    APP_CONF_REPO: gcr-rs-dev-workshop-secret:appConfRepo     
 
 phases:
     install:
@@ -17,10 +15,6 @@ phases:
         - echo $CODEBUILD_GIT_MESSAGE
         - echo $AWS_DEFAULT_REGION
         - aws --version
-        - |
-          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
-        - export PATH=$PWD:$PATH
-        - kustomize version
     pre_build:
         commands:
           - echo Logging in to Amazon ECR...
@@ -90,17 +84,19 @@ phases:
             echo "--------------------------------------------------------------------------------"
 
           - cd; mkdir workspace; cd workspace 
-          - git clone https://$ACCESS_TOKEN:x-oauth-basic@github.com/$GITHUB_USER/$APP_CONF_REPO.git
+          - pip install git-remote-codecommit
+          - git clone codecommit::$AWS_DEFAULT_REGION://$APP_CONF_REPO    
           - git config --global user.email "robot@codebuild.aws"
           - git config --global user.name "robot"
           - cd $APP_CONF_REPO
           - cd manifests/envs
+          - docker pull public.ecr.aws/t8u1z3c8/k8s.gcr.io/kustomize/kustomize:v3.8.7
           - |
             for SCENARIO in $SCENARIOS
-            do
+            do          
               cd $SCENARIO-dev
-              kustomize edit set image rs/$APP_NAME=$APP_REPOSITORY_URI:$IMAGE_TAG
-              kustomize edit set image rs/$PLUGIN_NAME=$PLUGIN_REPOSITORY_URI:$SCENARIO-$IMAGE_TAG
+              docker run --rm --entrypoint /app/kustomize --workdir /app/src -v $(pwd):/app/src public.ecr.aws/t8u1z3c8/k8s.gcr.io/kustomize/kustomize:v3.8.7 edit set image rs/$APP_NAME=$APP_REPOSITORY_URI:$IMAGE_TAG
+              docker run --rm --entrypoint /app/kustomize --workdir /app/src -v $(pwd):/app/src public.ecr.aws/t8u1z3c8/k8s.gcr.io/kustomize/kustomize:v3.8.7 edit set image rs/$PLUGIN_NAME=$PLUGIN_REPOSITORY_URI:$SCENARIO-$IMAGE_TAG
               cat kustomization.yaml
               cd ../
             done
@@ -109,4 +105,3 @@ phases:
           - git commit -m "${CODEBUILD_GIT_MESSAGE}"
           - git pull --rebase
           - git push
-
