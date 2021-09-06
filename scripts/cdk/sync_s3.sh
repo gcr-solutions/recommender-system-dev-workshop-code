@@ -2,6 +2,8 @@
 
 set -e 
 
+git pull
+
 ReleaseVersion=$1
 
 AWS_CMD="aws --profile rsops"
