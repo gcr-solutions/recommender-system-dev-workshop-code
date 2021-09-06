@@ -12,6 +12,8 @@ if [[ -n $PROFILE ]]; then
    AWS_CMD="aws --profile $PROFILE"
 fi
 
+version_id=$(git rev-parse HEAD)
+
 todayStr=$(date +"%Y-%m-%d")
 bucket=aws-gcr-rs-sol-workshop-ap-northeast-1-common
 
@@ -41,9 +43,12 @@ $AWS_CMD s3 cp main.zip  s3://${bucket}/rs-dev-workshop-code/${todayStr}/ --acl 
 
 if [[ $ReleaseVersion =~ v.* ]]; then
     echo "release $ReleaseVersion"
+    echo $version_id > gitCommitId
     sed -i -e "s#rs-dev-workshop-code/latest/main.zip#rs-dev-workshop-code/release/$ReleaseVersion/main.zip#g" ./rs-raw-ec2.yaml
     $AWS_CMD s3 cp main.zip s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/ --acl public-read
     $AWS_CMD s3 cp ./rs-raw-ec2.yaml s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/ --acl public-read
+    $AWS_CMD s3 cp gitCommitId s3://${bucket}/rs-dev-workshop-code/release/$ReleaseVersion/
+    rm gitCommitId
     rm -rf ./doc/ > /dev/null 2>&1  || true
     mkdir ./doc/
     cd ./doc/
