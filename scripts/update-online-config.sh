@@ -6,7 +6,7 @@ REDIS_ENDPOINT=$(aws elasticache describe-cache-clusters --cache-cluster-id gcr-
 --query "CacheClusters[].CacheNodes[].Endpoint.Address" --output text)
 echo $REDIS_ENDPOINT
 cd ../manifests/envs/news-dev
-cat config-template.yaml | sed 's/__REDIS_HOST_PLACEHOLDER__/'"$REDIS_ENDPOINT"'/g' > config_1.yaml
+cat config-template.yaml | sed 's/REDIS_HOST_PLACEHOLDER/'"$REDIS_ENDPOINT"'/g' > config_1.yaml
 
 # 2 update kubernetes config map
 if [[ -z $REGION ]];then
