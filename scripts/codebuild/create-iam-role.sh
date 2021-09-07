@@ -72,7 +72,7 @@ if [[ $paramDelete == 'DELETE' ]]; then
 fi 
 
 echo "Start to create codebuild role"
-ROLE_NAMES=$($AWS_CMD iam list-roles | jq '.[][] | select(.RoleName=="${ROLE_NAME}")')
+ROLE_NAMES=$($AWS_CMD iam list-roles | jq '.[][] | select(.RoleName=="'${ROLE_NAME}'")')
 if [ "$ROLE_NAMES" == "" ]; then
   echo "Nothing has been done and all clear."
 else
