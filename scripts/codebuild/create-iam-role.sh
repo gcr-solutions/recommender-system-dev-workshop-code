@@ -43,7 +43,7 @@ function del_role() {
   for policyArn in $($AWS_CMD iam list-attached-role-policies --role-name ${ROLE_NAME} | jq -r '.AttachedPolicies[].PolicyArn'); do
     $AWS_CMD iam detach-role-policy \
       --role-name ${ROLE_NAME} \
-      --policy-arn ${policyArn}
+      --policy-arn ${policyArn} || true
     echo "Detached ${ROLE_NAME} and ${policyArn}"
 
     count=$($AWS_CMD iam list-policy-versions --policy-arn ${policyArn} | jq -r '.Versions[].VersionId' | wc -l)
@@ -60,7 +60,7 @@ function del_role() {
     fi
   done
 
-  $AWS_CMD iam delete-role --role-name ${ROLE_NAME}
+  $AWS_CMD iam delete-role --role-name ${ROLE_NAME} || true
   if [ $? -ne 0 ]; then
      echo "Failed to delete role : exit 0"
      exit 1
@@ -85,7 +85,7 @@ fi
 
 echo ""
 
-$AWS_CMD iam delete-role --role-name ${ROLE_NAME}
+$AWS_CMD iam delete-role --role-name ${ROLE_NAME} || true
 echo "$AWS_CMD iam create-role \
   --role-name ${ROLE_NAME} \
   --assume-role-policy-document file://assume-role.json"
@@ -97,7 +97,7 @@ roleArn=$($AWS_CMD iam create-role \
 echo "Created ${ROLE_NAME} = ${roleArn}"
 echo ""
 
-$AWS_CMD iam delete-policy --policy-arn ${policyArn}
+$AWS_CMD iam delete-policy --policy-arn ${policyArn} || true
 echo "$AWS_CMD iam create-policy \
   --policy-name ${ROLE_POLICY} \
   --policy-document file://iam-role-policy.json | jq -r '.Policy.Arn'"
