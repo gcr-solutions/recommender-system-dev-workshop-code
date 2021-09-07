@@ -61,6 +61,9 @@ else
     rm fasthan_base.zip
     cd ..
 
+    # install dgl-ke.zip
+    download_dgl $dgl_url
+
     ../norm_build.sh $repoName $Stage
 
     rm -r fasthan_base
