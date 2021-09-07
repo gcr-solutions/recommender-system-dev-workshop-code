@@ -64,7 +64,9 @@ else
 
 fi 
 
+echo "eksctl version"
 eksctl version
+echo "kubectl version --client"
 kubectl version --client
 
 echo "==== config AWS ENV ======"
@@ -91,7 +93,6 @@ mv ./recommender-system-dev-workshop-code-main/* ./recommender-system-dev-worksh
 rm -rf recommender-system-dev-workshop-code-main
 cd ./recommender-system-dev-workshop-code/
 git add . && git commit -m 'first commit' && git push
-
 
 EOS
 
