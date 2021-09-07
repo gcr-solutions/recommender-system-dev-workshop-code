@@ -98,7 +98,7 @@ echo "${AWS_CMD} iam create-role \
 
 ${AWS_CMD} iam create-role \
   --role-name ${ROLE_NAME} \
-  --assume-role-policy-document file://assume-role.json
+  --assume-role-policy-document file://assume-role.json || true
 
 roleArn="arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/${ROLE_NAME}"
 
@@ -112,7 +112,8 @@ echo "${AWS_CMD} iam create-policy \
 
 ${AWS_CMD} iam create-policy \
   --policy-name ${ROLE_POLICY} \
-  --policy-document file://iam-role-policy.json
+  --policy-document file://iam-role-policy.json || true
+
 rolePolicyArn="arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:policy/${ROLE_POLICY}"
 
 echo ""
@@ -122,7 +123,7 @@ echo "${AWS_CMD} iam attach-role-policy \
 
 ${AWS_CMD} iam attach-role-policy \
   --role-name ${ROLE_NAME} \
-  --policy-arn ${rolePolicyArn}
+  --policy-arn ${rolePolicyArn} || true
 
 echo "Atteched ${rolePolicyArn} to ${ROLE_NAME} "
 if [ $? -ne 0 ]; then
