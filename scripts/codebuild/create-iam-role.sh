@@ -85,7 +85,7 @@ fi
 
 echo ""
 
-${AWS_CMD} iam delete-role --role-name ${ROLE_NAME} /dev/null 2>&1 || true
+${AWS_CMD} iam delete-role --role-name ${ROLE_NAME} >/dev/null 2>&1 || true
 echo "${AWS_CMD} iam create-role \
   --role-name ${ROLE_NAME} \
   --assume-role-policy-document file://assume-role.json"
