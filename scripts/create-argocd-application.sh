@@ -52,25 +52,22 @@ echo "update-lambda-env"
 # eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER --profile $AWS_PROFILE
 
 # 3 Create argocd application
-# argocd app create gcr-recommender-system-news-dev --repo https://${ACCESS_TOKEN}@github.com/${GITHUB_USER}/recommender-system-dev-workshop-code.git --path manifests/envs/news-dev --dest-namespace \
-# rs-news-dev-ns --dest-server https://kubernetes.default.svc --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1
+argocd app create gcr-recommender-system-news-dev --repo https://${ACCESS_TOKEN}@github.com/${GITHUB_USER}/recommender-system-dev-workshop-code.git --path manifests/envs/news-dev --dest-namespace \
+rs-news-dev-ns --dest-server https://kubernetes.default.svc --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1
 
 # argocd app create gcr-recommender-system-news-dev --repo https://${ACCESS_TOKEN}@github.com/${GITHUB_USER}/recommender-system-dev-workshop-code.git --path manifests/envs/news-dev --dest-namespace \
 # rs-news-dev-ns --dest-server ${APISERVER} --auth-token ${TOKEN} --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1
 # eksctl utils write-kubeconfig --region cn-north-1 --cluster gcr-rs-dev-application-cluster --profile rs-dev-cn-bjs
 
-
-APISERVER=$(kubectl config view --minify | grep server | cut -f 2- -d ":" | tr -d " ")
+# APISERVER=$(kubectl config view --minify | grep server | cut -f 2- -d ":" | tr -d " ")
 # TOKEN=$(kubectl describe secret $SECRET_NAME | grep -E '^token' | cut -f2 -d':' | tr -d " ")
 
-argocd cluster add rs-online-user@$EKS_CLUSTER.$REGION.eksctl.io
+# argocd cluster add rs-online-user@$EKS_CLUSTER.$REGION.eksctl.io
 
 # eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER --profile $AWS_PROFILE
 
-
-
-argocd app create gcr-recommender-system-news-dev --repo https://${ACCESS_TOKEN}@github.com/${GITHUB_USER}/recommender-system-dev-workshop-code.git --path manifests/envs/news-dev --dest-namespace \
-rs-news-dev-ns --dest-server $APISERVER --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1
+# argocd app create gcr-recommender-system-news-dev --repo https://${ACCESS_TOKEN}@github.com/${GITHUB_USER}/recommender-system-dev-workshop-code.git --path manifests/envs/news-dev --dest-namespace \
+# rs-news-dev-ns --dest-server $APISERVER --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1
 
 sleep 20
 
