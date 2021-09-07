@@ -35,6 +35,9 @@ echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 ROLE_NAME=gcr-rs-${Stage}-codebuild-role
 ROLE_POLICY=gcr-rs-${Stage}-codebuild-policy
 
+echo "ROLE_NAME:$ROLE_NAME"
+echo "ROLE_POLICY:$ROLE_POLICY"
+
 function del_role() {
   $AWS_CMD iam list-attached-role-policies --role-name ${ROLE_NAME} | jq -r '.AttachedPolicies[].PolicyArn'
   for policyArn in $($AWS_CMD iam list-attached-role-policies --role-name ${ROLE_NAME} | jq -r '.AttachedPolicies[].PolicyArn'); do
@@ -76,18 +79,36 @@ ROLE_NAMES=$($AWS_CMD iam list-roles | jq '.[][] | select(.RoleName=="'${ROLE_NA
 if [ "$ROLE_NAMES" == "" ]; then
   echo "Nothing has been done and all clear."
 else
+  echo "Delete role"
   del_role
 fi
+
+echo ""
+echo "$AWS_CMD iam create-role \
+  --role-name ${ROLE_NAME} \
+  --assume-role-policy-document file://assume-role.json"
 
 roleArn=$($AWS_CMD iam create-role \
   --role-name ${ROLE_NAME} \
   --assume-role-policy-document file://assume-role.json | jq -r '.Role.Arn')
+
 echo "Created ${ROLE_NAME} = ${roleArn}"
+
+echo ""
+echo "$AWS_CMD iam create-policy \
+  --policy-name ${ROLE_POLICY} \
+  --policy-document file://iam-role-policy.json | jq -r '.Policy.Arn'"
 
 rolePolicyArn=$($AWS_CMD iam create-policy \
   --policy-name ${ROLE_POLICY} \
   --policy-document file://iam-role-policy.json | jq -r '.Policy.Arn')
+
 echo "Created ${ROLE_POLICY} = ${rolePolicyArn}"
+
+echo ""
+echo "$AWS_CMD iam attach-role-policy \
+  --role-name ${ROLE_NAME} \
+  --policy-arn ${rolePolicyArn}"
 
 $AWS_CMD iam attach-role-policy \
   --role-name ${ROLE_NAME} \
