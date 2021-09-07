@@ -10,7 +10,7 @@ fi
 
 echo "Stage: $Stage"
 echo "paramDelete: $paramDelete"
-AWS_CMD="aws --profile default"
+AWS_CMD="aws"
 
 if [[ -n $PROFILE ]]; then
   AWS_CMD="aws --profile $PROFILE"
