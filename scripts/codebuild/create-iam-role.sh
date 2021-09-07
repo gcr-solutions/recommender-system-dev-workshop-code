@@ -84,6 +84,8 @@ else
 fi
 
 echo ""
+
+$AWS_CMD iam delete-role --role-name ${ROLE_NAME}
 echo "$AWS_CMD iam create-role \
   --role-name ${ROLE_NAME} \
   --assume-role-policy-document file://assume-role.json"
@@ -93,8 +95,9 @@ roleArn=$($AWS_CMD iam create-role \
   --assume-role-policy-document file://assume-role.json | jq -r '.Role.Arn')
 
 echo "Created ${ROLE_NAME} = ${roleArn}"
-
 echo ""
+
+$AWS_CMD iam delete-policy --policy-arn ${policyArn}
 echo "$AWS_CMD iam create-policy \
   --policy-name ${ROLE_POLICY} \
   --policy-document file://iam-role-policy.json | jq -r '.Policy.Arn'"
@@ -102,7 +105,6 @@ echo "$AWS_CMD iam create-policy \
 rolePolicyArn=$($AWS_CMD iam create-policy \
   --policy-name ${ROLE_POLICY} \
   --policy-document file://iam-role-policy.json | jq -r '.Policy.Arn')
-
 echo "Created ${ROLE_POLICY} = ${rolePolicyArn}"
 
 echo ""
