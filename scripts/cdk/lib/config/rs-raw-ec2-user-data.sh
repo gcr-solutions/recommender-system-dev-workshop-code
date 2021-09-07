@@ -42,15 +42,29 @@ echo "git config --global --list"
 git config --global --list
 echo ""
 
-# UNAME=$(uname -s)
-# curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_${UNAME}_amd64.tar.gz" | tar xz -C /tmp
-# mv /tmp/eksctl /usr/local/bin
-# eksctl version
+if [[ $AWS_REGION =~ ^cn.*]]; then 
+    curl -o kubectl https://amazon-eks.s3.cn-north-1.amazonaws.com.cn/1.21.2/2021-07-05/bin/linux/amd64/kubectl
+    chmod +x ./kubectl
+    mv ./kubectl /usr/local/bin/kubectl
 
-# curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
-# chmod +x ./kubectl
-# mv ./kubectl /usr/local/bin/kubectl
-# kubectl version --client
+    curl --silent --location "https://aws-gcr-solutions-assets.s3.cn-northwest-1.amazonaws.com.cn/gcr-rs/eks/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
+    chmod +x /tmp/eksctl
+    mv /tmp/eksctl /usr/local/bin
+
+else
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+    chmod +x ./kubectl
+    mv ./kubectl /usr/local/bin/kubectl
+
+    UNAME=$(uname -s)
+    curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_${UNAME}_amd64.tar.gz" | tar xz -C /tmp
+    chmod +x /tmp/eksctl
+    mv /tmp/eksctl /usr/local/bin
+
+fi 
+
+eksctl version
+kubectl version --client
 
 echo "==== config AWS ENV ======"
 # config AWS ENV
