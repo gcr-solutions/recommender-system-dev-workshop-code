@@ -44,7 +44,7 @@ echo "roleArn:${roleArn}"
 STACK_NAME=rs-$Stage-codebuild-role-stack
 echo "STACK_NAME: ${STACK_NAME}"
 
-if [[ -n $paramDelete == 'DELETE' ]]; then
+if [[ $paramDelete == 'DELETE' ]]; then
   echo "Clean STACK_NAME: ${STACK_NAME}"
   $AWS_CMD cloudformation delete-stack --region ${REGION} --stack-name ${STACK_NAME}
   exit 0
