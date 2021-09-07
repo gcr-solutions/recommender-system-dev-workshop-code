@@ -73,7 +73,7 @@ cd ${curr_dir}/../src/offline/
 
 #echo "==== DELETE Codebuild Role ===="
 #cd ${curr_dir}/codebuild/
-#./create-iam-role.sh $Stage 'DELETE'
+#./create-codebuild-role.sh $Stage 'DELETE'
 
 echo "All offline resources were deleted"
 
