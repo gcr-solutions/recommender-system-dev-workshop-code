@@ -21,7 +21,6 @@ echo AWS_REGION=$AWS_REGION
 ACCOUNT_ID=$(aws sts get-caller-identity --region $AWS_REGION --output text --query Account)
 
 # code
-echo "==== setup code ======"
 export HOME=/home/ec2-user
 
 #https://git-codecommit.ap-northeast-1.amazonaws.com/v1/repos/gcrRsDevWorkshopRepo
@@ -42,7 +41,8 @@ echo "git config --global --list"
 git config --global --list
 echo ""
 
-if [[ $AWS_REGION =~ ^cn.*]]; then 
+if [[ $AWS_REGION =~ ^cn.* ]]; then
+    echo "install kubectl and eksctl in $AWS_REGION"
     curl -o kubectl https://amazon-eks.s3.cn-north-1.amazonaws.com.cn/1.21.2/2021-07-05/bin/linux/amd64/kubectl
     chmod +x ./kubectl
     mv ./kubectl /usr/local/bin/kubectl
@@ -52,6 +52,7 @@ if [[ $AWS_REGION =~ ^cn.*]]; then
     mv /tmp/eksctl /usr/local/bin
 
 else
+    echo "install kubectl and eksctl in $AWS_REGION"
     curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
     chmod +x ./kubectl
     mv ./kubectl /usr/local/bin/kubectl
