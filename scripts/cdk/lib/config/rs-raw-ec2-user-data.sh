@@ -81,6 +81,7 @@ echo "export REGION=${AWS_REGION}" | tee -a /home/ec2-user/.bash_profile
 
 mkdir /home/ec2-user/environment
 cd /home/ec2-user/environment
+echo "begin downloading code ..."
 #wget https://github.com/gcr-solutions/recommender-system-dev-workshop-code/archive/refs/heads/main.zip
 wget --quiet https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/main.zip
 unzip main.zip
