@@ -37,6 +37,9 @@ AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Acc
 echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 
 sleep 3
+echo "0. ========= Create codebuild Role =============="
+cd ${curr_dir}/codebuild
+./create-iam-role.sh
 
 echo "1. ========= Create codebuild =============="
 cd ${curr_dir}/codebuild
