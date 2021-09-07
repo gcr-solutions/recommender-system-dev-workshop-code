@@ -17,6 +17,17 @@ if [[ -n $PROFILE ]]; then
 fi
 echo "AWS_CMD=$AWS_CMD"
 
+if [[ -z $REGION ]];then
+  REGION=$($AWS_CMD configure get region)
+fi
+
+echo "REGION=$REGION"
+
+if [[ -z $REGION ]];then
+  echo "error ENV REGION is empty"
+  exit 0
+fi
+
 AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Account --output text)
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
