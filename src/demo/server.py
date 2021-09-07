@@ -153,7 +153,7 @@ def login(loginRequest: LoginRequest):
         s3client = boto3.resource('s3')
         if s3_body != '':
             s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
-                Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
+                Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body)
 
         return response_success({
             "message": "Login as anonymous user!",
@@ -183,7 +183,7 @@ def login(loginRequest: LoginRequest):
         s3client = boto3.resource('s3')
         if s3_body != '':
             s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
-                Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
+                Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body)
 
         login_new_user(user_name, user_id)
         user_id_in_sever = user_id
@@ -885,7 +885,7 @@ def store_previous_click_data(user_id, action_type, scenario):
     s3client = boto3.resource('s3')
     if s3_body != '':
         s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
-            Key=MANDATORY_ENV_VARS['CLICK_RECORD_FILE_PATH'] + 'action_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
+            Key=MANDATORY_ENV_VARS['CLICK_RECORD_FILE_PATH'] + 'action_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body)
     logging.info('store_previous_click_data completed')
 
 
