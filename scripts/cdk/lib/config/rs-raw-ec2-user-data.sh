@@ -83,7 +83,10 @@ mkdir /home/ec2-user/environment
 cd /home/ec2-user/environment
 echo "begin downloading code ..."
 #wget https://github.com/gcr-solutions/recommender-system-dev-workshop-code/archive/refs/heads/main.zip
-wget --quiet https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/main.zip
+wget --quiet https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/main.zip || {
+   sleep 5
+   curl https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/main.zip -o main.zip
+}
 unzip main.zip
 
 echo "git clone ${repo_name}"
