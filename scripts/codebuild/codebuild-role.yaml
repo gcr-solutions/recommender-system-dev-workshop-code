@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys Lambda
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev-workshop
+
+Resources:
+  CodebuildRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub gcr-rs-${Stage}-codebuild-role-${AWS::Region}
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/PowerUserAccess"
+      Policies:
+        - PolicyName: rs-codebuild-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: "iam:*"
+                Resource: "*"
