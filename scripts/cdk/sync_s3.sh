@@ -70,7 +70,7 @@ rm gitCommitId
 
 echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/rs-raw-ec2.yaml"
 echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/${todayStr}/rs-raw-ec2.yaml"
-echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/github/rs-raw-ec2.yaml"
+echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/github/main/rs-raw-ec2.yaml"
 
 if [[ $ReleaseVersion =~ v.* ]]; then
       echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/release/$ReleaseVersion/rs-raw-ec2.yaml"
