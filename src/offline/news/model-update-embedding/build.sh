@@ -26,7 +26,7 @@ function download_dgl() {
     url=$1
     echo "download:$url"
     rm -rf ./dgl > /dev/null  2>&1
-    mkdir ./dgl
+    mkdir ./dgl  && cd ./dgl
     wget --quiet $url || {
         echo "error: fail to download $url"
         exit 1
