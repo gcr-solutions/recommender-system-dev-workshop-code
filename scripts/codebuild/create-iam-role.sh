@@ -2,17 +2,24 @@
 set -e
 
 Stage=$1
+paramDelete=$2
 
 if [[ -z $Stage ]];then
    Stage='dev-workshop'
 fi 
 
+echo "Stage: $Stage"
+echo "paramDelete: $paramDelete"
 AWS_CMD="aws --profile default"
 
 if [[ -n $PROFILE ]]; then
   AWS_CMD="aws --profile $PROFILE"
 fi
 echo "AWS_CMD=$AWS_CMD"
+
+AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Account --output text)
+
+echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
 ROLE_NAME=gcr-rs-${Stage}-codebuild-role
 ROLE_POLICY=gcr-rs-${Stage}-codebuild-policy
@@ -47,7 +54,8 @@ function del_role() {
   echo "Deleted ${ROLE_NAME}"
 }
 
-if [[ $2 == 'DELETE' ]]; then
+if [[ $paramDelete == 'DELETE' ]]; then
+    echo "Start to DELETE codebuild role"
     del_role
     exit 0
 fi 
