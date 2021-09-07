@@ -7,6 +7,10 @@ if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
 
+if [[ -n $REGION ]];then
+  AWS_REGION=$REGION
+fi
+
 echo "Stage=$Stage, AWS_REGION=$AWS_REGION"
 
 repoName=rs/news-customize-model-update-embedding
@@ -21,9 +25,7 @@ else
     mkdir fasthan_base
     if [[ $AWS_REGION =~ ^cn.* ]]; then
       cd ./fasthan_base
-      wget https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/fasthan_base.zip || {
-         curl https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/fasthan_base.zip -o ./fasthan_base.zip
-      } || {
+      wget https://aws-gcr-solutions-assets.s3.cn-northwest-1.amazonaws.com.cn/gcr-rs/fasthan/fasthan_base.zip || {
         echo "error: fail to download fasthan_base.zip"
         exit 1
       }
