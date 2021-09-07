@@ -5,7 +5,6 @@ export EKS_CLUSTER=gcr-rs-dev-application-cluster
 
 echo $EKS_CLUSTER
 
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER --profile $AWS_PROFILE
 # 1 setup argocd server
 kubectl create namespace argocd
 
