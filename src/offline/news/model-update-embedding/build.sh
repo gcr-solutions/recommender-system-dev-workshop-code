@@ -21,7 +21,9 @@ else
     mkdir fasthan_base
     if [[ $AWS_REGION =~ ^cn.* ]]; then
       cd ./fasthan_base
-      wget https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/fasthan_base.zip_x || {
+      wget https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/fasthan_base.zip || {
+         curl https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/fasthan_base.zip -o ./fasthan_base.zip
+      } || {
         echo "error: fail to download fasthan_base.zip"
         exit 1
       }

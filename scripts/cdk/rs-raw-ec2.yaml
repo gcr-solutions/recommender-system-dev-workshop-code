@@ -323,7 +323,7 @@ Resources:
           mkdir /home/ec2-user/environment
           cd /home/ec2-user/environment
           #wget https://github.com/gcr-solutions/recommender-system-dev-workshop-code/archive/refs/heads/main.zip
-          wget https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/release/v1/main.zip
+          wget https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/main.zip
           unzip main.zip
 
           echo "git clone ${repo_name}"

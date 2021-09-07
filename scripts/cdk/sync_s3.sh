@@ -20,18 +20,22 @@ bucket=aws-gcr-rs-sol-workshop-ap-northeast-1-common
 
 cdk synth RsRawEC2CdkStack > rs-raw-ec2.yaml
 sed -i -e 's/SsmParameterValueawsserviceamiamazonlinuxlatestamzn2ami.*Parameter/SsmParameterValueForImageId/g' ./rs-raw-ec2.yaml
-
+# latest
 $AWS_CMD s3 cp ./rs-raw-ec2.yaml s3://${bucket}/rs-dev-workshop-code/latest/ --acl public-read 
 
+# yyyy-mm-dd
 sed -e "s#rs-dev-workshop-code/latest/main.zip#rs-dev-workshop-code/${todayStr}/main.zip#g" ./rs-raw-ec2.yaml > ./${todayStr}-rs-raw-ec2.yaml
 $AWS_CMD s3 cp ./${todayStr}-rs-raw-ec2.yaml s3://${bucket}/rs-dev-workshop-code/${todayStr}/rs-raw-ec2.yaml --acl public-read 
 rm ${todayStr}-rs-raw-ec2.yaml
 
+# github main
 sed -e "s#${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/main.zip#github.com/gcr-solutions/recommender-system-dev-workshop-code/archive/refs/heads/main.zip#g" ./rs-raw-ec2.yaml > ./github-rs-raw-ec2.yaml
-$AWS_CMD s3 cp ./github-rs-raw-ec2.yaml s3://${bucket}/rs-dev-workshop-code/github/rs-raw-ec2.yaml --acl public-read 
+$AWS_CMD s3 cp ./github-rs-raw-ec2.yaml s3://${bucket}/rs-dev-workshop-code/github/main/rs-raw-ec2.yaml --acl public-read
 rm github-rs-raw-ec2.yaml
 
 rm main.zip > /dev/null 2>&1 || true
+
+# code
 
 wget https://github.com/gcr-solutions/recommender-system-dev-workshop-code/archive/refs/heads/main.zip || {
    echo "fail to download recommender-system-dev-workshop-code"
