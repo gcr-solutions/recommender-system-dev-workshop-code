@@ -33,9 +33,7 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
-
 AWS_P='aws'
 if [[ $REGION =~ cn.* ]];then
   AWS_P='aws-cn'
@@ -43,10 +41,9 @@ fi
 
 roleArn=$(cat _role.arn) ||  roleArn=''
 if [[ -z $roleArn ]]; then
-  #echo "ERROR: cannot read file role.arn, please set your codebuild role in file: 'role.arn' or run ./create-iam-role.sh firstly"
-  roleArn="arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-${Stage}-codebuild-role"
-  #exit 1
+  roleArn="arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-${Stage}-codebuild-role-${REGION}"
 fi
+
 echo "roleArn: $roleArn"
 echo "DELETE_FLAG: $DELETE_FLAG"
 echo ""

@@ -1,6 +1,25 @@
 #!/bin/bash
 
-roleArn=$(cat _role.arn)
+echo "REGION:$REGION"
+
+if [[ -z $REGION ]]; then
+  echo "error ENV: REGION not set"
+  exit 1
+fi
+
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text)
+if [[ $? -ne 0 ]]; then
+  echo "error!!! can not get your AWS_ACCOUNT_ID"
+  exit 1
+fi
+
+echo "AWS_ACCOUNT_ID:$AWS_ACCOUNT_ID"
+
+roleArn=$(cat _role.arn) ||  roleArn=''
+if [[ -z $roleArn ]]; then
+  roleArn="arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-${Stage}-codebuild-role-$REGION"
+fi
+
 projects[0]="loader"
 projects[1]="event"
 projects[2]="filter"
