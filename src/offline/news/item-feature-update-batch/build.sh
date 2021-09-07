@@ -11,6 +11,10 @@ if [[ -n $REGION ]];then
   AWS_REGION=$REGION
 fi
 
+if [[ -z $AWS_REGION ]];then
+  AWS_REGION='ap-northeast-1'
+fi
+
 echo "Stage=$Stage, AWS_REGION=$AWS_REGION"
 
 repoName=rs/news-item-feature-update-batch
