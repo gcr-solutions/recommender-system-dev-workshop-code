@@ -28,6 +28,12 @@ if [[ -z $REGION ]];then
   exit 0
 fi
 
+AWS_P='aws'
+
+if [[ $REGION =~ cn.* ]];then
+  AWS_P='aws-cn'
+fi
+
 AWS_ACCOUNT_ID=$(${AWS_CMD} sts get-caller-identity --region ${REGION} --query Account --output text)
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
@@ -90,9 +96,11 @@ echo "${AWS_CMD} iam create-role \
   --role-name ${ROLE_NAME} \
   --assume-role-policy-document file://assume-role.json"
 
-roleArn=$(${AWS_CMD} iam create-role \
+${AWS_CMD} iam create-role \
   --role-name ${ROLE_NAME} \
-  --assume-role-policy-document file://assume-role.json | jq -r '.Role.Arn')
+  --assume-role-policy-document file://assume-role.json
+
+roleArn="arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/${ROLE_NAME}"
 
 echo "Created ${ROLE_NAME} = ${roleArn}"
 echo ""
@@ -102,10 +110,10 @@ echo "${AWS_CMD} iam create-policy \
   --policy-name ${ROLE_POLICY} \
   --policy-document file://iam-role-policy.json | jq -r '.Policy.Arn'"
 
-rolePolicyArn=$(${AWS_CMD} iam create-policy \
+${AWS_CMD} iam create-policy \
   --policy-name ${ROLE_POLICY} \
-  --policy-document file://iam-role-policy.json | jq -r '.Policy.Arn')
-echo "Created ${ROLE_POLICY} = ${rolePolicyArn}"
+  --policy-document file://iam-role-policy.json
+rolePolicyArn="arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:policy/${ROLE_POLICY}"
 
 echo ""
 echo "${AWS_CMD} iam attach-role-policy \
@@ -115,6 +123,7 @@ echo "${AWS_CMD} iam attach-role-policy \
 ${AWS_CMD} iam attach-role-policy \
   --role-name ${ROLE_NAME} \
   --policy-arn ${rolePolicyArn}
+
 echo "Atteched ${rolePolicyArn} to ${ROLE_NAME} "
 if [ $? -ne 0 ]; then
   echo "Failed to create role : exit 0"
