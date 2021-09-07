@@ -36,10 +36,16 @@ fi
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
-roleArn=$(cat role.arn) ||  roleArn=''
+AWS_P='aws'
+if [[ $REGION =~ cn.* ]];then
+  AWS_P='aws-cn'
+fi
+
+roleArn=$(cat _role.arn) ||  roleArn=''
 if [[ -z $roleArn ]]; then
+  ./create-iam-role.sh
   #echo "ERROR: cannot read file role.arn, please set your codebuild role in file: 'role.arn' or run ./create-iam-role.sh firstly"
-  roleArn="arn:aws:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-${Stage}-codebuild-role"
+  roleArn="arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-${Stage}-codebuild-role"
   #exit 1
 fi
 echo "roleArn: $roleArn"
@@ -74,6 +80,10 @@ create_codebuild_project () {
   sed -e 's#__app_path__#'${app_path}'#g' ./tmp-codebuild.json > tmp-codebuild_2.json
   sed -e 's#__Stage__#'${Stage}'#g' ./tmp-codebuild_2.json > ./tmp-codebuild_3.json
   sed -e 's#__AWS_REGION__#'${REGION}'#g' ./tmp-codebuild_3.json > ./codebuild.json
+
+  if [[ $REGION =~ cn.* ]];then
+     sed -i -e 's#amazonaws.com#amazonaws.com.cn#g' ./codebuild.json
+  fi
 
   echo "------------------------------------"
 #  echo ""

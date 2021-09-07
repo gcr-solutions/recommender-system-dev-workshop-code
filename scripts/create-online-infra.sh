@@ -5,9 +5,11 @@ export EKS_CLUSTER=gcr-rs-dev-application-cluster
 
 # 1. Create EKS Cluster
 # # 1.1 Provision EKS cluster 
-cat ./eks/nodes-config-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > nodes-config.yaml
+cat ./eks/nodes-config-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > ./eks/nodes-config.yaml
+if [[ $REGION =~ us-east* ]];then
+  cat ./eks/nodes-config-template.yaml | sed 's/#__AVAILABILITYZONE__#/'"availabilityZones: ['us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-1d', 'us-east-1f']"'/g' > ./eks/nodes-config.yaml
+fi
 eksctl create cluster -f ./eks/nodes-config.yaml
-
 # # 1.2 Create EKS cluster namespace
 kubectl apply -f ../manifests/envs/news-dev/ns.yaml
 
@@ -90,7 +92,8 @@ cd ../manifests/envs/news-dev/efs
 cp csi-env-template.yaml csi-env.yaml
 sed -i 's/FILE_SYSTEM_ID/'"$EFS_ID"'/g' csi-env.yaml
 cat csi-env.yaml
-kubectl kustomize build . |kubectl apply -f - 
+docker pull public.ecr.aws/t8u1z3c8/k8s.gcr.io/kustomize/kustomize:v3.8.7
+docker run --rm --entrypoint /app/kustomize --workdir /app/src -v $(pwd):/app/src public.ecr.aws/t8u1z3c8/k8s.gcr.io/kustomize/kustomize:v3.8.7 build . |kubectl apply -f - 
 cd ../../../../scripts
 
 # 4 Create redis elastic cache, Provision Elasticache - Redis / Cluster Mode Disabled
@@ -127,7 +130,3 @@ aws elasticache create-cache-cluster \
   --cache-parameter-group default.redis6.x \
   --security-group-ids $REDIS_SECURITY_GROUP_ID \
   --cache-subnet-group-name $CACHE_SUBNET_GROUP_NAME
-
-# create infra for develop environment
-cat ./eks/nodes-config-dev-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > nodes-dev-config.yaml
-eksctl create cluster -f ./eks/nodes-dev-config.yaml

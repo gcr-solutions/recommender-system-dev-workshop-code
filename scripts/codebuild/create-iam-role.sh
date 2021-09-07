@@ -63,5 +63,5 @@ then
     exit 0
 fi
 
-echo ${roleArn}>role.arn
+echo ${roleArn}>_role.arn
 echo "Create codebuild role successfully"

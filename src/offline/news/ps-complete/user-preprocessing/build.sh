@@ -9,7 +9,7 @@ fi
 
 echo "Stage=$Stage"
 
-repoName=rs/ps-complete-news-user-preprocessing
+repoName=rs/news-ps-complete-user-preprocessing
 
 if [[ $Stage == 'demo' ]]; then
   ../dev2demo.sh $repoName

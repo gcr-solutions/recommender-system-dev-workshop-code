@@ -7,7 +7,7 @@ if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
 
-echo "Stage=$Stage"
+echo "Stage=$Stage, AWS_REGION=$AWS_REGION"
 
 repoName=rs/news-customize-item-feature-update-batch
 if [[ -n $REPO_NAME ]];then
@@ -19,7 +19,7 @@ if [[ $Stage == 'demo' ]]; then
 else
     rm -rf fasthan_base >/dev/null 2>&1
     mkdir fasthan_base
-    if [[ $REGION =~ ^cn.* ]]; then
+    if [[ $AWS_REGION =~ ^cn.* ]]; then
       cd ./fasthan_base
       wget https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/fasthan_base.zip
     else

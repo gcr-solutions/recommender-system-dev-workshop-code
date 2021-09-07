@@ -8,7 +8,7 @@ if [[ -z $Stage ]];then
 fi
 
 echo "Stage=$Stage"
-repoName=rs/ps-complete-news-item-preprocessing
+repoName=rs/news-ps-complete-item-preprocessing
 
 if [[ $Stage == 'demo' ]]; then
   ../dev2demo.sh $repoName

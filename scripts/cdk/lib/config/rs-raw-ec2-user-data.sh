@@ -17,7 +17,8 @@ yum install jq -y
 
 
 AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
-ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
+echo AWS_REGION=$AWS_REGION
+ACCOUNT_ID=$(aws sts get-caller-identity --region $AWS_REGION --output text --query Account)
 
 # code
 echo "==== setup code ======"
@@ -26,7 +27,7 @@ export HOME=/home/ec2-user
 #https://git-codecommit.ap-northeast-1.amazonaws.com/v1/repos/gcrRsDevWorkshopRepo
 
 url_suffix='com'
-if [[ AWS_REGION =~ ^cn.* ]];then
+if [[ $AWS_REGION =~ ^cn.* ]];then
     url_suffix='com.cn'
 fi 
 repo_name="https://git-codecommit.$AWS_REGION.amazonaws.${url_suffix}/v1/repos/recommender-system-dev-workshop-code"
@@ -41,6 +42,15 @@ echo "git config --global --list"
 git config --global --list
 echo ""
 
+# UNAME=$(uname -s)
+# curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_${UNAME}_amd64.tar.gz" | tar xz -C /tmp
+# mv /tmp/eksctl /usr/local/bin
+# eksctl version
+
+# curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+# chmod +x ./kubectl
+# mv ./kubectl /usr/local/bin/kubectl
+# kubectl version --client
 
 echo "==== config AWS ENV ======"
 # config AWS ENV
@@ -66,6 +76,7 @@ mv ./recommender-system-dev-workshop-code-main/* ./recommender-system-dev-worksh
 rm -rf recommender-system-dev-workshop-code-main
 cd ./recommender-system-dev-workshop-code/
 git add . && git commit -m 'first commit' && git push
+
 
 EOS
 
