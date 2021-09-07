@@ -1,6 +1,6 @@
 #!/bin/bash
 
-roleArn=$(cat role.arn)
+roleArn=$(cat _role.arn)
 projects[0]="loader"
 projects[1]="event"
 projects[2]="filter"
