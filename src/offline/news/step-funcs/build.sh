@@ -77,7 +77,8 @@ do
     $AWS_CMD  cloudformation deploy --region ${REGION} \
     --template-file ${template_file} --stack-name ${STACK_NAME} \
     --parameter-overrides ${PARAMETER_OVERRIDES} \
-    --capabilities CAPABILITY_NAMED_IAM
+    --capabilities CAPABILITY_NAMED_IAM \
+    --no-fail-on-empty-changeset
 
 
      StackStatus=$($AWS_CMD  cloudformation  describe-stacks --region ${REGION} --stack-name ${STACK_NAME} --output table | grep StackStatus)

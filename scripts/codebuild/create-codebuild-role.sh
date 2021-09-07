@@ -6,7 +6,7 @@ paramDelete=$2
 
 if [[ -z $Stage ]];then
    Stage='dev-workshop'
-fi 
+fi
 
 echo "Stage: $Stage"
 echo "paramDelete: $paramDelete"
@@ -54,7 +54,8 @@ PARAMETER_OVERRIDES="Stage=$Stage"
 $AWS_CMD  cloudformation deploy --region ${REGION} \
 --template-file ./codebuild-role.yaml --stack-name ${STACK_NAME} \
 --parameter-overrides ${PARAMETER_OVERRIDES} \
---capabilities CAPABILITY_NAMED_IAM
+--capabilities CAPABILITY_NAMED_IAM \
+--no-fail-on-empty-changeset
 
 StackStatus=$($AWS_CMD cloudformation  describe-stacks --region ${REGION} --stack-name ${STACK_NAME} --output table | grep StackStatus)
 echo ${StackStatus} |  egrep "(CREATE_COMPLETE)|(UPDATE_COMPLETE)" > /dev/null
