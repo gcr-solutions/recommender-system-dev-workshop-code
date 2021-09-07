@@ -18,12 +18,31 @@ if [[ -n $REPO_NAME ]];then
   repoName=$REPO_NAME
 fi
 
+function download_dgl() {
+    url=$1
+    echo "download:$url"
+    rm -rf ./dgl > /dev/null  2>&1
+    mkdir ./dgl
+    wget --quiet $url || {
+        echo "error: fail to download $url"
+        exit 1
+    }
+    unzip dgl-ke.zip
+    rm dgl-ke.zip
+    cd ..
+}
+
+dgl_url=https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/dgl/dgl-ke.zip
+
+
 if [[ $Stage == 'demo' ]]; then
     ../dev2demo.sh $repoName
 else
     rm -rf fasthan_base >/dev/null 2>&1
     mkdir fasthan_base
     if [[ $AWS_REGION =~ ^cn.* ]]; then
+      dgl_url=https://aws-gcr-solutions-assets.s3.cn-northwest-1.amazonaws.com.cn/gcr-rs/dgl/dgl-ke.zip
+
       cd ./fasthan_base
       wget --quiet https://aws-gcr-solutions-assets.s3.cn-northwest-1.amazonaws.com.cn/gcr-rs/fasthan/fasthan_base.zip || {
         echo "error: fail to download fasthan_base.zip"

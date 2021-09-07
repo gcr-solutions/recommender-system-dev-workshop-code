@@ -9,7 +9,11 @@ COPY requirements.txt .
 RUN pip3 install --default-timeout=1800 --user -r requirements.txt
 RUN pip3 install --no-cache-dir dgl==0.4.3.post2
 #RUN pip3 install -e git+http://git@github.com/xiaotinghe/fastHan.git'#egg=fastHan'
-RUN pip3 install -e git+http://git@github.com/xiaotinghe/dgl-ke.git'#egg=dglke&subdirectory=python'
+#RUN pip3 install -e git+http://git@github.com/xiaotinghe/dgl-ke.git'#egg=dglke&subdirectory=python'
+
+COPY dgl/* /opt/ml/dgl/
+RUN pip3 install -e /opt/ml/dgl/src/dglke/python/
+
 
 COPY fasthan_base/* /opt/ml/fasthan_base/
 
