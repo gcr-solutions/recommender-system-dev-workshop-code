@@ -142,6 +142,8 @@ for project in ${projects_dir[@]}; do
      sleep 10
   fi
 
+  sleep 2
+
   app_path=${project}
   if [[ $DELETE_FLAG == 'DELETE' ]];then
       delete_codebuild_project $build_proj_name $app_path
