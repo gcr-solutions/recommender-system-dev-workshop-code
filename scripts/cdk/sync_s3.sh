@@ -7,12 +7,15 @@ git pull
 ReleaseVersion=$1
 
 
-ProfileName="rsops"
+PROFILE="rsops"
 if [[ -n $2 ]]; then
-  ProfileName=$2
+  PROFILE=$2
 fi
 
-AWS_CMD="aws --profile $ProfileName"
+CN_PROFILE="rsops"
+if [[ -n $3 ]]; then
+  CN_PROFILE=$3
+fi
 
 if [[ -n $PROFILE ]]; then
    AWS_CMD="aws --profile $PROFILE"
