@@ -24,8 +24,8 @@ echo "AWS_CMD_CN: $AWS_CMD_CN, REGION_CN: $REGION_CN"
 AWS_ACCOUNT_ID=$(${AWS_CMD} sts get-caller-identity --region ${REGION_G}  --query Account --output text)
 AWS_ACCOUNT_ID_CN=$(${AWS_CMD_CN} sts get-caller-identity --region ${REGION_CN} --query Account --output text)
 
-echo "AWS_ACCOUNT_ID:$AWS_ACCOUNT_ID"
-echo "AWS_ACCOUNT_ID_CN:$AWS_ACCOUNT_ID_CN"
+echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
+echo "AWS_ACCOUNT_ID_CN: $AWS_ACCOUNT_ID_CN"
 
 echo "Please confirm your AWS profile, region and account id, continue[n|y]:"
 read REPLEY
