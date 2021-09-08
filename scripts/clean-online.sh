@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+#set -e
 
 ##############################delete resource for application##############################
 export EKS_CLUSTER=gcr-rs-dev-application-cluster
