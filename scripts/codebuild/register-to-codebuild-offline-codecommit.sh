@@ -138,16 +138,18 @@ for project in ${projects_dir[@]}; do
     build_proj_name="rs-$Stage-offline-${build_name}-$CN_REGION-build"
   fi
 
-  if [[ $project == 'lambda' ]]; then
-     sleep 10
-  fi
-
   app_path=${project}
   if [[ $DELETE_FLAG == 'DELETE' ]];then
       delete_codebuild_project $build_proj_name $app_path
   else
       create_codebuild_project $build_proj_name $app_path
   fi
+  if [[ $project == 'lambda' ]]; then
+     sleep 10
+  else
+     sleep 3
+  fi
+
 done
 
 build_proj_name="rs-$Stage-offline-build"

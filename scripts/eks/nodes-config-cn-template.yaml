@@ -1,0 +1,42 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: gcr-rs-dev-application-cluster
+  region: __AWS_REGION__
+  version: "1.20"
+
+#__AVAILABILITYZONE__#
+
+nodeGroups:
+  - name: rs-cpu-ng
+    labels: { role: rs-cpu-ng }
+    instanceType: r5.4xlarge
+    minSize: 2
+    maxSize: 4
+    volumeSize: 80
+    ssh:
+      allow: true
+      enableSsm: true
+    iam:
+      attachPolicyARNs:
+        - arn:aws-cn:iam::aws:policy/AWSStepFunctionsFullAccess
+        - arn:aws-cn:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws-cn:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws-cn:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws-cn:iam::aws:policy/ElasticLoadBalancingFullAccess        
+      withAddonPolicies:
+        imageBuilder: true
+        externalDNS: true
+        certManager: true
+        ebs: true
+        fsx: true
+        efs: true
+        appMesh: true
+        xRay: true
+        autoScaler: true
+        albIngress: true
+        cloudWatch: true
+    tags:
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/gcr-rs-dev-application-cluster: "owned"

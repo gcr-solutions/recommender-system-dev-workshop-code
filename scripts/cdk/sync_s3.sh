@@ -12,7 +12,7 @@ if [[ -n $2 ]]; then
   PROFILE=$2
 fi
 
-CN_PROFILE="rsopsbjs"
+CN_PROFILE="rsopsbj"
 if [[ -n $3 ]]; then
   CN_PROFILE=$3
 fi
@@ -71,6 +71,17 @@ fi
 echo "cdk synth RsRawEC2CdkStack ..."
 cdk synth RsRawEC2CdkStack > rs-raw-ec2.yaml
 sed -i -e 's/SsmParameterValueawsserviceamiamazonlinuxlatestamzn2ami.*Parameter/SsmParameterValueForImageId/g' ./rs-raw-ec2.yaml
+
+EC2_PHYSICALNAME_ID=$(cat ./rs-raw-ec2.yaml | egrep -o "gcrRsDevWorkshopEc2Ec2Instance[0-9a-fA-F]+" | head -1)
+echo "EC2_PHYSICALNAME_ID: $EC2_PHYSICALNAME_ID"
+
+if [[ -z $EC2_PHYSICALNAME_ID ]]; then
+  echo "Error!!! cannot find EC2_PHYSICALNAME_ID"
+  exit 1
+fi
+
+sed -i -e "s/__EC2_PHYSICALNAME_ID__/$EC2_PHYSICALNAME_ID/g" ./rs-raw-ec2.yaml
+sed -i -e "s/Fn::Base64:/Fn::Base64: !Sub/g"  ./rs-raw-ec2.yaml
 
 # latest
 $AWS_CMD s3 cp ./rs-raw-ec2.yaml s3://${bucket_G}/rs-dev-workshop-code/latest/ --acl public-read
@@ -139,7 +150,7 @@ if [[ $ReleaseVersion =~ v.* ]]; then
 fi
 
 rm main.zip
-rm rs-raw-ec2.yaml-e > /dev/null 2>&1  || true
+rm rs-raw-ec2.yaml.*e > /dev/null 2>&1  || true
 rm $version_id
 
 if [[ -z $_DEBUG ]];then
@@ -163,7 +174,7 @@ echo "China region"
 
 echo "https://${bucket_CN}.s3.${REGION_CN}.amazonaws.com.cn/rs-dev-workshop-code/latest/cn-rs-raw-ec2.yaml"
 echo "https://${bucket_CN}.s3.${REGION_CN}.amazonaws.com.cn/rs-dev-workshop-code/${todayStr}/cn-rs-raw-ec2.yaml"
-echo "https://${bucket_CN}.s3.${REGION_CN}.amazonaws.com.cn/rs-dev-workshop-code/github/main/cn-rs-raw-ec2.yaml"
+echo "https://${bucket_CN}.s3.${REGION_CN}.amazonaws.com.cn/rs-dev-workshop-code/github/main/rs-raw-ec2.yaml"
 
 if [[ $ReleaseVersion =~ v.* ]]; then
       echo "https://${bucket_CN}.s3.${REGION_CN}.amazonaws.com.cn/rs-dev-workshop-code/release/$ReleaseVersion/cn-rs-raw-ec2.yaml"

@@ -69,7 +69,7 @@ export class RsRawEC2CdkStack extends cdk.Stack {
     };
 
     const ec2Instance = new ec2.Instance(this, `${namePrefix}Ec2Instance`, {
-      //resourceSignalTimeout: Duration.minutes(10),
+      resourceSignalTimeout: Duration.minutes(10),
       vpc,
       vpcSubnets: {
         subnetType: ec2.SubnetType.PUBLIC,
@@ -79,15 +79,14 @@ export class RsRawEC2CdkStack extends cdk.Stack {
       securityGroup: securityGroup,
       keyName: keyPairParam.valueAsString,
       role: role,
-      blockDevices: [rootVolume],
-      
+      blockDevices: [rootVolume]
     });
     
     repo.grantPullPush(ec2Instance);
     const userDataFile = path.join(__dirname, './config/rs-raw-ec2-user-data.sh')
     const userDataScript = readFileSync(userDataFile, 'utf8');
     ec2Instance.addUserData(userDataScript);
-    //ec2Instance.userData.addSignalOnExitCommand(ec2Instance);
+    // ec2Instance.userData.addSignalOnExitCommand(ec2Instance);
     ec2Instance.node.addDependency(repo);
 
     new cdk.CfnOutput(this, 'SSH Command', {
