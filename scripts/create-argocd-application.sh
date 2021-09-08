@@ -48,7 +48,7 @@ echo $REPO_USER
 REPO_URL=$(aws codecommit get-repository --repository-name $APP_CONF_REPO --query "repositoryMetadata.cloneUrlHttp" --output text)
 echo $REPO_URL
 
-sleep 10
+sleep 40
 
 argocd repo add $REPO_URL --username $REPO_USER --password $CODE_COMMIT_PASSWORD --insecure-skip-server-verification
 
