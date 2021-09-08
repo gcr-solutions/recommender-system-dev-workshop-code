@@ -6,8 +6,12 @@ git pull
 
 ReleaseVersion=$1
 
+<<<<<<< HEAD
 ProfileName="rsops"
+=======
+>>>>>>> beb432d (add profile config)
 
+ProfileName="rsops"
 if [[ -n $2 ]]; then
   ProfileName=$2
 fi
