@@ -81,7 +81,7 @@ if [[ -z $EC2_PHYSICALNAME_ID ]]; then
 fi
 
 sed -i -e "s/__EC2_PHYSICALNAME_ID__/$EC2_PHYSICALNAME_ID/g" ./rs-raw-ec2.yaml
-sed -i e "s/Fn::Base64:/Fn::Base64: !Sub/g"  ./rs-raw-ec2.yaml
+sed -i -e "s/Fn::Base64:/Fn::Base64: !Sub/g"  ./rs-raw-ec2.yaml
 
 # latest
 $AWS_CMD s3 cp ./rs-raw-ec2.yaml s3://${bucket_G}/rs-dev-workshop-code/latest/ --acl public-read
