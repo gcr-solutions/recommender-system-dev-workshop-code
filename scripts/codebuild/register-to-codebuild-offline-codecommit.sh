@@ -33,9 +33,7 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
-
 AWS_P='aws'
 if [[ $REGION =~ cn.* ]];then
   AWS_P='aws-cn'
@@ -43,11 +41,9 @@ fi
 
 roleArn=$(cat _role.arn) ||  roleArn=''
 if [[ -z $roleArn ]]; then
-  ./create-iam-role.sh
-  #echo "ERROR: cannot read file role.arn, please set your codebuild role in file: 'role.arn' or run ./create-iam-role.sh firstly"
-  roleArn="arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-${Stage}-codebuild-role"
-  #exit 1
+  roleArn="arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-${Stage}-codebuild-role-${REGION}"
 fi
+
 echo "roleArn: $roleArn"
 echo "DELETE_FLAG: $DELETE_FLAG"
 echo ""
@@ -117,7 +113,6 @@ echo "----------------projects-------------------------"
 
 projects_dir=(
   "lambda"
-  "news/step-funcs"
   "news/item-preprocessing"
   "news/add-item-batch"
   "news/item-feature-update-batch"
@@ -133,6 +128,7 @@ projects_dir=(
   "news/rank-batch"
   "news/filter-batch"
   "news/inverted-list"
+  "news/step-funcs"
 )
 
 for project in ${projects_dir[@]}; do
@@ -141,6 +137,11 @@ for project in ${projects_dir[@]}; do
   if [[ -n $CN_REGION ]];then
     build_proj_name="rs-$Stage-offline-${build_name}-$CN_REGION-build"
   fi
+
+  if [[ $project == 'lambda' ]]; then
+     sleep 10
+  fi
+
   app_path=${project}
   if [[ $DELETE_FLAG == 'DELETE' ]];then
       delete_codebuild_project $build_proj_name $app_path

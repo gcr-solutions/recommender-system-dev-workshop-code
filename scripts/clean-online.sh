@@ -93,7 +93,7 @@ fi
 #detach eks cluster roles
 echo "################ Detach eks cluster roles for workshop ################ "
 
-ROLE_NAMES=$(aws iam list-roles | jq '.[][].RoleName' -r | grep eksctl-gcr-rs-dev-application-cluster*)
+ROLE_NAMES=$(aws iam list-roles | jq '.[][].RoleName' -r | grep eksctl-gcr-rs-dev-application-*)
 for ROLE_NAME in $(echo $ROLE_NAMES); do
   POLICY_ARNS=$(aws iam list-attached-role-policies --role-name $ROLE_NAME | jq '.[][].PolicyArn' -r)
   for POLICY_ARN in $(echo $POLICY_ARNS); do
@@ -106,7 +106,6 @@ done
 
 #remove eks cluster
 echo "################ Delete eks cluster for workshop ################ "
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
 eksctl delete cluster --name=$EKS_CLUSTER
 
 #remove codebuild project

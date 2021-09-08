@@ -37,6 +37,9 @@ AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Acc
 echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 
 sleep 3
+echo "0. ========= Create codebuild Role =============="
+cd ${curr_dir}/codebuild
+./create-codebuild-role.sh $Stage
 
 echo "1. ========= Create codebuild =============="
 cd ${curr_dir}/codebuild
@@ -54,16 +57,15 @@ cd ${curr_dir}/../sample-data
 #cd ${curr_dir}/../src/offline/news/step-funcs
 #./build.sh $Stage
 
-#echo "Offline resources are created successfully"
-#echo "You can run your step-funcs with below input"
-#
-#echo '{
-#  "Bucket": "aws-gcr-rs-sol-'${Stage}'-'${REGION}'-'${AWS_ACCOUNT_ID}'",
-#  "S3Prefix": "sample-data-news",
-#  "change_type": "ITEM|BATCH|USER|MODEL"
-#}'
-
+echo "You can run your step-funcs with below input"
+echo '{
+  "Bucket": "aws-gcr-rs-sol-'${Stage}'-'${REGION}'-'${AWS_ACCOUNT_ID}'",
+  "S3Prefix": "sample-data-news",
+  "change_type": "ITEM|BATCH|USER|MODEL"
+}'
 echo ""
+echo "Offline resources are created successfully"
+
 
 
 

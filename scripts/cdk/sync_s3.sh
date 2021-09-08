@@ -33,6 +33,11 @@ sed -e "s#${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/
 $AWS_CMD s3 cp ./github-rs-raw-ec2.yaml s3://${bucket}/rs-dev-workshop-code/github/main/rs-raw-ec2.yaml --acl public-read
 rm github-rs-raw-ec2.yaml
 
+cn_code_location="aws-gcr-solutions-assets.s3.cn-northwest-1.amazonaws.com.cn/gcr-rs/code/release/v1/main.zip"
+sed -e "s#${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/main.zip#$cn_code_location#g" ./rs-raw-ec2.yaml > ./cn-rs-raw-ec2.yaml
+$AWS_CMD s3 cp ./cn-rs-raw-ec2.yaml s3://${bucket}/rs-dev-workshop-code/cn-code/rs-raw-ec2.yaml --acl public-read
+rm ./cn-rs-raw-ec2.yaml
+
 rm main.zip > /dev/null 2>&1 || true
 
 # code
@@ -71,6 +76,7 @@ rm gitCommitId
 echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/rs-raw-ec2.yaml"
 echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/${todayStr}/rs-raw-ec2.yaml"
 echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/github/main/rs-raw-ec2.yaml"
+echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/cn-code/rs-raw-ec2.yaml"
 
 if [[ $ReleaseVersion =~ v.* ]]; then
       echo "https://${bucket}.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/release/$ReleaseVersion/rs-raw-ec2.yaml"

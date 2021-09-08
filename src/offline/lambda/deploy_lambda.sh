@@ -41,7 +41,8 @@ echo "STACK_NAME: ${STACK_NAME}"
 $AWS_CMD  cloudformation deploy --region ${REGION} \
 --template-file ./template_role.yaml --stack-name ${STACK_NAME} \
 --parameter-overrides ${PARAMETER_OVERRIDES} \
---capabilities CAPABILITY_NAMED_IAM
+--capabilities CAPABILITY_NAMED_IAM \
+--no-fail-on-empty-changeset
 
 StackStatus=$($AWS_CMD cloudformation  describe-stacks --region ${REGION} --stack-name ${STACK_NAME} --output table | grep StackStatus)
 echo ${StackStatus} |  egrep "(CREATE_COMPLETE)|(UPDATE_COMPLETE)" > /dev/null
@@ -61,7 +62,8 @@ echo "$AWS_CMD cloudformation deploy --region ${REGION} \
 $AWS_CMD  cloudformation deploy --region ${REGION} \
 --template-file ./template.yaml --stack-name ${STACK_NAME} \
 --parameter-overrides ${PARAMETER_OVERRIDES} \
---capabilities CAPABILITY_NAMED_IAM
+--capabilities CAPABILITY_NAMED_IAM \
+--no-fail-on-empty-changeset
 
 StackStatus=$($AWS_CMD cloudformation  describe-stacks --region ${REGION} --stack-name ${STACK_NAME} --output table | grep StackStatus)
 echo ${StackStatus} |  egrep "(CREATE_COMPLETE)|(UPDATE_COMPLETE)" > /dev/null
