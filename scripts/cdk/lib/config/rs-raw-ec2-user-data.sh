@@ -1,3 +1,9 @@
+function exitTrap(){
+ exitCode=$?
+ /opt/aws/bin/cfn-signal --stack ${AWS::StackName} --resource __EC2_PHYSICALNAME_ID__ --region ${AWS::Region} -e $exitCode || echo 'Failed to send Cloudformation Signal'
+}
+trap exitTrap EXIT
+
 set -e
 
 exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
@@ -29,7 +35,7 @@ url_suffix='com'
 if [[ $AWS_REGION =~ ^cn.* ]];then
     url_suffix='com.cn'
 fi 
-repo_name="https://git-codecommit.$AWS_REGION.amazonaws.${url_suffix}/v1/repos/recommender-system-dev-workshop-code"
+repo_name="https://git-codecommit.$AWS_REGION.amazonaws.$url_suffix/v1/repos/recommender-system-dev-workshop-code"
 echo $repo_name
 
 echo "run git config --global"
@@ -43,7 +49,8 @@ echo ""
 
 if [[ $AWS_REGION =~ ^cn.* ]]; then
     echo "install kubectl and eksctl in $AWS_REGION"
-    curl -o kubectl https://amazon-eks.s3.cn-north-1.amazonaws.com.cn/1.21.2/2021-07-05/bin/linux/amd64/kubectl
+    #curl -o kubectl https://amazon-eks.s3.cn-north-1.amazonaws.com.cn/1.21.2/2021-07-05/bin/linux/amd64/kubectl
+    curl -o kubectl https://aws-gcr-solutions-assets.s3.cn-northwest-1.amazonaws.com.cn/gcr-rs/eks/kubectl
     chmod +x ./kubectl
     mv ./kubectl /usr/local/bin/kubectl
 
@@ -53,12 +60,11 @@ if [[ $AWS_REGION =~ ^cn.* ]]; then
 
 else
     echo "install kubectl and eksctl in $AWS_REGION"
-    curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+    curl -LO https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/eks/kubectl
     chmod +x ./kubectl
     mv ./kubectl /usr/local/bin/kubectl
 
-    UNAME=$(uname -s)
-    curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_${UNAME}_amd64.tar.gz" | tar xz -C /tmp
+    curl --silent --location "https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/eks/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
     chmod +x /tmp/eksctl
     mv /tmp/eksctl /usr/local/bin
 
@@ -73,11 +79,11 @@ echo "==== config AWS ENV ======"
 # config AWS ENV
 sudo -u ec2-user -i <<EOS
 echo "set default.region"
-aws configure set default.region ${AWS_REGION}
+aws configure set default.region $AWS_REGION
 aws configure get default.region
-echo "export ACCOUNT_ID=${ACCOUNT_ID}" | tee -a /home/ec2-user/.bash_profile
-echo "export AWS_REGION=${AWS_REGION}" | tee -a /home/ec2-user/.bash_profile
-echo "export REGION=${AWS_REGION}" | tee -a /home/ec2-user/.bash_profile
+echo "export ACCOUNT_ID=$ACCOUNT_ID" | tee -a /home/ec2-user/.bash_profile
+echo "export AWS_REGION=$AWS_REGION" | tee -a /home/ec2-user/.bash_profile
+echo "export REGION=$AWS_REGION" | tee -a /home/ec2-user/.bash_profile
 
 mkdir /home/ec2-user/environment
 cd /home/ec2-user/environment
@@ -89,8 +95,8 @@ wget --quiet https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northea
 }
 unzip main.zip
 
-echo "git clone ${repo_name}"
-git clone ${repo_name}
+echo "git clone $repo_name"
+git clone $repo_name
 
 mv ./recommender-system-dev-workshop-code-main/* ./recommender-system-dev-workshop-code/
 
