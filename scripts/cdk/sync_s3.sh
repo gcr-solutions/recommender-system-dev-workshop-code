@@ -31,7 +31,7 @@ echo "Please confirm your AWS profile, region and account id, continue[n|y]:"
 read REPLEY
 
 if [[ $REPLEY =~ ^y ]]; then
-  echo "confirmed"
+  echo ""
 else
   echo "abort"
   exit 0
@@ -44,6 +44,8 @@ todayStr=$(date +"%Y-%m-%d")
 bucket_G=aws-gcr-rs-sol-workshop-ap-northeast-1-common
 bucket_CN=aws-gcr-rs-sol-workshop-cn-north-1-common
 
+echo "$version_id"
+echo "$todayStr"
 
 code_url='https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/rs-dev-workshop-code/latest/main.zip'
 cn_code_url='https://aws-gcr-rs-sol-workshop-cn-north-1-common.s3.cn-north-1.amazonaws.com.cn/rs-dev-workshop-code/latest/main.zip'
@@ -58,6 +60,7 @@ if [[ $ReleaseVersion =~ v.* ]];then
    cn_release_code_url="https://aws-gcr-rs-sol-workshop-cn-north-1-common.s3.cn-north-1.amazonaws.com.cn/rs-dev-workshop-code/release/${ReleaseVersion}/main.zip"
 fi
 
+echo "cdk synth RsRawEC2CdkStack ..."
 cdk synth RsRawEC2CdkStack > rs-raw-ec2.yaml
 sed -i -e 's/SsmParameterValueawsserviceamiamazonlinuxlatestamzn2ami.*Parameter/SsmParameterValueForImageId/g' ./rs-raw-ec2.yaml
 
