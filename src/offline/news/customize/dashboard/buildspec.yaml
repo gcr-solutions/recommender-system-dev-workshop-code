@@ -2,8 +2,8 @@ version: 0.2
 
 env:
   variables:
-    APP_NAME: "news-dashboard"
-    DIR_NAME: "news/dashboard"
+    APP_NAME: "news-customize-dashboard"
+    DIR_NAME: "news/customize/dashboard"
 #  secrets-manager:
 #    GITHUB_USER: gcr-rs-dev-workshop-secret:githubUser
 #    ACCESS_TOKEN: gcr-rs-dev-workshop-secret:accessToken
