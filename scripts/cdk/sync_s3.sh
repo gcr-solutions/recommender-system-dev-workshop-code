@@ -12,7 +12,7 @@ if [[ -n $2 ]]; then
   PROFILE=$2
 fi
 
-CN_PROFILE="rsops"
+CN_PROFILE="rsopsbjs"
 if [[ -n $3 ]]; then
   CN_PROFILE=$3
 fi
