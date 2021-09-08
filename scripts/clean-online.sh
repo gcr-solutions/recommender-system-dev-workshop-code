@@ -106,7 +106,7 @@ done
 
 #remove eks cluster
 echo "################ Delete eks cluster for workshop ################ "
-eksctl delete cluster --name=$EKS_CLUSTER --region=$REGION
+eksctl delete cluster --name=$EKS_CLUSTER
 
 #remove codebuild project
 projects[0]="loader"

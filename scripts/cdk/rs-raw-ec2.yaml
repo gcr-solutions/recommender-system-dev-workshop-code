@@ -385,7 +385,7 @@ Resources:
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
-      Analytics: v2:deflate64:H4sIAAAAAAAAE1VQwW7CMAz9lt1DoBw27TbUA+JE1U7cU9dogTauEmeoivrvS1qg7ORn+/nZfpkMWfYpN29f6uZW0FzXQBZlqFjBVeRnUyirOmS0KTl67j2LnIxj64FTrURH3gImHBuNZk1mFNl286oaEggIWxlOPSTuqchF4etWQ+Vrg5PWgkryjN+qbnGpL7WdcwRapU1PcgIHEw+NzL1ivKnhvuae7Tj+9NOhYVEheKt52Fvy/bTgX+EQ31MG7pIzHoVWnQwlzRdNsaB4/bRlQQ9+Yems2zgG1CBQ12mO09iT00x2mJ17ZGOiJdtfzXw6P8a2iSry4ta/2bv8iMZenNYr6w3rDmU5xz+zIEEyzAEAAA==
+      Analytics: v2:deflate64:H4sIAAAAAAAAE1VRwW6DMAz9lt1pWnqYtNsqDlVPQzD1HoyrpSUxSpxVKOLflwAt3SnP9vN7tpOLkOcfYvf2Ke9uA+1tC2RRhJol3LLiYkpppUZGm4Ivz73nrCDj2HrglKvQkbeACcdCq1iRGbN8v3tVDQkEhL0I5x4S91wWWembTkHtG4OT1ooq8ozfsulwza+5g3MESianJzmBk4mDRuZRMt7lsNgs0YHjTj8aDWc1greKh6Ml308G/xKnuJ40sEjOeMyU1CJUNE80vSXF6SeXFT34paWL6mIbUItAWiuO3diTU0x2mC/3iMZES2d/Pebz8mMsm6girm77m7+L9F1Xp9TGesNKo6jm9w9dTnFQzAEAAA==
     Metadata:
       aws:cdk:path: RsRawEC2CdkStack/CDKMetadata/Default
     Condition: CDKMetadataAvailable
