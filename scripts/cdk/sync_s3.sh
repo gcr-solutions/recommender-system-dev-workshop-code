@@ -174,7 +174,7 @@ echo "China region"
 
 echo "https://${bucket_CN}.s3.${REGION_CN}.amazonaws.com.cn/rs-dev-workshop-code/latest/cn-rs-raw-ec2.yaml"
 echo "https://${bucket_CN}.s3.${REGION_CN}.amazonaws.com.cn/rs-dev-workshop-code/${todayStr}/cn-rs-raw-ec2.yaml"
-echo "https://${bucket_CN}.s3.${REGION_CN}.amazonaws.com.cn/rs-dev-workshop-code/github/main/cn-rs-raw-ec2.yaml"
+echo "https://${bucket_CN}.s3.${REGION_CN}.amazonaws.com.cn/rs-dev-workshop-code/github/main/rs-raw-ec2.yaml"
 
 if [[ $ReleaseVersion =~ v.* ]]; then
       echo "https://${bucket_CN}.s3.${REGION_CN}.amazonaws.com.cn/rs-dev-workshop-code/release/$ReleaseVersion/cn-rs-raw-ec2.yaml"
