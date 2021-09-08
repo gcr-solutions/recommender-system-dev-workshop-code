@@ -9,7 +9,7 @@ cat ./eks/nodes-config-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > ./
 if [[ $REGION =~ us-east* ]];then
   cat ./eks/nodes-config-template.yaml | sed 's/#__AVAILABILITYZONE__#/'"availabilityZones: ['us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-1d', 'us-east-1f']"'/g' > ./eks/nodes-config.yaml
 fi
-eksctl create cluster -f ./eks/nodes-config.yaml
+eksctl create cluster -f ./eks/nodes-config.yaml --region=$REGION
 # # 1.2 Create EKS cluster namespace
 kubectl apply -f ../manifests/envs/news-dev/ns.yaml
 
