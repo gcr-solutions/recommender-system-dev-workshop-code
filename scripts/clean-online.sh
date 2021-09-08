@@ -106,7 +106,6 @@ done
 
 #remove eks cluster
 echo "################ Delete eks cluster for workshop ################ "
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
 eksctl delete cluster --name=$EKS_CLUSTER
 
 #remove codebuild project
