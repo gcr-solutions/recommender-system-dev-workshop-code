@@ -136,7 +136,7 @@ rm $version_id
 
 if [[ -z $_DEBUG ]];then
     rm ./cn-latest-rs-raw-ec2.yaml  ${todayStr}-rs-raw-ec2.yaml  cn-${todayStr}-rs-raw-ec2.yaml github-rs-raw-ec2.yaml
-    rm ./release-rs-raw-ec2.yaml /cn-release-rs-raw-ec2.yaml> /dev/null 2>&1  || true
+    rm ./release-rs-raw-ec2.yaml ./cn-release-rs-raw-ec2.yaml > /dev/null 2>&1  || true
 fi
 
 echo ""
