@@ -4,10 +4,6 @@ set -e
 cd ../manifests
 echo "################ start clean istio and argocd resources ################ "
 
-export EKS_CLUSTER=gcr-rs-dev-application-cluster
-
-eksctl utils write-kubeconfig --region $REGION --cluster $EKS_CLUSTER
-
 kubectl delete -f istio-ingress-gateway.yaml
 
 kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
