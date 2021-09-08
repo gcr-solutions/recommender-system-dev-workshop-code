@@ -147,7 +147,7 @@ for project in ${projects_dir[@]}; do
   if [[ $project == 'lambda' ]]; then
      sleep 10
   else
-     sleep 2
+     sleep 3
   fi
 
 done

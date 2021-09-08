@@ -49,13 +49,13 @@ for project in ${projects[@]}; do
     
     aws codebuild create-project \
         --cli-input-json file://${project}-codebuild.json \
-        --service-role ${roleArn}
+        --service-role ${roleArn} > /dev/null
     echo "Done."
     sleep 5
     rm -f ${project}-codebuild.json
 
     echo "Start build ${project}!"
-    aws codebuild start-build --project-name gcr-rs-dev-workshop-${project}-build
+    aws codebuild start-build --project-name gcr-rs-dev-workshop-${project}-build > /dev/null
     sleep 10
 
     # echo "Activing webhook on Github with all events ..."
