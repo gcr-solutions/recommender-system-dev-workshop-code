@@ -106,9 +106,6 @@ class Recall(service_pb2_grpc.RecallServicer):
         pickle_file_list.append(MANDATORY_ENV_VARS['NEWS_ID_PROPERTY'])
         self.reload_pickle_file(local_data_folder, pickle_file_list)
 
-        json_file_list = [MANDATORY_ENV_VARS['PS_CONFIG']]
-        self.reload_json_file(local_data_folder, json_file_list)
-
         out_file_list = [MANDATORY_ENV_VARS['PS_SIMS_BATCH_RESULT']]
         self.reload_out_file(local_data_folder, out_file_list)
 
@@ -165,6 +162,15 @@ class Recall(service_pb2_grpc.RecallServicer):
                 else:
                     logging.info('entity_embed is empty')
 
+    def reload_out_file(self, file_path, file_list):
+        logging.info("reload_out_file start")
+        for file_name in file_list:
+            out_path = file_path + file_name
+            logging.info("reload_out_type out_path {}".format(out_path))
+            if MANDATORY_ENV_VARS['PS_SIMS_BATCH_RESULT'] in out_path:
+                logging.info('reload ps_sims_batch_result file {}'.format(out_path))
+                self.ps_sims_news_ids_dict = self.load_out_file(out_path)
+
     def load_pickle(self, file):
         if os.path.isfile(file):
             infile = open(file, 'rb')
@@ -174,6 +180,19 @@ class Recall(service_pb2_grpc.RecallServicer):
         else:
             logging.info('file {} is not existed'.format(file))
             return {}
+
+    def load_out_file(self, file):
+        logging.info("load_out_file start load {}".format(file))
+        ps_sims_news_ids_dict = {}
+        if os.path.isfile(file):
+            infile = open(file, 'rb')
+            for line in infile.readlines():
+                sims_recommend = json.loads(line)
+                ps_sims_news_ids_dict[sims_recommend['input']['itemId']] = sims_recommend['output']['recommendedItems']
+            infile.close()
+        else:
+            logging.info('file {} is not existed'.format(file))
+        return ps_sims_news_ids_dict
 
     def check_files_ready(self, file_path, file_list, loop_count):
         logging.info('start check files are ready: path {}, file_list {}'.format(file_path, file_list))
@@ -211,6 +230,8 @@ class Recall(service_pb2_grpc.RecallServicer):
             self.reload_pickle_file(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
         elif file_type == vector_index_type:
             self.reload_vector_index(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
+        elif file_type == out_type:
+            self.reload_out_file(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
 
         logging.info('Re-initial recall service.')
         commonResponse = service_pb2.CommonResponse(code=0, description='Re-initialled with success')
