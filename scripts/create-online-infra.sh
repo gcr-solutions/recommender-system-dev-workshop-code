@@ -9,6 +9,12 @@ csi_driver_name=efs.csi.aws.com
 efs_name=GCR-RS-DEV-WORKSHOP-EFS-FileSystem
 nfs_security_group_name=gcr-rs-dev-workshop-efs-nfs-sg
 
+echo "REGION:$REGION"
+
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION}  --query Account --output text)
+
+echo "AWS_ACCOUNT_ID:$AWS_ACCOUNT_ID"
+
 istio_link=https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/eks/istio-1.9.1.zip
 
 # 1. Create EKS Cluster
@@ -85,6 +91,9 @@ if [[ "${existed_csi_driver}" == "" ]];then
   if [[ $REGION =~ ^cn.* ]];then
     #curl -OL https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/v1.3.2/docs/iam-policy-example.json
     curl -LO https://aws-gcr-rs-sol-workshop-cn-north-1-common.s3.cn-north-1.amazonaws.com.cn/eks/iam-policy-example.json
+
+    aws iam delete-policy --policy-arn arn:aws-cn:iam::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy > /dev/null 2>&1 || true
+
     aws iam create-policy \
         --policy-name AmazonEKS_EFS_CSI_Driver_Policy \
         --policy-document file://iam-policy-example.json
