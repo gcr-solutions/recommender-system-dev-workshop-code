@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 #set -e
 # export PROFILE=rsops
+
+cur_dir=$(pwd)
+
 echo "------------------------------------------------ "
 Stage=$1
 if [[ -z $Stage ]];then
@@ -109,47 +112,63 @@ create_codebuild_project () {
   fi
 }
 
+sleep 10
+
 echo "----------------projects-------------------------"
 
+lambda_project="lambda"
+build_name=${lambda_project}
+build_proj_name="rs-$Stage-offline-${build_name}-build"
+app_path=${lambda_project}
+if [[ $DELETE_FLAG == 'DELETE' ]];then
+    delete_codebuild_project $build_proj_name $app_path
+else
+    create_codebuild_project $build_proj_name $app_path
+fi
+
 projects_dir=(
-  "lambda"
-  "news/item-preprocessing"
-  "news/add-item-batch"
-  "news/item-feature-update-batch"
-  "news/model-update-embedding"
-  "news/prepare-training-data"
-  "news/model-update-action"
-  "news/dashboard"
-  "news/action-preprocessing"
-  "news/user-preprocessing"
-  "news/add-user-batch"
-  "news/portrait-batch"
-  "news/recall-batch"
-  "news/rank-batch"
-  "news/filter-batch"
-  "news/inverted-list"
-  "news/step-funcs"
+  "item-preprocessing"
+  "add-item-batch"
+  "item-feature-update-batch"
+  "model-update-embedding"
+  "prepare-training-data"
+  "model-update-action"
+  "dashboard"
+  "action-preprocessing"
+  "user-preprocessing"
+  "batch-preprocessing"
+  "add-user-batch"
+  "portrait-batch"
+  "recall-batch"
+  "rank-batch"
+  "filter-batch"
+  "inverted-list"
+  "step-funcs"
 )
 
-for project in ${projects_dir[@]}; do
-  build_name=$(echo ${project} | sed 's#/#-#g')
-  build_proj_name="rs-$Stage-offline-${build_name}-build"
-  if [[ -n $CN_REGION ]];then
-    build_proj_name="rs-$Stage-offline-${build_name}-$CN_REGION-build"
-  fi
+method_list=(
+  "customize"
+#  "ps-complete"
+#  "ps-rank"
+#  "ps-sims"
+)
 
-  app_path=${project}
-  if [[ $DELETE_FLAG == 'DELETE' ]];then
-      delete_codebuild_project $build_proj_name $app_path
-  else
-      create_codebuild_project $build_proj_name $app_path
-  fi
-  if [[ $project == 'lambda' ]]; then
-     sleep 10
-  else
-     sleep 3
-  fi
-
+for method in ${method_list[@]}; do
+  for project in ${projects_dir[@]}; do
+    build_name="news-${method}-${project}"
+    build_proj_name="rs-$Stage-offline-${build_name}-build"
+    if [[ -n $CN_REGION ]];then
+      build_proj_name="rs-$Stage-offline-${build_name}-$CN_REGION-build"
+    fi
+    app_path="news/${method}/${project}"
+    if [[ -d "${cur_dir}/../src/offline/${app_path}" ]];then
+      if [[ $DELETE_FLAG == 'DELETE' ]];then
+          delete_codebuild_project $build_proj_name $app_path
+      else
+          create_codebuild_project $build_proj_name $app_path
+      fi
+    fi
+  done
 done
 
 build_proj_name="rs-$Stage-offline-build"
