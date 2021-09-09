@@ -92,7 +92,7 @@ Resources:
     Type: AWS::Events::Rule
     Properties:
       Name: !Sub rs-${Stage}-News-DashboardScheduledRule
-      ScheduleExpression: "cron(0/10 * ? * MON-FRI *)"
+      ScheduleExpression: "cron(0/60 * ? * MON-FRI *)"
       State: "ENABLED"
       Targets:
         - Arn: !Ref DashboardStepFunc
