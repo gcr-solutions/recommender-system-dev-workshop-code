@@ -98,6 +98,8 @@ if [[ "${existed_csi_driver}" == "" ]];then
         --policy-name AmazonEKS_EFS_CSI_Driver_Policy \
         --policy-document file://iam-policy-example.json
 
+    eksctl utils associate-iam-oidc-provider --region=$REGION --cluster=$EKS_CLUSTER
+
     eksctl create iamserviceaccount \
         --name efs-csi-controller-sa \
         --namespace kube-system \
