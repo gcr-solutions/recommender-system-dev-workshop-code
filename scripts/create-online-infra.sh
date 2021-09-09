@@ -50,12 +50,16 @@ fi
 existed_istio=$(kubectl get ns | grep ${istio_system_name})
 if [[ "${existed_istio}" == "" ]];then
   echo "Create Istio-System ..........."
+  rm -rf tmp_istio > /dev/null 2>&1
+  mkdir tmp_istio && cd ./tmp_istio
   curl -LO $istio_link
   unzip istio-1.9.1.zip && rm istio-1.9.1.zip
   cd ./bin
   ./istioctl operator init
   kubectl create ns istio-system
-  cd ../
+  cd ../..
+  rm -rf tmp_istio
+
   kubectl apply -f ../manifests/istio-ingress-gateway.yaml
 else
   echo "Istio System: ${istio_system_name} already exist ..........."
