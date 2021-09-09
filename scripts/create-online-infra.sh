@@ -3,10 +3,14 @@ set -e
 
 export EKS_CLUSTER=gcr-rs-dev-application-cluster
 
+istio_link=https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/eks/istio-1.9.1.zip
+
 # 1. Create EKS Cluster
 # # 1.1 Provision EKS cluster 
 if [[ $REGION =~ ^cn.* ]];then
   cat ./eks/nodes-config-cn-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > ./eks/nodes-config.yaml
+  istio_link=https://aws-gcr-rs-sol-workshop-cn-north-1-common.s3.cn-north-1.amazonaws.com/eks/istio-1.9.1.zip
+
 else
   cat ./eks/nodes-config-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > ./eks/nodes-config.yaml
   if [[ $REGION =~ us-east* ]];then
@@ -18,11 +22,13 @@ eksctl create cluster -f ./eks/nodes-config.yaml
 kubectl apply -f ../manifests/envs/news-dev/ns.yaml
 
 # 2. Install Istio with default profile
-curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.9.1 TARGET_ARCH=x86_64 sh -
-cd istio-1.9.1/bin
+# curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.9.1 TARGET_ARCH=x86_64 sh -
+curl -LO $istio_link
+unzip istio-1.9.1.zip && rm istio-1.9.1.zip
+cd ./bin
 ./istioctl operator init
 kubectl create ns istio-system
-cd ../../
+cd ../
 kubectl apply -f ../manifests/istio-ingress-gateway.yaml
 
 # 3. Create EFS
@@ -39,7 +45,8 @@ echo $SUBNET_IDS
 
 # 3.2 Install EFS CSI driver 
 if [[ $REGION =~ ^cn.* ]];then
-  curl -o iam-policy-example.json https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/v1.3.2/docs/iam-policy-example.json
+  #curl -OL https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/v1.3.2/docs/iam-policy-example.json
+  curl -LO https://aws-gcr-rs-sol-workshop-cn-north-1-common.s3.cn-north-1.amazonaws.com/eks/iam-policy-example.json
   aws iam create-policy \
       --policy-name AmazonEKS_EFS_CSI_Driver_Policy \
       --policy-document file://iam-policy-example.json
