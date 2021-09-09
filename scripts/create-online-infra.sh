@@ -15,7 +15,7 @@ AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION}  --query Account
 
 echo "AWS_ACCOUNT_ID:$AWS_ACCOUNT_ID"
 
-istio_link=https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/eks/istio-1.9.1.zip
+istio_link="https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/eks/istio-1.9.1.zip"
 
 # 1. Create EKS Cluster
 # # 1.1 Provision EKS cluster 
@@ -34,7 +34,7 @@ else
   fi
 fi
 
-existed_cluster=$(eksctl get cluster | grep ${EKS_CLUSTER})
+existed_cluster=$(eksctl get cluster | grep ${EKS_CLUSTER} || echo "")
 if [[ "${existed_cluster}" == "" ]];then
   echo "Create Cluster: ${EKS_CLUSTER} ..........."
   eksctl create cluster -f ./eks/nodes-config.yaml
@@ -43,7 +43,7 @@ else
 fi
 
 # # 1.2 Create EKS cluster namespace
-existed_ns=$(kubectl get ns | grep ${ns_name})
+existed_ns=$(kubectl get ns | grep ${ns_name} || echo "")
 if [[ "${existed_ns}" == "" ]];then
   echo "Create Namespace: ${existed_ns} ..........."
   kubectl apply -f ../manifests/envs/news-dev/ns.yaml
@@ -53,7 +53,7 @@ fi
 
 # 2. Install Istio with default profile
 # curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.9.1 TARGET_ARCH=x86_64 sh -
-existed_istio=$(kubectl get ns | grep ${istio_system_name})
+existed_istio=$(kubectl get ns | grep ${istio_system_name} || echo "")
 if [[ "${existed_istio}" == "" ]];then
   echo "Create Istio-System ..........."
   rm -rf tmp_istio > /dev/null 2>&1
@@ -85,7 +85,7 @@ echo $EKS_VPC_CIDR
 echo $SUBNET_IDS
 
 # 3.2 Install EFS CSI driver
-existed_csi_driver=$(kubectl get csidriver | grep ${csi_driver_name})
+existed_csi_driver=$(kubectl get csidriver | grep ${csi_driver_name} || echo "")
 if [[ "${existed_csi_driver}" == "" ]];then
   echo "Create CSI Driver: ${csi_driver_name} ..........."
   if [[ $REGION =~ ^cn.* ]];then
@@ -118,7 +118,7 @@ else
 fi
 
 # 3.3 Create EFS
-existed_EFS=$(aws efs describe-file-systems | grep ${efs_name})
+existed_EFS=$(aws efs describe-file-systems | grep ${efs_name} || echo "")
 if [[ "${existed_EFS}" == "" ]];then
   echo "Create EFS: ${efs_name} ..........."
   EFS_ID=$(aws efs create-file-system \
@@ -133,7 +133,7 @@ else
 fi
 
 # 3.4 Create NFS Security Group
-existed_NFS_SECURITY_GROUP=$(aws ec2 describe-security-groups | grep ${nfs_security_group_name})
+existed_NFS_SECURITY_GROUP=$(aws ec2 describe-security-groups | grep ${nfs_security_group_name} || echo "")
 if [[ "${existed_NFS_SECURITY_GROUP}" == "" ]];then
   echo "Create NFS Security Group: ${nfs_security_group_name} ..........."
   NFS_SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name ${nfs_security_group_name} \
