@@ -107,12 +107,7 @@
       "Resource": "*"
     },
     {
-      "Action": [
-        "codecommit:GetBranch",
-        "codecommit:GetCommit",
-        "codecommit:GetRepository",
-        "codecommit:ListBranches"
-      ],
+      "Action": "codecommit:*",
       "Effect": "Allow",
       "Resource": "*"
     },
