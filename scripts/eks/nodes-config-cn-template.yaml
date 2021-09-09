@@ -20,11 +20,6 @@ nodeGroups:
       enableSsm: true
     iam:
       attachPolicyARNs:
-        - arn:aws-cn:iam::aws:policy/AWSStepFunctionsFullAccess
-        - arn:aws-cn:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws-cn:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws-cn:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws-cn:iam::aws:policy/ElasticLoadBalancingFullAccess
         - arn:aws-cn:iam::aws:policy/PowerUserAccess
     tags:
       k8s.io/cluster-autoscaler/enabled: "true"
