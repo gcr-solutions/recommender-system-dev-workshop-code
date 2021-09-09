@@ -35,11 +35,15 @@ fi
 echo "AWS_CMD: $AWS_CMD"
 echo "REGION: $REGION"
 
+echo "update env $SCENARIO at $STAGE"
+
+SCENATIO_STAGE=$SCENARIO-$STAGE
+
 account_id=$($AWS_CMD  sts get-caller-identity --query Account --output text)
 
 echo "account_id: $account_id"
 
-dns_name=$(kubectl get svc istio-ingressgateway-news-dev -n istio-system -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+dns_name=$(kubectl get svc istio-ingressgateway-$SCENARIO_STAGE -n istio-system -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 if [[ $? != 0 ]];then
     echo "Error"
     exit 1

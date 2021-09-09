@@ -341,6 +341,9 @@ def get_step_funcs_name():
     if '-dev-workshop-' in s3bucket and namespace == 'rs-news-dev-ns':
         step_funcs_name = 'rs-dev-workshop-News-OverallStepFunc'
 
+    if '-dev-workshop-' in s3bucket and namespace == 'rs-movie-dev-ns':
+        step_funcs_name = 'rs-dev-workshop-News-OverallStepFunc'
+
     logging.info("get_step_funcs_name return: namespace: {}, step funcs name: {}".format(namespace, step_funcs_name))
     return step_funcs_name
 

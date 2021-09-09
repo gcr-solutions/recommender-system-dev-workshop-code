@@ -10,12 +10,15 @@ kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/s
 
 sleep 10
 
-echo "start check istio ingress gateway security group"
+echo "start check istio ingress gateway security group $SCENARIO at $STAGE"
+
+SCENATIO_STAGE=$SCENARIO-$STAGE
+
 
 i=1
 ISTIO_SG_ID=""
 while true; do
-  ISTIO_SG_ID=$(aws ec2 describe-security-groups --filter Name=tag:kubernetes.io/cluster/gcr-rs-dev-application-cluster,Values=owned Name=description,Values=*istio-system/istio-ingressgateway-news-dev* --query "SecurityGroups[*].[GroupId]" --output text)
+  ISTIO_SG_ID=$(aws ec2 describe-security-groups --filter Name=tag:kubernetes.io/cluster/gcr-rs-dev-application-cluster,Values=owned Name=description,Values=*istio-system/istio-ingressgateway-$SCENARIO_STAGE* --query "SecurityGroups[*].[GroupId]" --output text)
   if [ "$ISTIO_SG_ID" == "" ]; then
     echo "delete istio security group successfully!"
     break

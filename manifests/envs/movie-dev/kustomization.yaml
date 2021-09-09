@@ -1,0 +1,143 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# namespace to deploy all resources to
+namespace: rs-movie-dev-ns
+
+resources:
+- config.yaml
+- gateway.yaml
+- ./efs/pv-claim.yaml
+- ../../loader
+- ../../filter
+- ../../portrait
+- ../../rank
+- ../../recall
+- ../../redis
+- ../../event
+- ../../retrieve
+- ../../demo
+- ui
+
+# all with following *kustomization*
+images:
+- name: rs/demo
+  newName: 522244679887.dkr.ecr.ap-northeast-2.amazonaws.com/rs/demo
+  newTag: be41a3358cb67ead743d7d35c153defcf8fc8170
+- name: rs/event
+  newName: 522244679887.dkr.ecr.ap-northeast-2.amazonaws.com/rs/event
+  newTag: adf5fe9ec2b3525a94c4a42443879d092fab63c9
+- name: rs/filter
+  newName: 522244679887.dkr.ecr.ap-northeast-2.amazonaws.com/rs/filter
+  newTag: adf5fe9ec2b3525a94c4a42443879d092fab63c9
+- name: rs/filter-plugin
+  newName: 522244679887.dkr.ecr.ap-northeast-2.amazonaws.com/rs/filter-plugin
+  newTag: news-adf5fe9ec2b3525a94c4a42443879d092fab63c9
+- name: rs/loader
+  newName: public.ecr.aws/t8u1z3c8/rs/loader
+  newTag: latest
+- name: rs/portrait
+  newName: public.ecr.aws/t8u1z3c8/rs/portrait
+  newTag: latest
+- name: rs/portrait-plugin
+  newName: public.ecr.aws/t8u1z3c8/rs/portrait-plugin
+  newTag: latest
+- name: rs/rank
+  newName: 522244679887.dkr.ecr.ap-northeast-2.amazonaws.com/rs/rank
+  newTag: adf5fe9ec2b3525a94c4a42443879d092fab63c9
+- name: rs/rank-plugin
+  newName: 522244679887.dkr.ecr.ap-northeast-2.amazonaws.com/rs/rank-plugin
+  newTag: news-adf5fe9ec2b3525a94c4a42443879d092fab63c9
+- name: rs/recall
+  newName: 522244679887.dkr.ecr.ap-northeast-2.amazonaws.com/rs/recall
+  newTag: 14ed92e009c6720ffa39be641c63f6a96d4f85ed
+- name: rs/recall-plugin
+  newName: 522244679887.dkr.ecr.ap-northeast-2.amazonaws.com/rs/recall-plugin
+  newTag: news-14ed92e009c6720ffa39be641c63f6a96d4f85ed
+- name: rs/retrieve
+  newName: 522244679887.dkr.ecr.ap-northeast-2.amazonaws.com/rs/retrieve
+  newTag: adf5fe9ec2b3525a94c4a42443879d092fab63c9
+- name: rs/ui
+  newName: public.ecr.aws/t8u1z3c8/rs/ui
+  newTag: latest
+
+
+
+vars:
+- fieldref:
+    fieldPath: data.redis_host
+  name: REDIS_HOST
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-movie-dev-config
+- fieldref:
+    fieldPath: data.redis_port
+  name: REDIS_PORT
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-movie-dev-config
+- fieldref:
+    fieldPath: data.messge_broker_redis_host
+  name: MESSGE_BROKER_REDIS_HOST
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-movie-dev-config
+- fieldref:
+    fieldPath: data.messge_broker_redis_port
+  name: MESSGE_BROKER_REDIS_PORT
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-movie-dev-config
+- fieldref:
+    fieldPath: data.aws_region
+  name: AWS_REGION
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-movie-dev-config
+- fieldref:
+    fieldPath: data.s3_bucket
+  name: S3_BUCKET
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-movie-dev-config
+- fieldref:
+    fieldPath: data.s3_prefix
+  name: S3_PREFIX
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-movie-dev-config
+- fieldref:
+    fieldPath: data.click_record_bucket
+  name: CLICK_RECORD_BUCKET
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-movie-dev-config
+- fieldref:
+    fieldPath: data.click_record_file_path
+  name: CLICK_RECORD_FILE_PATH
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-movie-dev-config
+- fieldref:
+    fieldPath: data.user_record_file_path
+  name: USER_RECORD_FILE_PATH
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-movie-dev-config
+- fieldref:
+    fieldPath: data.local_data_folder
+  name: LOCAL_DATA_FOLDER
+  objref:
+    apiVersion: v1
+    kind: ConfigMap
+    name: rs-movie-dev-config

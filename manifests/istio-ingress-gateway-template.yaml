@@ -1,0 +1,12 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+  name: default-istiocontrolplane
+spec:
+  components:
+    ingressGateways:
+      - enabled: true
+        name: istio-ingressgateway-__SCENARIO_STAGE__
+        label:
+          istio: ingressgateway-__SCENARIO_STAGE__

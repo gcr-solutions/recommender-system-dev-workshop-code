@@ -32,11 +32,15 @@ elb_names=($($AWS_CMD elb describe-load-balancers --output text | grep LOADBALAN
 
 echo "find $#elb_names elbs"
 
+echo "update env $SCENARIO at $STAGE"
+
+SCENATIO_STAGE=$SCENARIO-$STAGE
+
 ingressgateway_elb=''
 for elb in ${elb_names[@]};
 do
   echo "check elb $elb ..."
-  $AWS_CMD elb describe-tags --load-balancer-name $elb --output text  | grep 'istio-ingressgateway-news-dev'
+  $AWS_CMD elb describe-tags --load-balancer-name $elb --output text  | grep 'istio-ingressgateway-$SCENARIO_STAGE'
   if [[ $? -eq '0' ]];then
      echo "find ingressgateway $elb"
      ingressgateway_elb=$elb

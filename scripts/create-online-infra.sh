@@ -15,7 +15,9 @@ else
 fi
 eksctl create cluster -f ./eks/nodes-config.yaml
 # # 1.2 Create EKS cluster namespace
-kubectl apply -f ../manifests/envs/news-dev/ns.yaml
+echo "creat infra for $SCENARIO at $STAGE"
+SCENATIO_STAGE=$SCENARIO-$STAGE
+kubectl apply -f ../manifests/envs/$SCENARIO_STAGE/ns.yaml
 
 # 2. Install Istio with default profile
 curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.9.1 TARGET_ARCH=x86_64 sh -
@@ -23,6 +25,9 @@ cd istio-1.9.1/bin
 ./istioctl operator init
 kubectl create ns istio-system
 cd ../../
+
+cat ../mainfests/istio-ingress-gateway-template.yaml | sed 's/__SCENARIO_STAGE__/'"$SCENARIO_STAGE"'/g' > ../mainfests/istio-ingress-gateway.yaml
+
 kubectl apply -f ../manifests/istio-ingress-gateway.yaml
 
 # 3. Create EFS
@@ -92,7 +97,7 @@ do
 done
 
 # 3.7 Apply & create PV/StorageClass
-cd ../manifests/envs/news-dev/efs
+cd ../manifests/envs/$SCENARIO_STAGE/efs
 cp csi-env-template.yaml csi-env.yaml
 sed -i 's/FILE_SYSTEM_ID/'"$EFS_ID"'/g' csi-env.yaml
 cat csi-env.yaml

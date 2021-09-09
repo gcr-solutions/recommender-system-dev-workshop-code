@@ -50,11 +50,15 @@ echo $REPO_URL
 
 sleep 40
 
+echo "create application $SCENARIO at $STAGE"
+
+SCENATIO_STAGE=$SCENARIO-$STAGE
+
 argocd repo add $REPO_URL --username $REPO_USER --password $CODE_COMMIT_PASSWORD --insecure-skip-server-verification
 
-argocd app create gcr-recommender-system-news-dev --repo $REPO_URL --path manifests/envs/news-dev --dest-namespace \
-rs-news-dev-ns --dest-server https://kubernetes.default.svc --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1
+argocd app create gcr-recommender-system-$SCENARIO_STAGE --repo $REPO_URL --path manifests/envs/$SCENARIO_STAGE --dest-namespace \
+rs-$SCENARIO_STAGE-ns --dest-server https://kubernetes.default.svc --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1
 
 sleep 20
 
-argocd app set gcr-recommender-system-news-dev --sync-policy automated
+argocd app set gcr-recommender-system-$SCENARIO_STAGE --sync-policy automated

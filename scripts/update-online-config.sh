@@ -16,7 +16,11 @@ while true; do
   sleep 10
 done
 
-cd ../manifests/envs/news-dev
+echo "update config $SCENARIO at $STAGE"
+
+SCENATIO_STAGE=$SCENARIO-$STAGE
+
+cd ../manifests/envs/$SCENARIO_STAGE
 cat config-template.yaml | sed 's/REDIS_HOST_PLACEHOLDER/'"$REDIS_ENDPOINT"'/g' > config_1.yaml
 
 echo "REGION: $REGION"
