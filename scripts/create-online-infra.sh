@@ -23,12 +23,16 @@ kubectl apply -f ../manifests/envs/news-dev/ns.yaml
 
 # 2. Install Istio with default profile
 # curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.9.1 TARGET_ARCH=x86_64 sh -
+rm -rf tmp_istio > /dev/null 2>&1
+mkdir tmp_istio && cd ./tmp_istio
 curl -LO $istio_link
 unzip istio-1.9.1.zip && rm istio-1.9.1.zip
 cd ./bin
 ./istioctl operator init
 kubectl create ns istio-system
-cd ../
+cd ../..
+rm -rf tmp_istio
+
 kubectl apply -f ../manifests/istio-ingress-gateway.yaml
 
 # 3. Create EFS

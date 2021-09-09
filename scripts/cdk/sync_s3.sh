@@ -6,6 +6,17 @@ git pull
 
 ReleaseVersion=$1
 
+if [[ -n $ReleaseVersion ]];then
+  if git tag -a $ReleaseVersion -m "new release $ReleaseVersion"; then
+        git push origin $ReleaseVersion
+        echo ""
+    else
+       echo "tag $ReleaseVersion already exist, please remove it and try again"
+       echo "    git tag -d $ReleaseVersion"
+       echo "    git push origin :refs/tags/$ReleaseVersion"
+       exit 1
+  fi
+fi
 
 PROFILE="rsops"
 if [[ -n $2 ]]; then
@@ -35,15 +46,15 @@ AWS_ACCOUNT_ID_CN=$(${AWS_CMD_CN} sts get-caller-identity --region ${REGION_CN} 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 echo "AWS_ACCOUNT_ID_CN: $AWS_ACCOUNT_ID_CN"
 
-echo "Please confirm your AWS profile, region and account id, continue[n|y]:"
-read REPLEY
-
-if [[ $REPLEY =~ ^y ]]; then
-  echo ""
-else
-  echo "abort"
-  exit 0
-fi
+#echo "Please confirm your AWS profile, region and account id, continue[n|y]:"
+#read REPLEY
+#
+#if [[ $REPLEY =~ ^y ]]; then
+#  echo ""
+#else
+#  echo "abort"
+#  exit 0
+#fi
 
 version_id=$(git rev-parse HEAD)
 echo $version_id > $version_id
