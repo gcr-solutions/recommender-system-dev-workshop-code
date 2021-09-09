@@ -8,6 +8,10 @@ istio_system_name=istio-system
 csi_driver_name=efs.csi.aws.com
 efs_name=GCR-RS-DEV-WORKSHOP-EFS-FileSystem
 nfs_security_group_name=gcr-rs-dev-workshop-efs-nfs-sg
+pv_name=efs-pv-news-dev
+cache_subnet_group_name=gcr-rs-dev-workshop-redis-subnet-group
+redis_security_group_name=gcr-rs-dev-workshop-redis-sg
+cache_cluster_id=gcr-rs-dev-workshop-redis-cluster
 
 istio_link=https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/eks/istio-1.9.1.zip
 
@@ -74,9 +78,9 @@ SUBNET_IDS=$(aws ec2 describe-instances --filters Name=vpc-id,Values=$EKS_VPC_ID
   'Reservations[*].Instances[].SubnetId' \
   --output text)
 
-echo $EKS_VPC_ID
-echo $EKS_VPC_CIDR
-echo $SUBNET_IDS
+echo "EKS_VPC_ID: $EKS_VPC_ID"
+echo "EKS_VPC_CIDR: $EKS_VPC_CIDR"
+echo "SUBNET_IDS: $SUBNET_IDS"
 
 # 3.2 Install EFS CSI driver
 existed_csi_driver=$(kubectl get csidriver | grep ${csi_driver_name})
@@ -143,54 +147,100 @@ else
 fi
 
 # 3.6 Create EFS mount targets
-for subnet_id in `echo $SUBNET_IDS`
-do
-  aws efs create-mount-target \
-    --file-system-id $EFS_ID \
-    --subnet-id $subnet_id \
-    --security-group $NFS_SECURITY_GROUP_ID
-done
+if [[ ${EFS_ID} == "" ]];then
+  EFS_ID=$(aws efs describe-file-systems | jq '.[][] | select(.Name=="GCR-RS-DEV-WORKSHOP-EFS-FileSystem") | .FileSystemId' -r)
+  echo EFS_ID: $EFS_ID
+fi
+
+if [[ ${NFS_SECURITY_GROUP_ID} == "" ]];then
+  NFS_SECURITY_GROUP_ID=$(aws ec2 describe-security-groups | jq '.[][] | select(.GroupName=="gcr-rs-dev-workshop-efs-nfs-sg") | .GroupId' -r)
+  echo NFS_SECURITY_GROUP_ID: $NFS_SECURITY_GROUP_ID
+fi
+
+existed_EFS_mount_target=$(aws efs describe-mount-targets --file-system-id ${EFS_ID})
+if [[ "${existed_EFS_mount_target}" == "" ]];then
+  echo "Create EFS Mount Targets, EFS_ID: ${EFS_ID} ..........."
+  for subnet_id in `echo $SUBNET_IDS`
+  do
+    aws efs create-mount-target \
+      --file-system-id $EFS_ID \
+      --subnet-id $subnet_id \
+      --security-group $NFS_SECURITY_GROUP_ID
+  done
+else
+  echo "EFS Mount Targets, File System Id: ${EFS_ID}, Security_Group: ${NFS_SECURITY_GROUP_ID} already exist ..........."
+fi
 
 # 3.7 Apply & create PV/StorageClass
-cd ../manifests/envs/news-dev/efs
-cp csi-env-template.yaml csi-env.yaml
-sed -i 's/FILE_SYSTEM_ID/'"$EFS_ID"'/g' csi-env.yaml
-cat csi-env.yaml
-docker pull public.ecr.aws/t8u1z3c8/k8s.gcr.io/kustomize/kustomize:v3.8.7
-docker run --rm --entrypoint /app/kustomize --workdir /app/src -v $(pwd):/app/src public.ecr.aws/t8u1z3c8/k8s.gcr.io/kustomize/kustomize:v3.8.7 build . |kubectl apply -f - 
-cd ../../../../scripts
+existed_pv=$(kubectl get pv | grep ${pv_name})
+if [[ "${existed_pv}" == "" ]];then
+  echo "Create PV: ${pv_name} ..........."
+  cd ../manifests/envs/news-dev/efs
+  cp csi-env-template.yaml csi-env.yaml
+  sed -i 's/FILE_SYSTEM_ID/'"$EFS_ID"'/g' csi-env.yaml
+  cat csi-env.yaml
+  docker pull public.ecr.aws/t8u1z3c8/k8s.gcr.io/kustomize/kustomize:v3.8.7
+  docker run --rm --entrypoint /app/kustomize --workdir /app/src -v $(pwd):/app/src public.ecr.aws/t8u1z3c8/k8s.gcr.io/kustomize/kustomize:v3.8.7 build . |kubectl apply -f -
+  cd ../../../../scripts
+else
+  echo "PV/StorageClass: ${pv_name} already exist ..........."
+fi
 
 # 4 Create redis elastic cache, Provision Elasticache - Redis / Cluster Mode Disabled
 # 4.1 Create subnet groups
-ids=`echo $SUBNET_IDS | xargs -n1 | sort -u | xargs \
-    aws elasticache create-cache-subnet-group \
-    --cache-subnet-group-name "gcr-rs-dev-workshop-redis-subnet-group" \
-    --cache-subnet-group-description "gcr-rs-dev-workshop-redis-subnet-group" \
-    --subnet-ids`
-echo $ids
+existed_subnet_groups=$(aws elasticache describe-cache-subnet-groups | grep ${cache_subnet_group_name})
+if [[ "${existed_subnet_groups}" == "" ]];then
+  echo "Create Subnet Group: ${cache_subnet_group_name} ..........."
+  ids=`echo $SUBNET_IDS | xargs -n1 | sort -u | xargs \
+      aws elasticache create-cache-subnet-group \
+      --cache-subnet-group-name ${cache_subnet_group_name} \
+      --cache-subnet-group-description ${cache_subnet_group_name} \
+      --subnet-ids`
+  echo $ids
+else
+  echo "Cache Subnet Group: ${cache_subnet_group_name} already exist ..........."
+fi
 
 CACHE_SUBNET_GROUP_NAME=$(echo $ids |jq '.CacheSubnetGroup.CacheSubnetGroupName' -r)
 echo $CACHE_SUBNET_GROUP_NAME
 
 # 4.2 Create redis security group
-REDIS_SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name gcr-rs-dev-workshop-redis-sg \
-  --description "Allow traffic for Redis" \
-  --vpc-id $EKS_VPC_ID|jq '.GroupId' -r)
-echo $REDIS_SECURITY_GROUP_ID
+existed_REDIS_SECURITY_GROUP=$(aws ec2 describe-security-groups | grep ${redis_security_group_name})
+if [[ "${existed_REDIS_SECURITY_GROUP}" == "" ]];then
+  echo "Create REDIS Security Group: ${cache_subnet_group_name} ..........."
+  REDIS_SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name gcr-rs-dev-workshop-redis-sg \
+    --description "Allow traffic for Redis" \
+    --vpc-id $EKS_VPC_ID|jq '.GroupId' -r)
+  echo $REDIS_SECURITY_GROUP_ID
 
-# 4.3 config security group port
-aws ec2 authorize-security-group-ingress --group-id $REDIS_SECURITY_GROUP_ID \
-  --protocol tcp \
-  --port 6379 \
-  --cidr $EKS_VPC_CIDR 
+  # 4.3 config security group port
+  aws ec2 authorize-security-group-ingress --group-id $REDIS_SECURITY_GROUP_ID \
+    --protocol tcp \
+    --port 6379 \
+    --cidr $EKS_VPC_CIDR
+else
+  echo "Redis Security Group: ${cache_subnet_group_name} already exist ..........."
+fi
+
 
 # 4.4 create elastic cache redis
-aws elasticache create-cache-cluster \
-  --cache-cluster-id gcr-rs-dev-workshop-redis-cluster \
-  --cache-node-type cache.r5.xlarge \
-  --engine redis \
-  --engine-version 6.x \
-  --num-cache-nodes 1 \
-  --cache-parameter-group default.redis6.x \
-  --security-group-ids $REDIS_SECURITY_GROUP_ID \
-  --cache-subnet-group-name $CACHE_SUBNET_GROUP_NAME
+if [[ ${REDIS_SECURITY_GROUP_ID} == "" ]];then
+  REDIS_SECURITY_GROUP_ID=$(aws ec2 describe-security-groups | jq '.[][] | select(.GroupName=="gcr-rs-dev-workshop-redis-sg") | .GroupId' -r)
+  echo REDIS_SECURITY_GROUP_ID: $REDIS_SECURITY_GROUP_ID
+fi
+
+existed_cache_cluster=$(aws elasticache describe-cache-clusters | grep ${cache_cluster_id})
+if [[ "${existed_cache_cluster}" == "" ]];then
+  echo "Create Cache Cluster: ${cache_cluster_id} ..........."
+  aws elasticache create-cache-cluster \
+    --cache-cluster-id ${cache_cluster_id} \
+    --cache-node-type cache.r5.xlarge \
+    --engine redis \
+    --engine-version 6.x \
+    --num-cache-nodes 1 \
+    --cache-parameter-group default.redis6.x \
+    --security-group-ids $REDIS_SECURITY_GROUP_ID \
+    --cache-subnet-group-name $CACHE_SUBNET_GROUP_NAME
+else
+  echo "Cache Cluster: ${cache_cluster_id} already exist ..........."
+fi
