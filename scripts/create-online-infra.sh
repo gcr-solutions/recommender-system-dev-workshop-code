@@ -126,11 +126,12 @@ if [[ "${existed_EFS}" == "" ]];then
     --throughput-mode bursting \
     --tags Key=Name,Value=${efs_name} \
     --encrypted |jq '.FileSystemId' -r)
-
-  echo EFS_ID: $EFS_ID
 else
   echo "EFS: ${efs_name} already exist ..........."
+  EFS_ID=$(aws efs describe-file-systems --out text | grep ${efs_name}   | egrep -o '\sfs-\w+' | egrep -o '\S+')
 fi
+
+echo "EFS_ID: $EFS_ID"
 
 # 3.4 Create NFS Security Group
 existed_NFS_SECURITY_GROUP=$(aws ec2 describe-security-groups | grep ${nfs_security_group_name} || echo "")
@@ -140,7 +141,7 @@ if [[ "${existed_NFS_SECURITY_GROUP}" == "" ]];then
     --description "Allow NFS traffic for EFS" \
     --vpc-id $EKS_VPC_ID |jq '.GroupId' -r)
 
-  echo NFS_SECURITY_GROUP_ID: $NFS_SECURITY_GROUP_ID
+  echo "NFS_SECURITY_GROUP_ID: $NFS_SECURITY_GROUP_ID"
 
   # 3.5 add ingress rule for NFS_SECURITY_GROUP_ID before next steps
   aws ec2 authorize-security-group-ingress --group-id $NFS_SECURITY_GROUP_ID \
@@ -156,6 +157,7 @@ fi
 # 3.6 Create EFS mount targets
 for subnet_id in `echo $SUBNET_IDS`
 do
+  echo "create-mount-target for $subnet_id, $EFS_ID"
   aws efs create-mount-target \
     --file-system-id $EFS_ID \
     --subnet-id $subnet_id \
@@ -163,6 +165,9 @@ do
 done
 
 # 3.7 Apply & create PV/StorageClass
+
+echo "manifests/envs/news-dev/efs... csi-env.yaml"
+
 cd ../manifests/envs/news-dev/efs
 cp csi-env-template.yaml csi-env.yaml
 sed -i 's/FILE_SYSTEM_ID/'"$EFS_ID"'/g' csi-env.yaml
@@ -173,29 +178,35 @@ cd ../../../../scripts
 
 # 4 Create redis elastic cache, Provision Elasticache - Redis / Cluster Mode Disabled
 # 4.1 Create subnet groups
+echo "aws elasticache create-cache-subnet-group"
 ids=`echo $SUBNET_IDS | xargs -n1 | sort -u | xargs \
     aws elasticache create-cache-subnet-group \
     --cache-subnet-group-name "gcr-rs-dev-workshop-redis-subnet-group" \
     --cache-subnet-group-description "gcr-rs-dev-workshop-redis-subnet-group" \
     --subnet-ids`
-echo $ids
+
+echo "ids=$ids"
 
 CACHE_SUBNET_GROUP_NAME=$(echo $ids |jq '.CacheSubnetGroup.CacheSubnetGroupName' -r)
-echo $CACHE_SUBNET_GROUP_NAME
+echo "CACHE_SUBNET_GROUP_NAME=$CACHE_SUBNET_GROUP_NAME"
 
 # 4.2 Create redis security group
+echo "ec2 create-security-group gcr-rs-dev-workshop-redis-sg"
 REDIS_SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name gcr-rs-dev-workshop-redis-sg \
   --description "Allow traffic for Redis" \
   --vpc-id $EKS_VPC_ID|jq '.GroupId' -r)
-echo $REDIS_SECURITY_GROUP_ID
+
+echo "REDIS_SECURITY_GROUP_ID=$REDIS_SECURITY_GROUP_ID"
 
 # 4.3 config security group port
+echo "ec2 authorize-security-group-ingress"
 aws ec2 authorize-security-group-ingress --group-id $REDIS_SECURITY_GROUP_ID \
   --protocol tcp \
   --port 6379 \
   --cidr $EKS_VPC_CIDR 
 
 # 4.4 create elastic cache redis
+echo "create-cache-cluster gcr-rs-dev-workshop-redis-cluster"
 aws elasticache create-cache-cluster \
   --cache-cluster-id gcr-rs-dev-workshop-redis-cluster \
   --cache-node-type cache.r5.xlarge \
@@ -205,3 +216,5 @@ aws elasticache create-cache-cluster \
   --cache-parameter-group default.redis6.x \
   --security-group-ids $REDIS_SECURITY_GROUP_ID \
   --cache-subnet-group-name $CACHE_SUBNET_GROUP_NAME
+
+echo "Online infra created successfully."
