@@ -25,6 +25,9 @@ phases:
             echo "-------------------pre_build app------------------------------------------------"
             APP_IMAGE=rs/$APP_NAME
             APP_REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$APP_IMAGE
+            if [[ $AWS_DEFAULT_REGION =~ ^cn.* ]]; then
+                APP_REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com.cn/$APP_IMAGE
+            fi
             aws ecr create-repository \
               --repository-name $APP_IMAGE \
               --image-scanning-configuration scanOnPush=true \
