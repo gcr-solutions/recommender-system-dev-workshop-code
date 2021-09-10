@@ -122,7 +122,7 @@ projects[8]="ui"
 for project in ${projects[@]}
 do 
     echo "Deleting ${project} from CodeBuild ..."
-    aws codebuild delete-project --name gcr-rs-dev-environment-${project}-build || true
+    aws codebuild delete-project --name gcr-rs-dev-workshop-${project}-build || true
     echo "Done."
     sleep 5
 done
