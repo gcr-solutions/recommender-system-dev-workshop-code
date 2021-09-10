@@ -89,8 +89,8 @@ echo "EKS_VPC_CIDR: $EKS_VPC_CIDR"
 echo "SUBNET_IDS: $SUBNET_IDS"
 
 # 3.2 Install EFS CSI driver
-existed_csi_driver=$(kubectl get csidriver | grep ${csi_driver_name} || echo "")
-if [[ "${existed_csi_driver}" == "" ]];then
+#existed_csi_driver=$(kubectl get csidriver | grep ${csi_driver_name} || echo "")
+#if [[ "${existed_csi_driver}" == "" ]];then
   echo "Create CSI Driver: ${csi_driver_name} ..........."
   if [[ $REGION =~ ^cn.* ]];then
     #curl -OL https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/v1.3.2/docs/iam-policy-example.json
@@ -117,9 +117,9 @@ if [[ "${existed_csi_driver}" == "" ]];then
   else
     kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.1"
   fi
-else
-  echo "CSI Driver: ${csi_driver_name} already exist ..........."
-fi
+#else
+#  echo "CSI Driver: ${csi_driver_name} already exist ..........."
+#fi
 
 # 3.3 Create EFS
 existed_EFS=$(aws efs describe-file-systems | grep ${efs_name} || echo "")
