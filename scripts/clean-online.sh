@@ -122,45 +122,7 @@ projects[8]="ui"
 for project in ${projects[@]}
 do 
     echo "Deleting ${project} from CodeBuild ..."
-    aws codebuild delete-project --name gcr-rs-dev-environment-${project}-build || true
+    aws codebuild delete-project --name gcr-rs-dev-workshop-${project}-build || true
     echo "Done."
     sleep 5
 done
-
-#delete codebuild role and policy
-echo "Clean codebuild role: gcr-rs-dev-environment-codebuild-role, policy:gcr-rs-dev-environment-codebuild-policy"
-ROLE_NAME=gcr-rs-dev-environment-codebuild-role
-ROLE_POLICY=gcr-rs-dev-environment-codebuild-policy
-
-ROLE_NAMES=$(aws iam list-roles | jq '.[][] | select(.RoleName=="gcr-rs-dev-environment-codebuild-role")')
-if [ "$ROLE_NAMES" == "" ]
-then
-    echo "Nothing has been done and all clear."
-else
-    aws iam list-attached-role-policies --role-name ${ROLE_NAME} | jq -r '.AttachedPolicies[].PolicyArn'
-    for policyArn in `aws iam list-attached-role-policies --role-name ${ROLE_NAME} | jq -r '.AttachedPolicies[].PolicyArn'`
-    do 
-        aws iam detach-role-policy \
-            --role-name ${ROLE_NAME} \
-            --policy-arn ${policyArn}
-        echo "Detached ${ROLE_NAME} and ${policyArn}"
-
-        count=`aws iam list-policy-versions --policy-arn ${policyArn} |jq -r '.Versions[].VersionId'|wc -l`
-        if [ $count -eq '1' ]
-        then
-            aws iam delete-policy --policy-arn ${policyArn} || true
-        else 
-            for versionId in `aws iam list-policy-versions --policy-arn ${policyArn} |jq -r '.Versions[].VersionId'`
-            do 
-                aws iam delete-policy-version \
-                    --policy-arn ${policyArn} \
-                    --version-id ${versionId}
-                echo "Deleted ${ROLE_POLICY} = ${policyArn} : ${versionId}" || true
-            done
-            aws iam delete-policy --policy-arn ${policyArn}
-        fi
-    done
-    aws iam delete-role --role-name ${ROLE_NAME}
-    echo "Deleted ${ROLE_NAME}"
-fi
-echo "Clean codebuild role: gcr-rs-dev-environment-codebuild-role and policy:gcr-rs-dev-environment-codebuild-policy done!"
