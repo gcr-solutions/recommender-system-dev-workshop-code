@@ -54,7 +54,7 @@ sudo curl -sSL -o /usr/local/bin/argocd $install_link
 
 sudo chmod +x /usr/local/bin/argocd
 
-sleep 30
+sleep 90
 
 # 3 get admin password
 ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
