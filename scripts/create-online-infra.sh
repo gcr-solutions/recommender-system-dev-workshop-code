@@ -118,7 +118,7 @@ echo "create-file-system ..."
 EFS_ID=$(aws efs create-file-system \
   --performance-mode generalPurpose \
   --throughput-mode bursting \
-  --tags Key=Name,Value=${efs_name} \
+  --tags Key=Name,Value=GCR-RS-DEV-WORKSHOP-EFS-FileSystem \
   --encrypted | jq '.FileSystemId' -r)
 
 echo "EFS_ID: $EFS_ID"
