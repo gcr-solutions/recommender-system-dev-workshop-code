@@ -86,8 +86,6 @@ class Retrieve(service_pb2_grpc.RetrieveServicer):
             self.reload_pickle_type(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list, True)
         elif file_type == json_type:
             self.reload_json_type(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
-        elif file_type == json_type:
-            self.reload_json_file(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
 
         logging.info('Re-initial filter service.')
         commonResponse = service_pb2.CommonResponse(code=0, description='Re-initialled with success')

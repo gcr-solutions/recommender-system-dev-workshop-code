@@ -23,6 +23,7 @@ import json
 
 app = FastAPI()
 json_type = 'ps-result'
+pickle_type = 'inverted-list'
 sleep_interval = 10  # second
 
 MANDATORY_ENV_VARS = {
@@ -245,6 +246,25 @@ def get_recommend_data(userId: str, recommendType: str):
 #
 #     logging.info("rs_list: {}".format(rs_list))
 #     return rs_list
+
+@xasync
+def read_pickle_message():
+    logging.info('read_pickle_type_message start')
+    # Read existed stream message
+    stream_message = rCache.read_stream_message(pickle_type)
+    if stream_message:
+        logging.info("Handle existed stream pickle_type message")
+        handle_stream_message(stream_message)
+    while True:
+        logging.info('wait for reading pickle_type message')
+        try:
+            stream_message = rCache.read_stream_message_block(pickle_type)
+            if stream_message:
+                handle_stream_message(stream_message)
+        except redis.ConnectionError:
+            localtime = time.asctime( time.localtime(time.time()))
+            logging.info('get ConnectionError, time: {}'.format(localtime))
+        time.sleep( sleep_interval )
 
 
 @xasync
