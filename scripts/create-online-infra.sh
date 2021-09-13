@@ -181,3 +181,5 @@ aws elasticache create-cache-cluster \
   --cache-parameter-group default.redis6.x \
   --security-group-ids $REDIS_SECURITY_GROUP_ID \
   --cache-subnet-group-name $CACHE_SUBNET_GROUP_NAME
+
+echo "Please stop printing the log by typing CONTROL+C "

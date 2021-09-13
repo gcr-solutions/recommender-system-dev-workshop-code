@@ -15,3 +15,5 @@ sleep 20
 ./register-to-codebuild.sh
 
 cd ../
+
+echo "Please stop printing the log by typing CONTROL+C "

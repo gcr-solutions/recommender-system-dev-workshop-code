@@ -65,3 +65,4 @@ echo user name: admin
 echo password: $ARGOCD_PASSWORD
 echo endpoint: http://$dns_name
 
+echo "Please stop printing the log by typing CONTROL+C "
