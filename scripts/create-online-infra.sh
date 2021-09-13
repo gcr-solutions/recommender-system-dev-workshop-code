@@ -18,7 +18,7 @@ if [[ $REGION =~ ^cn.* ]]; then
   istio_link=https://aws-gcr-rs-sol-workshop-cn-north-1-common.s3.cn-north-1.amazonaws.com.cn/eks/istio-1.9.1.zip
 
 else
-  if [[ $REGION =~ us-east.* ]]; then
+  if [[ $REGION == "us-east-1" ]]; then
     availabilityZones="availabilityZones: ['us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-1d', 'us-east-1f']"
     sed -e "s|__AWS_REGION__|$REGION|g;s|#__AVAILABILITYZONE__#|$availabilityZones|g" \
       ./eks/nodes-config-template.yaml >./eks/nodes-config.yaml
