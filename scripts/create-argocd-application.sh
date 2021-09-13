@@ -58,10 +58,11 @@ argocd repo add $REPO_URL --username $REPO_USER --password $CODE_COMMIT_PASSWORD
 
 echo "argocd app create gcr-recommender-system-news-dev ..."
 argocd app create gcr-recommender-system-news-dev --repo $REPO_URL --path manifests/envs/news-dev --dest-namespace \
-rs-news-dev-ns --dest-server https://kubernetes.default.svc --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1
+rs-news-dev-ns --dest-server https://kubernetes.default.svc --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1 \
+--upsert
 
 sleep 20
 echo "app set gcr-recommender-system-news-dev ..."
-argocd app set gcr-recommender-system-news-dev --sync-policy automated --upsert
+argocd app set gcr-recommender-system-news-dev --sync-policy automated
 
 echo "Please stop printing the log by typing CONTROL+C "
