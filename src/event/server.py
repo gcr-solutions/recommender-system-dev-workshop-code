@@ -40,8 +40,9 @@ MANDATORY_ENV_VARS = {
 
 async def log_json(request: Request):
     try:
-        logging.info("log request JSON: {}".format(await request.json()))
-    except Exception:
+        logging.info("log request JSON: {}".format(await
+        request.json()))
+        except Exception:
         pass
 
 
@@ -258,7 +259,7 @@ def offline_status_get(exec_arn: str):
                           f"#/executions/details/{exec_arn}"
     else:
         aws_console_url = f"https://{aws_region}.console.aws.amazon.com/states/home?region={aws_region}" \
-                      f"#/executions/details/{exec_arn}"
+                          f"#/executions/details/{exec_arn}"
     res = StateMachineStatusResponse(metadata=Metadata(type='StateMachineStatusResponse'),
                                      detailUrl=aws_console_url,
                                      executionArn=exec_arn,
