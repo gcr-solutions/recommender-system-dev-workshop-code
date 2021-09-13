@@ -49,7 +49,7 @@ kubectl apply -f ../manifests/istio-ingress-gateway.yaml
 
 #Open istio elb 22 port for China regions
 if [[ $REGION =~ ^cn.* ]];then
-  echo "open 22 port for china regions"
+  echo "open 22 port for china regions [$REGION]"
   sleep 60
   ELB_NAME=$(aws resourcegroupstaggingapi get-resources --tag-filters Key=kubernetes.io/service-name,Values=istio-system/istio-ingressgateway-news-dev | 
 jq -r '.ResourceTagMappingList[].ResourceARN' | cut -d'/' -f 2)
@@ -77,7 +77,7 @@ SUBNET_IDS=$(aws ec2 describe-instances --filters Name=vpc-id,Values=$EKS_VPC_ID
 echo "$EKS_VPC_ID: $EKS_VPC_ID"
 echo "$EKS_VPC_CIDR: $EKS_VPC_CIDR"
 echo "$SUBNET_IDS: $SUBNET_IDS"
- echo "$REGION: $REGION"
+echo "$REGION: $REGION"
 
 # 3.2 Install EFS CSI driver
 if [[ $REGION =~ ^cn.* ]]; then
