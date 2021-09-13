@@ -185,12 +185,6 @@ def retrieve_get_v2(user_id: str, curPage: int = 0, pageSize: int = 20, regionId
 
 
 def init():
-    aws_region = MANDATORY_ENV_VARS['AWS_REGION']
-    logging.info("aws_region={}".format(aws_region))
-    boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
-    global s3client
-    s3client = boto3.client('s3')
-    logging.info(json.dumps(s3client.list_buckets(), default=str))
 
     # Check out environments
     for var in MANDATORY_ENV_VARS:
@@ -198,6 +192,14 @@ def init():
             logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
             MANDATORY_ENV_VARS[var] = str(os.environ.get(var))
+
+    aws_region = MANDATORY_ENV_VARS['AWS_REGION']
+    logging.info("aws_region={}".format(aws_region))
+    boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
+    global s3client
+    s3client = boto3.client('s3')
+    logging.info(json.dumps(s3client.list_buckets(), default=str))
+
 
 
 if __name__ == "__main__":

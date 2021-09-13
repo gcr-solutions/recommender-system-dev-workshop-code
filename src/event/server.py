@@ -319,18 +319,18 @@ def init():
             logging.info("set {}={}".format(var, os.environ.get(var)))
             MANDATORY_ENV_VARS[var] = str(os.environ.get(var))
 
-        aws_region = MANDATORY_ENV_VARS['AWS_REGION']
-        logging.info("aws_region={}".format(aws_region))
-        boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
-        global s3client
-        s3client = boto3.client('s3')
-        logging.info(json.dumps(s3client.list_buckets(), default=str))
+    aws_region = MANDATORY_ENV_VARS['AWS_REGION']
+    logging.info("aws_region={}".format(aws_region))
+    boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
+    global s3client
+    s3client = boto3.client('s3')
+    logging.info(json.dumps(s3client.list_buckets(), default=str))
 
-        global step_funcs
-        step_funcs = boto3.client('stepfunctions', aws_region)
-        global account_id
-        account_id = boto3.client(
-            'sts', aws_region).get_caller_identity()['Account']
+    global step_funcs
+    step_funcs = boto3.client('stepfunctions', aws_region)
+    global account_id
+    account_id = boto3.client(
+        'sts', aws_region).get_caller_identity()['Account']
 
 
 def get_step_funcs_name():
