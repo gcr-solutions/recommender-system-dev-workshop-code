@@ -23,7 +23,7 @@ curl -X POST -d '{"message": {"file_type": "news_records","file_path": "sample-d
 
 # personalize data
 echo -e "\nload news record data!!"
-curl -X POST -d '{"message": {"file_type": "ps-result","file_path": "sample-data-news/system/ps-config/","file_name": ["ps_config.json"]}}' -H "Content-Type:application/json" http://$dns_name/api/v1/demo/notice
+curl -X POST -d '{"message": {"file_type": "ps-result","file_path": "sample-data-news/system/ps-config/","file_name": ["ps_config.json"]}}' -H "Content-Type:application/json" http://$dns_name/loader/notice
 
 echo -e '\nLoad seed data complete!'
 

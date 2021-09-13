@@ -65,25 +65,25 @@ then
     solution_version_arn=$(aws personalize describe-campaign --campaign-arn ${campaign_arn} | jq '.campaign.solutionVersionArn' -r)
 fi
 
-config_file_path=${curr_dir}/../../sample-data/${SCENARIO}/system/ps-config/ps_config.json
+config_file_path=${curr_dir}/../../sample-data/system/ps-config/ps_config.json
 
 if [ $METHOD != "customize" ]
 then
   echo "------update ps_config.json file-------"
   old_solution_name=$(awk -F"\"" '/SolutionName/{print $4}' $config_file_path)
   echo "change old_solution_name: ${old_solution_name} to new_solution_name: ${solution_name}"
-  sed -e "s@$old_solution_name@$solution_name@g" -i "" $config_file_path > /dev/null
+  sed -e "s@$old_solution_name@$solution_name@g" -i  $config_file_path > /dev/null
 
   old_solution_version_arn=$(awk -F"\"" '/SolutionVersionArn/{print $4}' $config_file_path)
   echo "change old_solution_version_arn: ${old_solution_version_arn} to new_solution_version_arn: ${solution_version_arn}"
-  sed -e "s@$old_solution_version_arn@$solution_version_arn@g" -i "" $config_file_path > /dev/null
+  sed -e "s@$old_solution_version_arn@$solution_version_arn@g" -i $config_file_path > /dev/null
 
   old_campaign_name=$(awk -F"\"" '/CampaignName/{print $4}' $config_file_path)
   echo "change old_campaign_name: ${old_campaign_name} to new_campaign_name: ${campaign_name}"
-  sed -e "s@$old_campaign_name@$campaign_name@g" -i "" $config_file_path > /dev/null
+  sed -e "s@$old_campaign_name@$campaign_name@g" -i $config_file_path > /dev/null
 
   old_campaign_arn=$(awk -F"\"" '/CampaignArn/{print $4}' $config_file_path)
   echo "change old_campaign_arn: ${old_campaign_arn} to new_campaign_arn: ${campaign_arn}"
-  sed -e "s@$old_campaign_arn@$campaign_arn@g" -i "" $config_file_path > /dev/null
+  sed -e "s@$old_campaign_arn@$campaign_arn@g" -i $config_file_path > /dev/null
 
 fi
