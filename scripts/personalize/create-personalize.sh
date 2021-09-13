@@ -30,15 +30,6 @@ if [[ -z $METHOD ]];then
     METHOD='customize'
 fi
 
-BUCKET_BUILD=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
-PREFIX=sample-data-news
-
-echo "Stage=$Stage"
-echo "REGION=$REGION"
-echo "Scenario=$Scenario"
-echo "METHOD=$METHOD"
-echo "BUCKET=${BUCKET_BUILD}"
-echo "Prefix=${PREFIX}"
 
 AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity  --o text | awk '{print $1}')
 
@@ -49,8 +40,20 @@ fi
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
+
+BUCKET_BUILD=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
+PREFIX=sample-data-news
+
+echo "Stage=$Stage"
+echo "REGION=$REGION"
+echo "Scenario=$Scenario"
+echo "METHOD=$METHOD"
+echo "BUCKET=${BUCKET_BUILD}"
+echo "Prefix=${PREFIX}"
+
 #create dataset group
-datasetGroupArn=$($AWS_CMD personalize create-dataset-group --name GCR-RS-${Scenario}-Dataset-Group --output text)
+datasetGroupArn="arn:aws:personalize:us-east-1:466154167985:dataset-group/GCR-RS-News-Dataset-Group"
+#datasetGroupArn=$($AWS_CMD personalize create-dataset-group --name GCR-RS-${Scenario}-Dataset-Group --output text)
 echo "dataset_Group_Arn: ${datasetGroupArn}"
 echo "......"
 
@@ -84,27 +87,30 @@ done
 
 if [ $CURRENT_TIME -ge $MAX_TIME ]
 then
-    echo "Dataset Group Create Time exceed 10 min, please delete import job and try again!"
+    echo "Dataset Group Create Time exceed 5 min, please delete import job and try again!"
     exit 8
 fi
 
 
 #create schema
 echo "creating Schema..."
-user_schema_arn=$($AWS_CMD personalize create-schema \
-	--name ${Scenario}UserSchema \
-	--schema file://./schema/${Scenario}UserSchema.json --output text)
+user_schema_arn="arn:aws:personalize:us-east-1:466154167985:schema/NewsUserSchema"
+#user_schema_arn=$($AWS_CMD personalize create-schema \
+#	--name ${Scenario}UserSchema \
+#	--schema file://./schema/${Scenario}UserSchema.json --output text)
 
-item_schema_arn=$($AWS_CMD personalize create-schema \
-	--name ${Scenario}ItemSchema \
-	--schema file://./schema/${Scenario}ItemSchema.json --output text)
+item_schema_arn="arn:aws:personalize:us-east-1:466154167985:schema/NewsItemSchema"
+#item_schema_arn=$($AWS_CMD personalize create-schema \
+#	--name ${Scenario}ItemSchema \
+#	--schema file://./schema/${Scenario}ItemSchema.json --output text)
 
-interaction_schema_arn=$($AWS_CMD personalize create-schema \
-	--name ${Scenario}InteractionSchema \
-	--schema file://./schema/${Scenario}InteractionSchema.json --output text)
+interaction_schema_arn="arn:aws:personalize:us-east-1:466154167985:schema/NewsInteractionSchema"
+#interaction_schema_arn=$($AWS_CMD personalize create-schema \
+#	--name ${Scenario}InteractionSchema \
+#	--schema file://./schema/${Scenario}InteractionSchema.json --output text)
 
-echo "......"
-sleep 30
+#echo "......"
+#sleep 30
 
 #create dataset
 echo "create dataset..."
@@ -332,8 +338,8 @@ sims_solution_version_arn=$($AWS_CMD personalize create-solution-version \
         --solution-arn ${sims_solution_arn} --output text)
 
 #monitor solution version
-echo "Solution Version Creating... It will takes no longer than 6 hours..."
-MAX_TIME=`expr 6 \* 60 \* 60` # 6 hours
+echo "Solution Version Creating... It will takes no longer than 2 hours..."
+MAX_TIME=`expr 2 \* 60 \* 60` # 6 hours
 CURRENT_TIME=0
 while(( ${CURRENT_TIME} < ${MAX_TIME} ))
 do
@@ -366,7 +372,7 @@ done
 
 if [ $CURRENT_TIME -ge $MAX_TIME ]
 then
-    echo "Creating Solution Versions Time exceed 10 min, please delete UserPersonalize Solution Version and try again!"
+    echo "Creating Solution Versions Time exceed 2 hours, please delete UserPersonalize Solution Version and try again!"
     exit 8
 fi
 
@@ -407,8 +413,8 @@ sims_campaign_arn=$($AWS_CMD personalize create-campaign \
 
 
 #monitor campaign
-echo "Campaign Creating... It will takes no longer than 3 hours..."
-MAX_TIME=`expr 3 \* 60 \* 60` # 3 hours
+echo "Campaign Creating... It will takes no longer than 1 hours..."
+MAX_TIME=`expr 1 \* 60 \* 60` # 1 hours
 CURRENT_TIME=0
 while(( ${CURRENT_TIME} < ${MAX_TIME} )) 
 do
@@ -442,7 +448,7 @@ done
 
 if [ $CURRENT_TIME -ge $MAX_TIME ]
 then
-    echo "Creating Campaigns Time exceed 10 min, please delete UserPersonalize Campaign and try again!"
+    echo "Creating Campaigns Time exceed 1 hour, please delete UserPersonalize Campaign and try again!"
     exit 8
 fi
 
