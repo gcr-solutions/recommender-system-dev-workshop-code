@@ -26,6 +26,7 @@ import service_pb2_grpc
 
 # Environments for service
 MANDATORY_ENV_VARS = {
+    'AWS_REGION': 'ap-northeast-1',
 
     'LOCAL_DATA_FOLDER': '/tmp/rs-data/',
 
