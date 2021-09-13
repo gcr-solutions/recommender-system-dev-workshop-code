@@ -77,10 +77,10 @@ SUBNET_IDS=$(aws ec2 describe-instances --filters Name=vpc-id,Values=$EKS_VPC_ID
   'Reservations[*].Instances[].SubnetId' \
   --output text)
 
-echo "$EKS_VPC_ID: $EKS_VPC_ID"
-echo "$EKS_VPC_CIDR: $EKS_VPC_CIDR"
-echo "$SUBNET_IDS: $SUBNET_IDS"
-echo "$REGION: $REGION"
+echo "EKS_VPC_ID: $EKS_VPC_ID"
+echo "EKS_VPC_CIDR: $EKS_VPC_CIDR"
+echo "SUBNET_IDS: $SUBNET_IDS"
+echo "REGION: $REGION"
 
 # 3.2 Install EFS CSI driver
 if [[ $REGION =~ ^cn.* ]]; then
