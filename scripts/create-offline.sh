@@ -68,6 +68,9 @@ cd ${curr_dir}/../sample-data
 #cd ${curr_dir}/../src/offline/news/step-funcs
 #./build.sh $Stage
 
+cd ${curr_dir}/personalize
+nohup ./create-personalize.sh >> ~/personalize.log 2>&1 &
+
 echo "You can run your step-funcs with below input"
 echo '{
   "Bucket": "aws-gcr-rs-sol-'${Stage}'-'${REGION}'-'${AWS_ACCOUNT_ID}'",
