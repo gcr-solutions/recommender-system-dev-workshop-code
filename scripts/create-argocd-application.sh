@@ -43,6 +43,7 @@ else
   aws iam attach-user-policy --policy-arn arn:aws:iam::aws:policy/AWSCodeCommitFullAccess --user-name $CODE_COMMIT_USER
 fi
 
+echo "create-service-specific-credential --user-name $CODE_COMMIT_USER ..."
 CODE_COMMIT_PASSWORD=$(aws iam create-service-specific-credential --user-name $CODE_COMMIT_USER --service-name codecommit.amazonaws.com --query "ServiceSpecificCredential.ServicePassword" --output text)
 echo "CODE_COMMIT_PASSWORD: $CODE_COMMIT_PASSWORD"
 REPO_USER=$CODE_COMMIT_USER-at-$AWS_ACCOUNT_ID
