@@ -47,6 +47,26 @@ rm -rf tmp_istio
 
 kubectl apply -f ../manifests/istio-ingress-gateway.yaml
 
+#Open istio elb 22 port for China regions
+if [[ $REGION =~ ^cn.* ]];then
+  echo "open 22 port for china regions"
+  sleep 60
+  ELB_NAME=$(aws resourcegroupstaggingapi get-resources --tag-filters Key=kubernetes.io/service-name,Values=istio-system/istio-ingressgateway-news-dev | 
+jq -r '.ResourceTagMappingList[].ResourceARN' | cut -d'/' -f 2)
+  echo load balance name: $ELB_NAME
+
+  INSTANCE_PORT=$(kubectl get svc istio-ingressgateway-news-dev -n istio-system -o=jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
+  echo instance port: $INSTANCE_PORT
+
+  aws elb create-load-balancer-listeners --load-balancer-name $ELB_NAME --listeners "Protocol=TCP,LoadBalancerPort=22,InstanceProtocol=TCP,InstancePort=$
+INSTANCE_PORT"
+
+  ELB_SG_ID=$(aws elb describe-load-balancers --load-balancer-names $ELB_NAME | jq -r '.LoadBalancerDescriptions[].SecurityGroups[]')
+  echo load balance security group id: $ELB_SG_ID
+
+  aws ec2 authorize-security-group-ingress --group-id $ELB_SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
+fi
+
 # 3. Create EFS
 # 3.1 Find vpc id, vpc cidr, subnet ids
 EKS_VPC_ID=$(aws eks describe-cluster --name $EKS_CLUSTER --query "cluster.resourcesVpcConfig.vpcId" --output text)
@@ -96,7 +116,7 @@ EFS_ID=$(aws efs create-file-system \
 echo "EFS_ID: $EFS_ID"
 
 # 3.4 Create NFS Security Group
-NFS_SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name ${nfs_security_group_name} \
+NFS_SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name gcr-rs-dev-workshop-efs-nfs-sg \
   --description "Allow NFS traffic for EFS" \
   --vpc-id $EKS_VPC_ID | jq '.GroupId' -r)
 
