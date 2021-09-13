@@ -44,16 +44,16 @@ else
 fi
 
 CODE_COMMIT_PASSWORD=$(aws iam create-service-specific-credential --user-name $CODE_COMMIT_USER --service-name codecommit.amazonaws.com --query "ServiceSpecificCredential.ServicePassword" --output text)
-echo $CODE_COMMIT_PASSWORD
+echo "$CODE_COMMIT_PASSWORD: $CODE_COMMIT_PASSWORD"
 REPO_USER=$CODE_COMMIT_USER-at-$AWS_ACCOUNT_ID
-echo $REPO_USER
+echo "$REPO_USER: $REPO_USER"
 REPO_URL=$(aws codecommit get-repository --repository-name $APP_CONF_REPO --query "repositoryMetadata.cloneUrlHttp" --output text)
 echo "$REPO_URL: $REPO_URL"
 
 sleep 40
 
 echo "argocd repo add $REPO_URL ..."
-argocd repo add $REPO_URL --username $REPO_USER --password $CODE_COMMIT_PASSWORD --insecure-skip-server-verification
+argocd repo add $REPO_URL --username $REPO_USER --password $CODE_COMMIT_PASSWORD --insecure-skip-server-verification --upsert
 
 echo "argocd app create gcr-recommender-system-news-dev ..."
 argocd app create gcr-recommender-system-news-dev --repo $REPO_URL --path manifests/envs/news-dev --dest-namespace \
