@@ -77,10 +77,10 @@ SUBNET_IDS=$(aws ec2 describe-instances --filters Name=vpc-id,Values=$EKS_VPC_ID
   'Reservations[*].Instances[].SubnetId' \
   --output text)
 
-echo "$EKS_VPC_ID: $EKS_VPC_ID"
-echo "$EKS_VPC_CIDR: $EKS_VPC_CIDR"
-echo "$SUBNET_IDS: $SUBNET_IDS"
-echo "$REGION: $REGION"
+echo "EKS_VPC_ID: $EKS_VPC_ID"
+echo "EKS_VPC_CIDR: $EKS_VPC_CIDR"
+echo "SUBNET_IDS: $SUBNET_IDS"
+echo "REGION: $REGION"
 
 # 3.2 Install EFS CSI driver
 if [[ $REGION =~ ^cn.* ]]; then
@@ -101,7 +101,7 @@ if [[ $REGION =~ ^cn.* ]]; then
     --name efs-csi-controller-sa \
     --namespace kube-system \
     --cluster $EKS_CLUSTER \
-    --attach-policy-arn arn:aws-cn::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy \
+    --attach-policy-arn arn:aws-cn:iam::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy \
     --approve \
     --override-existing-serviceaccounts \
     --region $REGION
