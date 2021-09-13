@@ -13,6 +13,7 @@ istio_link="https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeas
 
 # 1. Create EKS Cluster
 # # 1.1 Provision EKS cluster
+echo "Create EKS Cluster ..."
 if [[ $REGION =~ ^cn.* ]]; then
   cat ./eks/nodes-config-cn-template.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' >./eks/nodes-config.yaml
   istio_link=https://aws-gcr-rs-sol-workshop-cn-north-1-common.s3.cn-north-1.amazonaws.com.cn/eks/istio-1.9.1.zip
@@ -31,9 +32,11 @@ fi
 eksctl create cluster -f ./eks/nodes-config.yaml
 
 # # 1.2 Create EKS cluster namespace
+echo "Create EKS cluster namespace ..."
 kubectl apply -f ../manifests/envs/news-dev/ns.yaml
 
 # 2. Install Istio with default profile
+echo "Install Istio with default profile ..."
 # curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.9.1 TARGET_ARCH=x86_64 sh -
 rm -rf tmp_istio >/dev/null 2>&1
 mkdir tmp_istio && cd ./tmp_istio
@@ -111,7 +114,7 @@ else
 fi
 
 # 3.3 Create EFS
-echo "aws efs create-file-system ..."
+echo "create-file-system ..."
 EFS_ID=$(aws efs create-file-system \
   --performance-mode generalPurpose \
   --throughput-mode bursting \
