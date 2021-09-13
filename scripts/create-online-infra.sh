@@ -58,8 +58,7 @@ jq -r '.ResourceTagMappingList[].ResourceARN' | cut -d'/' -f 2)
   INSTANCE_PORT=$(kubectl get svc istio-ingressgateway-news-dev -n istio-system -o=jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
   echo instance port: $INSTANCE_PORT
 
-  aws elb create-load-balancer-listeners --load-balancer-name $ELB_NAME --listeners "Protocol=TCP,LoadBalancerPort=22,InstanceProtocol=TCP,InstancePort=$
-INSTANCE_PORT"
+  aws elb create-load-balancer-listeners --load-balancer-name $ELB_NAME --listeners "Protocol=TCP,LoadBalancerPort=22,InstanceProtocol=TCP,InstancePort=$INSTANCE_PORT"
 
   ELB_SG_ID=$(aws elb describe-load-balancers --load-balancer-names $ELB_NAME | jq -r '.LoadBalancerDescriptions[].SecurityGroups[]')
   echo load balance security group id: $ELB_SG_ID
