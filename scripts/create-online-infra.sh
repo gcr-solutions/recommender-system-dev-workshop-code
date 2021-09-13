@@ -19,7 +19,11 @@ if [[ $REGION =~ ^cn.* ]]; then
 
 else
   if [[ $REGION =~ us-east.* ]]; then
-    availabilityZones="availabilityZones: ['us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-1d', 'us-east-1f']"
+    availabilityZonesList=$(aws ec2 describe-availability-zones --query 'AvailabilityZones[*].ZoneName' --region $REGION \
+    |  jq  -r 'join(", ")' | sed "s/, /', '/g" | sed -e "s/^/'/g;s/$/'/g")
+    availabilityZones="availabilityZones: [ $availabilityZonesList ]"
+
+    echo "availabilityZones: $availabilityZones"
     sed -e "s|__AWS_REGION__|$REGION|g;s|#__AVAILABILITYZONE__#|$availabilityZones|g" \
       ./eks/nodes-config-template.yaml >./eks/nodes-config.yaml
   else
