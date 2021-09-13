@@ -12,3 +12,4 @@
 requests==2.25.1
 uvicorn==0.13.4
 fastapi==0.63.0
+boto3==1.16.59
