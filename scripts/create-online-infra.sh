@@ -101,7 +101,7 @@ if [[ $REGION =~ ^cn.* ]]; then
     --name efs-csi-controller-sa \
     --namespace kube-system \
     --cluster $EKS_CLUSTER \
-    --attach-policy-arn arn:aws-cn::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy \
+    --attach-policy-arn arn:aws-cn:iam:$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy \
     --approve \
     --override-existing-serviceaccounts \
     --region $REGION
