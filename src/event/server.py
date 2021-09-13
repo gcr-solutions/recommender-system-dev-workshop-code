@@ -252,7 +252,12 @@ def offline_status_get(exec_arn: str):
         executionArn=exec_arn
     )
     aws_region = MANDATORY_ENV_VARS['AWS_REGION']
-    aws_console_url = f"https://{aws_region}.console.aws.amazon.com/states/home?region={aws_region}" \
+
+    if aws_region.startswith("cn-"):
+        aws_console_url = f"https://{aws_region}.console.amazonaws.cn/states/home?region={aws_region}" \
+                          f"#/executions/details/{exec_arn}"
+    else:
+        aws_console_url = f"https://{aws_region}.console.aws.amazon.com/states/home?region={aws_region}" \
                       f"#/executions/details/{exec_arn}"
     res = StateMachineStatusResponse(metadata=Metadata(type='StateMachineStatusResponse'),
                                      detailUrl=aws_console_url,
