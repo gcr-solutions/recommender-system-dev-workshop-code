@@ -73,7 +73,7 @@ echo "Copy complete_dkn_word_embedding.npy ..."
 s3_file_complete_dkn_word_embedding=s3://aws-gcr-rs-sol-workshop-ap-northeast-1-common/dkn_embedding_latest/complete_dkn_word_embedding.npy
 
 if [[ $REGION =~ ^cn.* ]]; then
-  wget https://aws-gcr-solutions-assets.s3.cn-northwest-1.amazonaws.com.cn/gcr-rs/word_embedding/complete_dkn_word_embedding.npy
+  wget --quiet https://aws-gcr-solutions-assets.s3.cn-northwest-1.amazonaws.com.cn/gcr-rs/word_embedding/complete_dkn_word_embedding.npy
   s3_file_complete_dkn_word_embedding="./complete_dkn_word_embedding.npy"
   # s3_file_complete_dkn_word_embedding=s3://aws-gcr-rs-sol-dev-workshop-cn-north-1-common/dkn_embedding_latest/complete_dkn_word_embedding.npy
 
