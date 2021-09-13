@@ -60,11 +60,26 @@ sleep 30
 ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
 dns_name=$(kubectl get svc argocd-server -n argocd -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-
+echo $dns_name
 sleep 90
+echo "-------"
 
-echo user name: admin
-echo password: $ARGOCD_PASSWORD
-echo endpoint: http://$dns_name
+if [[ $REGION =~ cn.* ]];then
+  EC2_IP=$(curl -s 169.254.169.254/latest/meta-data/public-ipv4)
+  #LB_DNS=$(kubectl get svc argocd-server -n argocd -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+  #echo "argocd-server: $LB_DNS"
+  echo "Please create SSH tunnel on your localhost:"
+  echo ""
+  echo "ssh -L 8182:$dns_name:22 -i gcr-rs-dev-workshop-ec2-key.pem  ec2-user@$EC2_IP"
+  echo ""
+  echo "endpoint: http://localhost:8182"
+  echo "user name: admin"
+  echo "password: $ARGOCD_PASSWORD"
+  echo ""
+else
+  echo user name: admin
+  echo password: $ARGOCD_PASSWORD
+  echo endpoint: http://$dns_name
+fi
 
 echo "Please stop printing the log by typing CONTROL+C "

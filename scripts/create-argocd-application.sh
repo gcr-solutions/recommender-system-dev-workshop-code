@@ -10,8 +10,12 @@ echo user name: admin
 echo password: $ARGOCD_PASSWORD
 echo endpoint: $endpoint
 
-echo "argocd login ..."
-argocd --insecure login $endpoint:443 --username admin --password $ARGOCD_PASSWORD
+echo "argocd login [$REGION]..."
+if [[ $REGION =~ cn.* ]];then
+   argocd --insecure login $endpoint:22 --username admin --password $ARGOCD_PASSWORD
+else
+   argocd --insecure login $endpoint:443 --username admin --password $ARGOCD_PASSWORD
+fi
 
 # 2 update lambda env
 
