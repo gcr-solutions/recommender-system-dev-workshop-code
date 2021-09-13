@@ -96,7 +96,7 @@ EFS_ID=$(aws efs create-file-system \
 echo "EFS_ID: $EFS_ID"
 
 # 3.4 Create NFS Security Group
-NFS_SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name ${nfs_security_group_name} \
+NFS_SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name gcr-rs-dev-workshop-efs-nfs-sg \
   --description "Allow NFS traffic for EFS" \
   --vpc-id $EKS_VPC_ID | jq '.GroupId' -r)
 
