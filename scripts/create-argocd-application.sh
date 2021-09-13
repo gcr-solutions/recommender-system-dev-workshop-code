@@ -58,3 +58,6 @@ rs-news-dev-ns --dest-server https://kubernetes.default.svc --kustomize-image gc
 sleep 20
 
 argocd app set gcr-recommender-system-news-dev --sync-policy automated
+
+
+echo "Please stop printing the log by typing CONTROL+C "

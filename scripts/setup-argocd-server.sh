@@ -20,6 +20,24 @@ sleep 10
 
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 
+#Open argocd elb 22 port for China regions
+if [[ $REGION =~ ^cn.* ]];then
+  echo "open 22 port for china regions"
+  sleep 60
+  ELB_NAME=$(aws resourcegroupstaggingapi get-resources --tag-filters Key=kubernetes.io/service-name,Values=argocd/argocd-server  | jq -r '.ResourceTagMappingList[].ResourceARN' | cut -d'/' -f 2)
+  echo load balance name: $ELB_NAME
+
+  INSTANCE_PORT=$(kubectl get svc argocd-server -n argocd -o=jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
+  echo instance port: $INSTANCE_PORT
+
+  aws elb create-load-balancer-listeners --load-balancer-name $ELB_NAME --listeners "Protocol=TCP,LoadBalancerPort=22,InstanceProtocol=TCP,InstancePort=$INSTANCE_PORT"
+
+  ELB_SG_ID=$(aws elb describe-load-balancers --load-balancer-names $ELB_NAME | jq -r '.LoadBalancerDescriptions[].SecurityGroups[]')
+  echo load balance security group id: $ELB_SG_ID
+
+  aws ec2 authorize-security-group-ingress --group-id $ELB_SG_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
+fi
+
 # 2 install argocd cli
 #VERSION=$(curl --silent "https://api.github.com/repos/argoproj/argo-cd/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
 
@@ -43,7 +61,10 @@ ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o js
 
 dns_name=$(kubectl get svc argocd-server -n argocd -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 
+sleep 90
+
 echo user name: admin
 echo password: $ARGOCD_PASSWORD
 echo endpoint: http://$dns_name
 
+echo "Please stop printing the log by typing CONTROL+C "

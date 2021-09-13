@@ -126,3 +126,5 @@ do
     echo "Done."
     sleep 5
 done
+
+echo "Please stop printing the log by typing CONTROL+C "

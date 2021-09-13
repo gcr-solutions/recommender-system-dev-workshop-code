@@ -77,3 +77,4 @@ cd ${curr_dir}/../src/offline/
 
 echo "All offline resources were deleted"
 
+echo "Please stop printing the log by typing CONTROL+C "
