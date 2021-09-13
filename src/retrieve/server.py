@@ -3,6 +3,8 @@ import math
 import os
 from typing import List
 from urllib.request import Request
+import boto3
+import json
 
 import requests
 import uvicorn as uvicorn
@@ -14,6 +16,7 @@ from starlette.responses import JSONResponse
 app = FastAPI()
 
 MANDATORY_ENV_VARS = {
+    'AWS_REGION': 'ap-northeast-1',
     # 'REDIS_HOST': 'localhost',
     # 'REDIS_PORT': 6379,
     'RETRIEVE_HOST': 'retrieve',
@@ -23,6 +26,7 @@ MANDATORY_ENV_VARS = {
     'TEST': 'False'
 }
 
+s3client = None
 
 class RSHTTPException(HTTPException):
     def __init__(self, status_code: int, message: str):
@@ -181,6 +185,13 @@ def retrieve_get_v2(user_id: str, curPage: int = 0, pageSize: int = 20, regionId
 
 
 def init():
+    aws_region = MANDATORY_ENV_VARS['AWS_REGION']
+    logging.info("aws_region={}".format(aws_region))
+    boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
+    global s3client
+    s3client = boto3.client('s3')
+    logging.info(json.dumps(s3client.list_buckets(), default=str))
+
     # Check out environments
     for var in MANDATORY_ENV_VARS:
         if var not in os.environ:

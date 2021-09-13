@@ -37,3 +37,5 @@ spec:
             value: "filter"
           - name: FILTER_PORT
             value: "5200"
+          - name: AWS_REGION
+            value: $(AWS_REGION)

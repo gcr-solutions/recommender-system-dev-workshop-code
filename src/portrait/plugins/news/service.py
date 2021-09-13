@@ -7,7 +7,7 @@ import pickle
 import sys
 import numpy as np
 import time
-
+import boto3
 from google.protobuf import any_pb2
 import grpc
 from grpc_reflection.v1alpha import reflection
@@ -19,6 +19,7 @@ import service_pb2_grpc
 
 # Environments for service
 MANDATORY_ENV_VARS = {
+    'AWS_REGION': 'ap-northeast-1',
     'NEWS_ID_PROPERTY': 'news_id_news_property_dict.pickle',
     'ENTITY_ID_NEWS_IDS': 'news_entities_news_ids_dict.pickle',
     'KEYWORD_NEWS_IDS': 'news_keywords_news_ids_dict.pickle',
@@ -33,6 +34,8 @@ MANDATORY_ENV_VARS = {
 }
 
 pickle_type = 'inverted-list'
+
+s3client = None
 
 # lastUpdate
 getLastCall = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
@@ -301,7 +304,14 @@ def init():
             logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
             MANDATORY_ENV_VARS[var]=os.environ.get(var)
-    
+
+    aws_region = MANDATORY_ENV_VARS['AWS_REGION']
+    logging.info("aws_region={}".format(aws_region))
+    boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
+    global s3client
+    s3client = boto3.client('s3')
+    logging.info(json.dumps(s3client.list_buckets(), default=str))
+
     # Initial redis connection
     global rCache
     rCache = cache.RedisCache(host=MANDATORY_ENV_VARS['REDIS_HOST'], port=MANDATORY_ENV_VARS['REDIS_PORT'])

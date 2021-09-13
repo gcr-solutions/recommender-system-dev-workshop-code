@@ -14,11 +14,15 @@ import redis
 import cache
 import service_pb2
 import service_pb2_grpc
+import boto3
+
+s3client = None
 
 app = FastAPI()
 
 # Mandatory variables in envirnment
 MANDATORY_ENV_VARS = {
+    'AWS_REGION': 'ap-northeast-1',
     'REDIS_HOST': 'localhost',
     'REDIS_PORT': 6379,
     'FILTER_PORT': 5200
@@ -232,6 +236,13 @@ def init():
             logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
             MANDATORY_ENV_VARS[var]=os.environ.get(var)
+
+    aws_region = MANDATORY_ENV_VARS['AWS_REGION']
+    logging.info("aws_region={}".format(aws_region))
+    boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
+    global s3client
+    s3client = boto3.client('s3')
+    logging.info(json.dumps(s3client.list_buckets(), default=str))
 
     # Initial redis connection
     global rCache

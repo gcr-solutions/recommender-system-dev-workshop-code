@@ -17,7 +17,7 @@ from starlette.responses import JSONResponse
 app = FastAPI()
 api_router = APIRouter()
 
-s3client = boto3.client('s3')
+s3client = None
 
 step_funcs = None
 account_id = ''
@@ -30,7 +30,7 @@ MANDATORY_ENV_VARS = {
     'PORTRAIT_PORT': '5300',
     'RECALL_HOST': 'recall',
     'RECALL_PORT': '5500',
-    'AWS_REGION': 'ap-southeast-1',
+    'AWS_REGION': 'ap-northeast-1',
     'S3_BUCKET': 'aws-gcr-rs-sol-demo-ap-southeast-1-522244679887',
     'S3_PREFIX': 'sample-data',
     'POD_NAMESPACE': 'default',
@@ -316,8 +316,16 @@ def init():
             logging.warning("Mandatory variable {%s} is not set, using default value {%s}.", var,
                             MANDATORY_ENV_VARS[var])
         else:
+            logging.info("set {}={}".format(var, os.environ.get(var)))
             MANDATORY_ENV_VARS[var] = str(os.environ.get(var))
+
         aws_region = MANDATORY_ENV_VARS['AWS_REGION']
+        logging.info("aws_region={}".format(aws_region))
+        boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
+        global s3client
+        s3client = boto3.client('s3')
+        logging.info(json.dumps(s3client.list_buckets(), default=str))
+
         global step_funcs
         step_funcs = boto3.client('stepfunctions', aws_region)
         global account_id
@@ -349,9 +357,6 @@ if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                         datefmt='%Y-%m-%d:%H:%M:%S',
                         level=logging.INFO)
-    logging.info(json.dumps(s3client.list_buckets(), default=str))
-    # aws_region = boto3.Session().region_name
-    # logging.info("boto3.Session aws_region: {}".format(aws_region))
 
     init()
     logging.info(MANDATORY_ENV_VARS)

@@ -9,6 +9,7 @@ import numpy as np
 import requests
 import sys
 import time
+import boto3
 
 import tarfile
 import glob
@@ -25,6 +26,7 @@ import service_pb2_grpc
 
 # Environments for service
 MANDATORY_ENV_VARS = {
+    'AWS_REGION': 'ap-northeast-1',
 
     'LOCAL_DATA_FOLDER': '/tmp/rs-data/',
     'NEWS_ID_FEATURE': 'news_id_news_feature_dict.pickle',
@@ -40,6 +42,7 @@ MANDATORY_ENV_VARS = {
     'MODEL_FILE': 'model.tar.gz',
 }
 
+s3client = None
 
 
 # lastUpdate
@@ -319,6 +322,14 @@ def init():
             logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
             MANDATORY_ENV_VARS[var]=os.environ.get(var)
+
+    aws_region = MANDATORY_ENV_VARS['AWS_REGION']
+    logging.info("aws_region={}".format(aws_region))
+    boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
+    global s3client
+    s3client = boto3.client('s3')
+    logging.info(json.dumps(s3client.list_buckets(), default=str))
+
     
 def serve(plugin_name):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))

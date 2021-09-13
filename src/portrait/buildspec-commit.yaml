@@ -37,6 +37,9 @@ phases:
             echo "-------------------pre_build plugin---------------------------------------------"
             PLUGIN_IMAGE=rs/$PLUGIN_NAME
             PLUGIN_REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$PLUGIN_IMAGE
+            if [[ $AWS_DEFAULT_REGION =~ ^cn.* ]]; then
+                PLUGIN_REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com.cn/$PLUGIN_IMAGE
+            fi
             aws ecr create-repository \
               --repository-name $PLUGIN_IMAGE \
               --image-scanning-configuration scanOnPush=true \

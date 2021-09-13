@@ -33,6 +33,8 @@ spec:
             value: $(MESSGE_BROKER_REDIS_PORT)
           - name: FILTER_PORT
             value: "5200"
+          - name: AWS_REGION
+            value: $(AWS_REGION)
       - name: rs-filter-plugin
         image:  rs/filter-plugin:latest
         ports:
@@ -65,7 +67,9 @@ spec:
           - name: COLDSTART_NEWS_COUNT
             value: "100"
           - name: RECOMMEND_ITEM_COUNT
-            value: "20"                        
+            value: "20"
+          - name: AWS_REGION
+            value: $(AWS_REGION)
         volumeMounts:
           - name: persistent-storage
             mountPath: /rs-data

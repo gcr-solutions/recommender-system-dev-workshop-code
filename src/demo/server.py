@@ -56,6 +56,7 @@ class LoadRequest(BaseModel):
     message: LoadMessage = None
 
 
+s3client = None
 app = FastAPI()
 
 MANDATORY_ENV_VARS = {
@@ -67,7 +68,7 @@ MANDATORY_ENV_VARS = {
     'LOCAL_DATA_FOLDER': '/tmp/rs-data/',
     'S3_BUCKET':  'aws-gcr-rs-sol-demo-ap-southeast-1-522244679887',
     'S3_PREFIX': 'sample-data',
-    'AWS_REGION': 'ap-southeast-1',
+    'AWS_REGION': 'ap-northeast-1',
     'CLICK_RECORD_BUCKET': 'gcr-rs-ops-ap-southeast-1-522244679887',
     'CLICK_RECORD_FILE_PATH': 'system/ingest-data/action/',
     'USER_RECORD_FILE_PATH': 'system/ingest-data/user/',
@@ -150,7 +151,7 @@ def login(loginRequest: LoginRequest):
         s3_body = connector.join(temp_array)
         logging.info("store anonymous user data{} ".format(s3_body))
 
-        s3client = boto3.resource('s3')
+        s3client = boto3.resource('s3', )
         if s3_body != '':
             s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
                 Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body)
@@ -1021,6 +1022,13 @@ def init():
                 "Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
             MANDATORY_ENV_VARS[var] = os.environ.get(var)
+
+    aws_region = MANDATORY_ENV_VARS['AWS_REGION']
+    logging.info("aws_region={}".format(aws_region))
+    boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
+    global s3client
+    s3client = boto3.client('s3')
+    logging.info(json.dumps(s3client.list_buckets(), default=str))
 
     # Initial redis connection
     global rCache
