@@ -61,6 +61,8 @@ ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o js
 
 dns_name=$(kubectl get svc argocd-server -n argocd -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 
+sleep 90
+
 echo user name: admin
 echo password: $ARGOCD_PASSWORD
 echo endpoint: http://$dns_name
