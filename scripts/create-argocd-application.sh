@@ -19,10 +19,10 @@ echo "update-lambda-env"
 ./update-lambda-env.sh
 
 # 3 Create argocd application
-CODE_COMMIT_USER=gcr-rs-codecommit-user
+CODE_COMMIT_USER=gcr-rs-codecommit-user_$REGION
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text)
 
-if $(aws iam get-user --user-name 'gcr-rs-codecommit-user' >/dev/null 2>&1 );then
+if $(aws iam get-user --user-name ${CODE_COMMIT_USER} >/dev/null 2>&1 );then
   echo delete $CODE_COMMIT_USER
   aws iam list-attached-user-policies --user-name $CODE_COMMIT_USER
   POLICY_ARNS=$(aws iam list-attached-user-policies --user-name $CODE_COMMIT_USER | jq '.[][].PolicyArn' -r)
