@@ -26,6 +26,14 @@ echo "Stage=$Stage"
 echo "REGION=$REGION"
 echo "AWS_CMD=$AWS_CMD"
 
+AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Account --output text)
+if [[ $? -ne 0 ]]; then
+  echo "error!!! can not get your AWS_ACCOUNT_ID"
+  exit 1
+fi
+
+echo "AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID"
+
 sleep 3
 
 echo "==== DELETE all codebuild projects ===="
