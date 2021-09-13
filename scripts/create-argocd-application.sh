@@ -10,6 +10,7 @@ echo user name: admin
 echo password: $ARGOCD_PASSWORD
 echo endpoint: $endpoint
 
+echo "argocd login ..."
 argocd --insecure login $endpoint:443 --username admin --password $ARGOCD_PASSWORD
 
 # 2 update lambda env
@@ -33,6 +34,7 @@ if $(aws iam get-user --user-name 'gcr-rs-codecommit-user' >/dev/null 2>&1 );the
   aws iam delete-user --user-name $CODE_COMMIT_USER
 fi
 
+echo "aws iam create-user --user-name $CODE_COMMIT_USER"
 aws iam create-user --user-name $CODE_COMMIT_USER
 if [ $REGION = "cn-north-1" ] || [ $REGION = "cn-northwest-1" ]
 then
@@ -46,17 +48,19 @@ echo $CODE_COMMIT_PASSWORD
 REPO_USER=$CODE_COMMIT_USER-at-$AWS_ACCOUNT_ID
 echo $REPO_USER
 REPO_URL=$(aws codecommit get-repository --repository-name $APP_CONF_REPO --query "repositoryMetadata.cloneUrlHttp" --output text)
-echo $REPO_URL
+echo "$REPO_URL: $REPO_URL"
 
 sleep 40
 
+echo "argocd repo add $REPO_URL ..."
 argocd repo add $REPO_URL --username $REPO_USER --password $CODE_COMMIT_PASSWORD --insecure-skip-server-verification
 
+echo "argocd app create gcr-recommender-system-news-dev ..."
 argocd app create gcr-recommender-system-news-dev --repo $REPO_URL --path manifests/envs/news-dev --dest-namespace \
 rs-news-dev-ns --dest-server https://kubernetes.default.svc --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1
 
 sleep 20
-
+echo "app set gcr-recommender-system-news-dev ..."
 argocd app set gcr-recommender-system-news-dev --sync-policy automated
 
 
