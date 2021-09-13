@@ -77,6 +77,6 @@ echo '{
 echo ""
 echo "Offline resources are created successfully"
 
-
+echo "Please stop printing the log by typing CONTROL+C "
 
 
