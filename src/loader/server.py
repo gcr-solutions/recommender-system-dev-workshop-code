@@ -10,6 +10,7 @@ from multiprocessing import Process, Pool
 from functools import partial
 import boto3
 import botocore
+from botocore.config import Config
 import sys
 
 import cache
@@ -92,6 +93,8 @@ def notice(loadRequest: LoadRequest):
                 init_data_file(file_path, file)
             elif file_type == 'ps-result':
                 init_data_file(file_path, file)
+            elif file_type == 'ps-recommend-list':
+                init_data_file(file_path, file)
             elif file_type == 'ps-sims-dict':
                 init_data_file(file_path, file)
     time.sleep(10)
@@ -111,7 +114,10 @@ def download_file_from_s3(bucket, path, file, dest_folder):
     logging.info('Download file - %s from s3://%s/%s ... ', file, bucket, path)
 
     # Using default session
-    s3client = boto3.client('s3')
+    s3_boto_config = Config(
+        region_name = MANDATORY_ENV_VARS['AWS_REGION']
+    )
+    s3client = boto3.client('s3', config=s3_boto_config)
     try:
         s3client.download_file(bucket, path+file, dest_folder+file)
     except botocore.exceptions.ClientError as error:
