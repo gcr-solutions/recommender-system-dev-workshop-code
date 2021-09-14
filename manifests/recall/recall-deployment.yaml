@@ -33,6 +33,8 @@ spec:
             value: $(MESSGE_BROKER_REDIS_PORT)
           - name: RECALL_PORT
             value: "5500"
+          - name: AWS_REGION
+            value: $(AWS_REGION)
       - name: rs-recall-plugin
         image:  rs/recall-plugin:latest
         ports:
@@ -62,6 +64,8 @@ spec:
             value: $(REDIS_PORT)
           - name: PORTRAIT_SERVICE_ENDPOINT
             value: "http://portrait:5300"
+          - name: AWS_REGION
+            value: $(AWS_REGION)
           - name: METHOD
             value: $(METHOD)
           - name: PS_CONFIG

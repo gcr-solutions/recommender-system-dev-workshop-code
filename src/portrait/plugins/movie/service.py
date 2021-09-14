@@ -23,6 +23,7 @@ import service_pb2_grpc
 
 # Environments for service
 MANDATORY_ENV_VARS = {
+    'AWS_REGION': 'ap-northeast-1',
     'USER_EMBEDDINGS_H5': 'user_embeddings.h5',
 
     'RAW_EMBED_USER_MAPPING': 'raw_embed_user_mapping.pickle',

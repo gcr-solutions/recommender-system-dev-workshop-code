@@ -11,3 +11,4 @@ grpcio-reflection==1.36.1
 grpcio-tools==1.36.0
 protobuf==3.15.3
 requests==2.25.1
+boto3==1.16.59

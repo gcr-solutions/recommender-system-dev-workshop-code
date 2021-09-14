@@ -11,6 +11,8 @@ import requests
 import sys
 import time
 
+import boto3
+
 from google.protobuf import descriptor
 from google.protobuf import any_pb2
 import grpc
@@ -22,6 +24,8 @@ import cache
 import service_pb2
 import service_pb2_grpc
 
+s3client = None
+
 file_name_list = ['news_id_news_property_dict.pickle',
                   'news_type_news_ids_dict.pickle',
                   'news_entities_news_ids_dict.pickle',
@@ -30,6 +34,7 @@ file_name_list = ['news_id_news_property_dict.pickle',
 
 # Environments for service
 MANDATORY_ENV_VARS = {
+    'AWS_REGION': 'ap-northeast-1',
     'RECALL_CONFIG': 'recall_config.pickle',
 
     'NEWS_ID_PROPERTY': 'news_id_news_property_dict.pickle',
@@ -50,7 +55,6 @@ MANDATORY_ENV_VARS = {
 
     'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300',
     'PS_CONFIG': 'ps_config.json',
-    'AWS_REGION': 'ap-northeast-1',
     'METHOD': "ps-complete",
     'PS_SIMS_BATCH_RESULT': 'ps-sims-batch.out'
 }
@@ -83,16 +87,16 @@ class Recall(service_pb2_grpc.RecallServicer):
 
         # self.reload_embedding_files(local_data_folder, [MANDATORY_ENV_VARS['ENTITY_EMBEDDING_NPY']])
 
-        # # Ignored if files were not existed
+        # # Ignored if files were not existed 
         # if self.entity_index != None and self.word_index != None and self.entity_embedding.size != 0:
 
         #     logging.debug('Initial self.serviceImpl...')
-        #     self.serviceImpl = service_impl.ServiceImpl(recall_per_news_id=MANDATORY_ENV_VARS['RECALL_PER_NEWS_ID'],
-        #                 similar_entity_threshold=MANDATORY_ENV_VARS['SIMILAR_ENTITY_THRESHOLD'],
-        #                 recall_threshold=MANDATORY_ENV_VARS['RECALL_THRESHOLD'],
+        #     self.serviceImpl = service_impl.ServiceImpl(recall_per_news_id=MANDATORY_ENV_VARS['RECALL_PER_NEWS_ID'], 
+        #                 similar_entity_threshold=MANDATORY_ENV_VARS['SIMILAR_ENTITY_THRESHOLD'], 
+        #                 recall_threshold=MANDATORY_ENV_VARS['RECALL_THRESHOLD'], 
         #                 recall_merge_number=MANDATORY_ENV_VARS['RECALL_MERGE_NUMBER'],
         #                 entity_index_l=self.entity_index,
-        #                 word_index_l=self.word_index,
+        #                 word_index_l=self.word_index, 
         #                 entity_embedding_l=self.entity_embedding)
 
         # Load pickle files
@@ -328,6 +332,13 @@ def init():
             logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
             MANDATORY_ENV_VARS[var]=os.environ.get(var)
+
+    aws_region = MANDATORY_ENV_VARS['AWS_REGION']
+    logging.info("aws_region={}".format(aws_region))
+    boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
+    global s3client
+    s3client = boto3.client('s3')
+    logging.info(json.dumps(s3client.list_buckets(), default=str))
 
     # Initial redis connection
     global rCache

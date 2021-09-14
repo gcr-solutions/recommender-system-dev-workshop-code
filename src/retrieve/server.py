@@ -4,6 +4,8 @@ import os
 from threading import Thread
 from typing import List
 from urllib.request import Request
+import boto3
+import json
 
 import requests
 import uvicorn as uvicorn
@@ -29,6 +31,7 @@ sleep_interval = 10  # second
 MANDATORY_ENV_VARS = {
     'REDIS_HOST': 'localhost',
     'REDIS_PORT': 6379,
+    'AWS_REGION': 'ap-northeast-1',
     'RETRIEVE_HOST': 'retrieve',
     'RETRIEVE_PORT': '5600',
     'FILTER_HOST': 'filter',
@@ -44,6 +47,7 @@ def xasync(f):
         thr.start()
     return wrapper
 
+s3client = None
 
 class RSHTTPException(HTTPException):
     def __init__(self, status_code: int, message: str):
@@ -335,6 +339,7 @@ def convert(data):
 
 
 def init():
+
     # Check out environments
     for var in MANDATORY_ENV_VARS:
         if var not in os.environ:
@@ -344,6 +349,14 @@ def init():
     global rCache
     rCache = cache.RedisCache(host=MANDATORY_ENV_VARS['REDIS_HOST'], port=MANDATORY_ENV_VARS['REDIS_PORT'])
     logging.info('redis status is {}'.format(rCache.connection_status()))
+
+    aws_region = MANDATORY_ENV_VARS['AWS_REGION']
+    logging.info("aws_region={}".format(aws_region))
+    boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
+    global s3client
+    s3client = boto3.client('s3')
+    logging.info(json.dumps(s3client.list_buckets(), default=str))
+
 
 
 if __name__ == "__main__":

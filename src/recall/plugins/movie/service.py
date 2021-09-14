@@ -24,6 +24,7 @@ import service_pb2_grpc
 
 # Environments for service
 MANDATORY_ENV_VARS = {
+    'AWS_REGION': 'ap-northeast-1',
 
     'UB_ITEM_VECTOR': 'ub_item_vector.index', 
 

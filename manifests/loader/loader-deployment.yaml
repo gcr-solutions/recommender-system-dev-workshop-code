@@ -38,7 +38,9 @@ spec:
             - name: LOADER_PORT
               value: "5000"
             - name: LOCAL_DATA_FOLDER
-              value: $(LOCAL_DATA_FOLDER)              
+              value: $(LOCAL_DATA_FOLDER)
+            - name: AWS_REGION
+              value: $(AWS_REGION)
           volumeMounts:
             - name: persistent-storage
               mountPath: /rs-data
