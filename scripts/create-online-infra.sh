@@ -53,17 +53,18 @@ kubectl apply -f ../manifests/istio-ingress-gateway.yaml
 #Open istio elb 22 port for China regions
 if [[ $REGION =~ ^cn.* ]];then
   echo "open 22 port for china regions [$REGION]"
-  sleep 120
-  ELB_NAME=$(aws resourcegroupstaggingapi get-resources --tag-filters Key=kubernetes.io/service-name,Values=istio-system/istio-ingressgateway-news-dev | 
+  while true; do
+       sleep 30
+       ELB_NAME=$(aws resourcegroupstaggingapi get-resources --tag-filters Key=kubernetes.io/service-name,Values=istio-system/istio-ingressgateway-news-dev |
 jq -r '.ResourceTagMappingList[].ResourceARN' | cut -d'/' -f 2)
-  echo load balance name: $ELB_NAME
+       if [[ -n $ELB_NAME ]];then
+          echo "load balance name: $ELB_NAME"
+          break
+       else
+         echo "wait load balance ready ..."
+       fi
+  done
 
-  if [[ -z $ELB_NAME ]];then
-     sleep 120
-     ELB_NAME=$(aws resourcegroupstaggingapi get-resources --tag-filters Key=kubernetes.io/service-name,Values=istio-system/istio-ingressgateway-news-dev |
-jq -r '.ResourceTagMappingList[].ResourceARN' | cut -d'/' -f 2)
-     echo load balance name: $ELB_NAME
-  fi
 
   INSTANCE_PORT=$(kubectl get svc istio-ingressgateway-news-dev -n istio-system -o=jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
   echo instance port: $INSTANCE_PORT
