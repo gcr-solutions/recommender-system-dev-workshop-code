@@ -61,7 +61,7 @@ then
 
     echo "=== 6/7. start create application!"
     ./create-argocd-application.sh
-    sleep 90
+    sleep 120
 
     echo "=== 7/7. load-seed-data!"
     ./load-seed-data.sh
