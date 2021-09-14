@@ -133,22 +133,22 @@ class Recall(service_pb2_grpc.RecallServicer):
             logging.info('reload_pickle_type pickle_path {}'.format(pickle_path))
             if MANDATORY_ENV_VARS['NEWS_ID_PROPERTY'] in pickle_path:
                 logging.info('reload news_id_news_property_dict file {}'.format(pickle_path))
-                self.news_id_news_property_dict = self.load_pickle(pickle_path)
+                self.news_id_news_property_dict = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['ENTITY_ID_NEWS_IDS'] in pickle_path:
                 logging.info('reload entity_id_news_ids_dict file {}'.format(pickle_path))
-                self.entity_id_news_ids_dict = self.load_pickle(pickle_path)
+                self.entity_id_news_ids_dict = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['WORD_ID_NEWS_IDS'] in pickle_path:
                 logging.info('reload word_id_news_ids_dict file {}'.format(pickle_path))
-                self.word_id_news_ids_dict = self.load_pickle(pickle_path)
+                self.word_id_news_ids_dict = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['NEWS_TYPE_NEWS_IDS'] in pickle_path:
                 logging.info('reload news_type_news_ids_dict file {}'.format(pickle_path))
-                self.news_type_news_ids_dict = self.load_pickle(pickle_path)
+                self.news_type_news_ids_dict = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['KEYWORD_NEWS_IDS'] in pickle_path:
                 logging.info('reload keyword_news_ids_dict file {}'.format(pickle_path))
-                self.keywords_news_ids_dict = self.load_pickle(pickle_path)
+                self.keywords_news_ids_dict = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['RECALL_CONFIG'] in pickle_path:
                 logging.info('reload recall_config file {}'.format(pickle_path))
-                self.recall_config = self.load_pickle(pickle_path)
+                self.recall_config = self.load_pickle_or_json(pickle_path)
 
     def reload_embedding_files(self, file_path, file_list):
         logging.info('reload_embedding_files  strat')
@@ -171,11 +171,16 @@ class Recall(service_pb2_grpc.RecallServicer):
                 logging.info('reload ps_sims_batch_result file {}'.format(out_path))
                 self.ps_sims_news_ids_dict = self.load_out_file(out_path)
 
-    def load_pickle(self, file):
+    def load_pickle_or_json(self, file):
+        logging.info("load_json_or_pickle start load {}".format(file))
         if os.path.isfile(file):
             infile = open(file, 'rb')
-            dict = pickle.load(infile)
+            if file.lower().endswith(".json"):
+                dict = json.load(infile)
+            else:
+                dict = pickle.load(infile)
             infile.close()
+            logging.info("load_json_or_pickle completed, key len:{}".format(len(dict)))
             return dict
         else:
             logging.info('file {} is not existed'.format(file))

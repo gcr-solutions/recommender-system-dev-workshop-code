@@ -70,7 +70,7 @@ echo "------update config.yaml file------"
 env_config_path=${curr_dir}/../manifests/envs/news-dev/config.yaml
 old_method=$(awk -F "\"" '/method/{print $2}' $env_config_path)
 echo "change old method: ${old_method} to new method: ${METHOD}"
-sed -e "s@$old_method@$METHOD@g" -i "" $env_config_path
+sed -e "s@$old_method@$METHOD@g" -i $env_config_path
 
 
 echo "------push code to github-------"

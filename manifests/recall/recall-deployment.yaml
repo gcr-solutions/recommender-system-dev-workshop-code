@@ -62,6 +62,10 @@ spec:
             value: $(REDIS_PORT)
           - name: PORTRAIT_SERVICE_ENDPOINT
             value: "http://portrait:5300"
+          - name: METHOD
+            value: $(METHOD)
+          - name: PS_CONFIG
+            value: "ps_config.json"
         volumeMounts:
           - name: persistent-storage
             mountPath: /rs-data
