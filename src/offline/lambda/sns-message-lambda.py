@@ -126,6 +126,12 @@ def do_handler(event, context):
             if message_type == 'movie':
                 msg_file_types.extend(
                     ["embeddings", "inverted-list", "vector-index"])
+        elif file_type == "inverted-list-realtime":
+            msg_file_types.extend(["inverted-list-realtime"])
+        elif file_type == "ps-result":
+            msg_file_types.extend(["ps-result"])
+        elif file_type == "ps-sims-dict":
+            msg_file_types.extend(["ps-sims-dict"])
         else:
             msg_file_types.append(file_type)
 
@@ -134,13 +140,17 @@ def do_handler(event, context):
     messages_sent = []
     for file_type in set(msg_file_types):
         print("send sns message for file_type: {}".format(file_type))
+        if file_type == 'inverted-list-realtime':
+            sub_folder = 'inverted-list'
+        else:
+            sub_folder = file_type
 
         notification_file_path = "{}/notification/{}/".format(
-            bucket_and_prefix, file_type)
+            bucket_and_prefix, sub_folder)
         file_names = []
         message = {
             # "region_id": region_id,
-            "file_type": file_type,
+            "file_type": sub_folder,
             "file_path": "/".join(notification_file_path.split("/")[3:]),
             "file_name": file_names
         }
@@ -159,7 +169,7 @@ def do_handler(event, context):
             sns_client.publish(
                 TopicArn=sns_topic_arn,
                 Message=json.dumps(message),
-                Subject="RS Offline Notification",
+                Subject="[{}]RS Offline Notification - {}/{}".format(stage, message_type, sub_folder),
                 MessageAttributes={
                     "message_type": {
                         "DataType": "String",
@@ -167,7 +177,7 @@ def do_handler(event, context):
                     },
                     "file_type": {
                         "DataType": "String",
-                        "StringValue": str(file_type),
+                        "StringValue": str(sub_folder),
                     }
                 }
             )
@@ -275,11 +285,32 @@ def get_message_dict(bucket_and_prefix, message_type):
         "movie_records": [
             "{}/system/item-data/item.csv".format(
                 bucket_and_prefix),
+        ],
+
+        "ps-result": [
+            "{}/system/ps-config/ps_config.json".format(bucket_and_prefix)
+        ],
+
+        "ps-sims-dict": [
+            "{}/feature/ps-recommend-list/ps-sims-batch.out".format(bucket_and_prefix)
         ]
 
     }
 
     news_msg_dict = {
+        "inverted-list-realtime": [
+            "{}/feature/content/inverted-list/news_entities_news_ids_dict.pickle".format(
+                bucket_and_prefix),
+            "{}/feature/content/inverted-list/news_id_news_property_dict.pickle".format(
+                bucket_and_prefix),
+            "{}/feature/content/inverted-list/news_keywords_news_ids_dict.pickle".format(
+                bucket_and_prefix),
+            "{}/feature/content/inverted-list/news_type_news_ids_dict.pickle".format(
+                bucket_and_prefix),
+            "{}/feature/content/inverted-list/news_words_news_ids_dict.pickle".format(
+                bucket_and_prefix),
+        ],
+
         "inverted-list": [
             "{}/feature/content/inverted-list/news_entities_news_ids_dict.pickle".format(
                 bucket_and_prefix),
@@ -294,7 +325,7 @@ def get_message_dict(bucket_and_prefix, message_type):
             "{}/feature/content/inverted-list/news_words_news_ids_dict.pickle".format(
                 bucket_and_prefix),
 
-            "{}/feature/content/inverted-list/recall_config.pickle".format(
+            "{}/feature/content/inverted-list/recall_config.json".format(
                 bucket_and_prefix),
             "{}/feature/content/inverted-list/filter_config.pickle".format(
                 bucket_and_prefix),
@@ -311,8 +342,8 @@ def get_message_dict(bucket_and_prefix, message_type):
             # "{}/model/recall/recall_config.pickle".format(bucket_and_prefix),
             # "{}/model/filter/filter_config.pickle".format(bucket_and_prefix),
 
-            "{}/feature/recommend-list/portrait/portrait.pickle".format(
-                bucket_and_prefix),
+            # "{}/feature/recommend-list/portrait/portrait.pickle".format(
+            #     bucket_and_prefix),
             "{}/feature/recommend-list/news/recall_batch_result.pickle".format(
                 bucket_and_prefix),
             "{}/feature/recommend-list/news/rank_batch_result.pickle".format(
@@ -341,6 +372,14 @@ def get_message_dict(bucket_and_prefix, message_type):
         "news_records": [
             "{}/system/item-data/item.csv".format(
                 bucket_and_prefix),
+        ],
+
+        "ps-result": [
+            "{}/system/ps-config/ps_config.json".format(bucket_and_prefix)
+        ],
+
+        "ps-sims-dict": [
+            "{}/feature/ps-recommend-list/ps-sims-batch.out".format(bucket_and_prefix)
         ]
     }
 
