@@ -61,7 +61,7 @@ jq -r '.ResourceTagMappingList[].ResourceARN' | cut -d'/' -f 2)
           echo "load balance name: $ELB_NAME"
           break
        else
-         echo "wait load balance ready ..."
+         echo "wait for load balance ready ..."
        fi
   done
 
