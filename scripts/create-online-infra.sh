@@ -100,7 +100,7 @@ if [[ $REGION =~ ^cn.* ]]; then
 
   aws iam create-policy \
     --policy-name AmazonEKS_EFS_CSI_Driver_Policy \
-    --policy-document file://iam-policy-example.json
+    --policy-document file://iam-policy-example.json || true
 
   eksctl utils associate-iam-oidc-provider --region=$REGION --cluster=$EKS_CLUSTER --approve
 
