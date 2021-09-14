@@ -96,7 +96,7 @@ if [[ $REGION =~ ^cn.* ]]; then
   #curl -OL https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/v1.3.2/docs/iam-policy-example.json
   curl -LO https://aws-gcr-rs-sol-workshop-cn-north-1-common.s3.cn-north-1.amazonaws.com.cn/eks/iam-policy-example.json
 
-  aws iam delete-policy --policy-arn arn:aws-cn:iam::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy >/dev/null 2>&1 || true
+  # aws iam delete-policy --policy-arn arn:aws-cn:iam::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy >/dev/null 2>&1 || true
 
   aws iam create-policy \
     --policy-name AmazonEKS_EFS_CSI_Driver_Policy \
