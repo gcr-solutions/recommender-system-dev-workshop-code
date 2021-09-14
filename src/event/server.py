@@ -42,7 +42,7 @@ async def log_json(request: Request):
     try:
         logging.info("log request JSON: {}".format(await
         request.json()))
-        except Exception:
+    except Exception:
         pass
 
 
