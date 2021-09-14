@@ -72,7 +72,7 @@ def do_handler(event, context):
     aws_account_id = get_caller_identity_response["Account"]
     print("aws_account_id:{}".format(aws_account_id))
 
-    role_arn = "arn:aws:iam::{}:role/gcr-rs-{}-personalize-role".format(aws_account_id, stage)
+    role_arn = "arn:aws:iam::{}:role/gcr-rs-personalize-role".format(aws_account_id, stage)
     print("role_arn:{}".format(role_arn))
 
     create_dataset_import_job_response = personalize.create_dataset_import_job(
