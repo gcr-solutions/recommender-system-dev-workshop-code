@@ -312,6 +312,7 @@ def offline_status_get(exec_arn: str):
     else:
         aws_console_url = f"https://{aws_region}.console.aws.amazon.com/states/home?region={aws_region}" \
                           f"#/executions/details/{exec_arn}"
+    logging.info("aws_console_url:{}".format(aws_console_url))
     res = StateMachineStatusResponse(metadata=Metadata(type='StateMachineStatusResponse'),
                                      detailUrl=aws_console_url,
                                      executionArn=exec_arn,
@@ -444,8 +445,14 @@ def start_step_funcs(trainReq):
     exec_arn = res['executionArn']
     logging.info("exec_arn: {}".format(exec_arn))
 
-    aws_console_url = f"https://{aws_region}.console.aws.amazon.com/states/home?region={aws_region}" \
-                      f"#/executions/details/{exec_arn}"
+    if aws_region.startswith("cn-"):
+        aws_console_url = f"https://{aws_region}.console.amazonaws.cn/states/home?region={aws_region}" \
+                          f"#/executions/details/{exec_arn}"
+    else:
+        aws_console_url = f"https://{aws_region}.console.aws.amazon.com/states/home?region={aws_region}" \
+                          f"#/executions/details/{exec_arn}"
+
+    logging.info("aws_console_url:{}".format(aws_console_url))
 
     res = StateMachineStatusResponse(metadata=Metadata(type='StateMachineStatusResponse'),
                                      detailUrl=aws_console_url,
