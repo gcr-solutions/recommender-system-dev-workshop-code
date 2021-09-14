@@ -51,15 +51,17 @@ EKS_CLUSTER=gcr-rs-dev-application-cluster
 
 botoConfig='{"user_agent_extra": "AwsSolution/SO8010/0.1.0"}'
 SNS_TOPIC_ARN="arn:aws:sns:${REGION}:${account_id}:rs-$Stage-offline-sns"
-echo $SNS_TOPIC_ARN
+
 
 # aws --profile rsops lambda get-function-configuration  --function-name rs-dev-SNSMessageLambda | jq .Environment.Variables | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")| join (",")'
 # aws --profile rsops lambda get-function-configuration  --function-name rs-dev-SNSMessageLambda | jq .Environment.Variables | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")| .[]'
 if [[ $REGION =~ cn.* ]];then
    dns_name=$dns_name:22
+   SNS_TOPIC_ARN="arn:aws-cn:sns:${REGION}:${account_id}:rs-$Stage-offline-sns"
 fi
 
 echo "dns_name:$dns_name"
+echo $SNS_TOPIC_ARN
 
 #if [[ $REGION =~ cn.* ]];then
 #   EKS_VPC_ID=$($AWS_CMD eks describe-cluster --name $EKS_CLUSTER --query "cluster.resourcesVpcConfig.vpcId" --output text)
