@@ -13,7 +13,6 @@ service Filter {
     rpc Stop(StopRquest) returns (CommonResponse) {};
     
     rpc FilterProcess(FilterProcessRequest) returns (FilterProcessResponse) {};
-    rpc GetFilterData(GetFilterDataRequest) returns (GetFilterDataResponse) {};
 }
 
 message CommonResponse {
@@ -22,16 +21,16 @@ message CommonResponse {
 }
 
 message ReloadRequest {
-  google.protobuf.Any dicts = 1; 
-} 
+  google.protobuf.Any dicts = 1;
+}
 
 message StopRquest {
-  optional int32 signal = 1; 
-} 
+  optional int32 signal = 1;
+}
 
 message StatusResponse {
   int32 code = 1;
-  google.protobuf.Any status = 2; 
+  google.protobuf.Any status = 2;
 }
 
 
@@ -39,26 +38,13 @@ message FilterProcessRequest {
   string apiVersion = 1;
   string metadata = 2;
   string type = 3;
-  google.protobuf.Any dicts = 4; 
+  google.protobuf.Any dicts = 4;
 }
 
 
 message FilterProcessResponse {
   int32 code = 1;
   string description  = 2;
-  google.protobuf.Any results = 3; 
-}
-
-message GetFilterDataRequest {
-  string apiVersion = 1;
-  string metadata = 2;
-  string type = 3;
-  google.protobuf.Any requestBody = 4; 
-}
-
-message GetFilterDataResponse {
-  int32 code = 1;
-  string description  = 2;
-  google.protobuf.Any results = 3; 
+  google.protobuf.Any results = 3;
 }
 

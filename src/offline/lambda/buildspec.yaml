@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     APP_NAME: "lambda"
-    Stage: "dev"
+    Stage: "dev-workshop"
     METHOD: "ps-complete"
 #  secrets-manager:
 #    GITHUB_USER: gcr-rs-dev-workshop-secret:githubUser
