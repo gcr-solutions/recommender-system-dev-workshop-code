@@ -3,12 +3,13 @@ import logging
 import os
 import uuid
 from datetime import datetime
-from threading import Thread
 from typing import List, Dict, Any, Optional
+from threading import Thread
 import time
 import redis
 import cache
 import boto3
+from botocore.config import Config
 import requests
 import uvicorn as uvicorn
 from fastapi import FastAPI, Header, HTTPException, APIRouter, Depends
@@ -19,8 +20,6 @@ from starlette.responses import JSONResponse
 
 app = FastAPI()
 api_router = APIRouter()
-
-s3client = None
 
 step_funcs = None
 account_id = ''
@@ -60,8 +59,7 @@ def xasync(f):
 
 async def log_json(request: Request):
     try:
-        logging.info("log request JSON: {}".format(await
-        request.json()))
+        logging.info("log request JSON: {}".format(await request.json()))
     except Exception:
         pass
 
@@ -472,7 +470,6 @@ def init():
         else:
             logging.info("set {}={}".format(var, os.environ.get(var)))
             MANDATORY_ENV_VARS[var] = str(os.environ.get(var))
-
     aws_region = MANDATORY_ENV_VARS['AWS_REGION']
     logging.info("aws_region={}".format(aws_region))
     boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
@@ -485,14 +482,14 @@ def init():
     global account_id
     account_id = boto3.client(
         'sts', aws_region).get_caller_identity()['Account']
-
-    global personalize_events
-    personalize_events = boto3.client(service_name='personalize-events', region_name=MANDATORY_ENV_VARS['AWS_REGION'])
-    global ps_config
-    ps_config = load_config(MANDATORY_ENV_VARS['PS_CONFIG'])
     global rCache
     rCache = cache.RedisCache(host=MANDATORY_ENV_VARS['REDIS_HOST'], port=MANDATORY_ENV_VARS['REDIS_PORT'])
     logging.info('redis status is {}'.format(rCache.connection_status()))
+    global ps_config
+    ps_config = load_config(MANDATORY_ENV_VARS['PS_CONFIG'])
+    global personalize_events
+    personalize_events = boto3.client(service_name='personalize-events', region_name=MANDATORY_ENV_VARS['AWS_REGION'])
+
 
 def get_step_funcs_name():
     step_funcs_name = 'rs-{}-{}-{}-OverallStepFunc'.format(MANDATORY_ENV_VARS['SCENARIO'],
@@ -500,12 +497,13 @@ def get_step_funcs_name():
                                                            MANDATORY_ENV_VARS['Stage'])
     logging.info("step funcs name: {}".format(step_funcs_name))
     return step_funcs_name
+
     # namespace = MANDATORY_ENV_VARS['POD_NAMESPACE']
     # known_mappings = {
-    #     'rs-news-dev-ns': 'rs-dev-News-OverallStepFunc',
-    #     'rs-movie-dev-ns': 'rs-dev-Movie-OverallStepFunc',
-    #     'rs-news-demo-ns': 'rs-demo-News-OverallStepFunc',
-    #     'rs-movie-demo-ns': 'rs-demo-Movie-OverallStepFunc',
+    #     'rs-news-dev-ns': 'rs-news-customize-dev-OverallStepFunc',
+    #     'rs-movie-dev-ns': 'rs-movie-customize-dev-OverallStepFunc',
+    #     'rs-news-demo-ns': 'rs-news-customize-demo-OverallStepFunc',
+    #     'rs-movie-demo-ns': 'rs-movie-customize-demo-OverallStepFunc',
     #     'rs-beta': 'rsdemo-News-OverallStepFunc'
     # }
     # step_funcs_name = known_mappings.get(namespace, 'rsdemo-News-OverallStepFunc')
@@ -523,8 +521,16 @@ if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
                         datefmt='%Y-%m-%d:%H:%M:%S',
                         level=logging.INFO)
-
     init()
+    s3_boto_config = Config(
+        region_name=MANDATORY_ENV_VARS['AWS_REGION']
+    )
+    logging.info("region is {} ".format(MANDATORY_ENV_VARS['AWS_REGION']))
+    s3client = boto3.client('s3', config=s3_boto_config)
+    logging.info(json.dumps(s3client.list_buckets(), default=str))
+    # aws_region = boto3.Session().region_name
+    # logging.info("boto3.Session aws_region: {}".format(aws_region))
+
     logging.info(MANDATORY_ENV_VARS)
     uvicorn.run(app, host="0.0.0.0", port=int(
         MANDATORY_ENV_VARS['EVENT_PORT']))

@@ -35,7 +35,7 @@ file_name_list = ['news_id_news_property_dict.pickle',
 # Environments for service
 MANDATORY_ENV_VARS = {
     'AWS_REGION': 'ap-northeast-1',
-    'RECALL_CONFIG': 'recall_config.pickle',
+    'RECALL_CONFIG': 'recall_config.json',
 
     'NEWS_ID_PROPERTY': 'news_id_news_property_dict.pickle',
     'ENTITY_ID_NEWS_IDS': 'news_entities_news_ids_dict.pickle',
