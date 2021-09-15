@@ -15,6 +15,11 @@ fi
 echo "Stage=$Stage"
 echo "REGION=$REGION"
 
+PERSONALIZE=$2
+if [[ -z $PERSONALIZE ]]; then
+  PERSONALIZE='true'
+fi
+
 #if [[ -z $GITHUB_USER ]]; then
 #     echo "error!!! can not get your GITHUB_USER, please set it use 'export GITHUB_USER=<your github username>'"
 #     exit 1
@@ -70,12 +75,14 @@ cd ${curr_dir}/../sample-data
 
 wait 10
 
-echo "========= Create Personalize Service =============="
-echo "you can run: tail ~/personalize-log/create-personalize.log to check the status"
-cd ${curr_dir}/personalize
-mkdir ~/personalize-log
-nohup ./create-personalize.sh >> ~/personalize-log/create-personalize.log 2>&1 &
-cd ..
+if [[ "${PERSONALIZE}" != "false" ]];then
+  echo "========= Create Personalize Service =============="
+  echo "you can run: tail ~/personalize-log/create-personalize.log to check the status"
+  cd ${curr_dir}/personalize
+  mkdir ~/personalize-log
+  nohup ./create-personalize.sh >> ~/personalize-log/create-personalize.log 2>&1 &
+  cd ..
+fi
 
 echo "You can run your step-funcs with below input"
 echo '{

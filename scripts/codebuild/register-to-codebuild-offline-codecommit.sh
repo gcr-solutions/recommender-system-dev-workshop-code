@@ -15,6 +15,10 @@ if [[ -z $DELETE_FLAG ]];then
   DELETE_FLAG='no'
 fi
 
+PERSONALIZE=$3
+if [[ -z $PERSONALIZE ]];then
+  PERSONALIZE="true"
+fi
 
 echo "Stage:$Stage"
 
@@ -146,12 +150,18 @@ projects_dir=(
   "step-funcs"
 )
 
-method_list=(
-  "customize"
-  "ps-complete"
-  "ps-rank"
-  "ps-sims"
-)
+if [[ "${PERSONALIZE}" != "false" ]];then
+  method_list=(
+    "customize"
+    "ps-complete"
+    "ps-rank"
+    "ps-sims"
+  )
+else
+  method_list=(
+    "customize"
+  )
+fi
 
 for method in ${method_list[@]}; do
   for project in ${projects_dir[@]}; do
