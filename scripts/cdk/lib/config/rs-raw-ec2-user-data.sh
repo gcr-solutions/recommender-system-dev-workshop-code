@@ -104,6 +104,11 @@ rm -rf recommender-system-dev-workshop-code-main
 cd ./recommender-system-dev-workshop-code/
 git add . && git commit -m 'first commit' && git push
 
+echo "keygen"
+ssh-keygen -t rsa -N '' -f /home/ec2-user/.ssh/id_rsa <<< y
+aws ec2 delete-key-pair --key-name "gcr-rs-dev-workshop-key" || true
+aws ec2 import-key-pair --key-name "gcr-rs-dev-workshop-key" --public-key-material file:///home/ec2-user/.ssh/id_rsa.pub
+
 EOS
 
 # httpd
