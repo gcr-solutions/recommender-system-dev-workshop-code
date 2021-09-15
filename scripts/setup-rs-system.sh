@@ -33,20 +33,31 @@ then
     ./create-argocd-application.sh
 elif [ $input = "ALL" ]
 then
+    echo "export SECRET_NAME=gcr-rs-dev-workshop-secret"
+    echo "export APP_CONF_REPO=recommender-system-dev-workshop-code"
+    echo "---------------------------------------------"
+    echo ""
     echo "=== 1/7. start create offline!"
+    echo "./create-online-infra.sh"
     ./create-offline.sh
     sleep 10
 
+    echo ""
     echo "=== 2/7. start create online codebuild project!"
+    echo "./create-online-infra.sh"
     ./online-code-build-setup.sh
     sleep 10
 
+    echo ""
     echo "=== 3/7. start create online infrastructure!"
+    echo "./create-online-infra.sh"
     ./create-online-infra.sh
     kubectl get node
     sleep 10
 
+    echo ""
     echo "=== 4/7. start update online config!"
+    echo "./update-online-config.sh"
     ./update-online-config.sh
 
     git pull
@@ -55,15 +66,21 @@ then
     git push
     sleep 10
 
+    echo ""
     echo "=== 5/7. start setup argocd server!"
+    echo "./setup-argocd-server.sh"
     ./setup-argocd-server.sh
     sleep 120
 
+    echo ""
     echo "=== 6/7. start create application!"
+    echo "./create-argocd-application.sh"
     ./create-argocd-application.sh
     sleep 120
 
+    echo ""
     echo "=== 7/7. load-seed-data!"
+    echo "./load-seed-data.sh"
     ./load-seed-data.sh
 
     ./get-ingressgateway-elb-endpoint.sh
