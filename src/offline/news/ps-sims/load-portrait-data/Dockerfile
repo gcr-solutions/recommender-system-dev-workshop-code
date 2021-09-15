@@ -1,4 +1,4 @@
-FROM python:3.6-slim-buster
+FROM public.ecr.aws/t8u1z3c8/python:3.8-slim
 
 RUN pip3 install boto3==1.16.57
 
