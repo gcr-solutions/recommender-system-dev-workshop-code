@@ -50,7 +50,7 @@ rs/news-ps-rank-user-preprocessing
 curr_dir=$(pwd)
 
 cd $curr_dir/step-funcs
-./clean_up.sh
+./clean_up.sh $Stage
 
 cd $curr_dir
 

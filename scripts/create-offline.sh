@@ -73,7 +73,7 @@ cd ${curr_dir}/../sample-data
 #cd ${curr_dir}/../src/offline/news/step-funcs
 #./build.sh $Stage
 
-wait 10
+sleep 10
 
 if [[ "${PERSONALIZE}" != "false" ]];then
   echo "========= Create Personalize Service =============="
