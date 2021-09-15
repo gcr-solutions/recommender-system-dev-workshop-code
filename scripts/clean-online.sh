@@ -127,6 +127,7 @@ do
     sleep 5
 done
 
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text)
 
 if [[ ${REGION} =~ cn.* ]];then
    echo "delete eksctl-gcr-rs-dev-application-cluster-addon-iamserviceaccount-kube-system-efs-csi-controller-sa"
@@ -136,6 +137,21 @@ if [[ ${REGION} =~ cn.* ]];then
    echo "delete-policy AmazonEKS_EFS_CSI_Driver_Policy_$REGION"
    aws iam delete-policy --policy-arn arn:aws-cn:iam::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy_$REGION || true
 
+fi
+
+
+CODE_COMMIT_USER=gcr-rs-codecommit-user_$REGION
+
+if $(aws iam get-user --user-name ${CODE_COMMIT_USER} >/dev/null 2>&1 );then
+  echo "delete $CODE_COMMIT_USER"
+  aws iam list-attached-user-policies --user-name $CODE_COMMIT_USER
+  POLICY_ARNS=$(aws iam list-attached-user-policies --user-name $CODE_COMMIT_USER | jq '.[][].PolicyArn' -r)
+  for POLICY_ARN in $(echo $POLICY_ARNS); do
+    aws iam detach-user-policy --user-name $CODE_COMMIT_USER --policy-arn $POLICY_ARN
+  done
+  SER_ID=$(aws iam list-service-specific-credentials --user-name $CODE_COMMIT_USER --service-name codecommit.amazonaws.com | jq -r '.[][].ServiceSpecificCredentialId')
+  aws iam delete-service-specific-credential --user-name $CODE_COMMIT_USER --service-specific-credential-id $SER_ID
+  aws iam delete-user --user-name $CODE_COMMIT_USER
 fi
 
 echo "Please stop printing the log by typing CONTROL+C "
