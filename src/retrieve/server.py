@@ -315,7 +315,7 @@ def handle_stream_message(stream_message):
     reloadRequest = service_pb2.ReloadRequest()
     reloadRequest.dicts.Pack(reqDicts)
     channel = grpc.insecure_channel('localhost:50051')
-    stub = service_pb2_grpc.RecallStub(channel)
+    stub = service_pb2_grpc.RetrieveStub(channel)
     response = stub.Reload(reloadRequest)
     if response.code == 0:
         logging.info('reload plugin succeeded')

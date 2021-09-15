@@ -28,9 +28,9 @@ spec:
             memory: 2048Mi
         env:
           - name: REDIS_HOST
-            value: $(REDIS_HOST)
+            value: $(MESSGE_BROKER_REDIS_HOST)
           - name: REDIS_PORT
-            value: $(REDIS_PORT)
+            value: $(MESSGE_BROKER_REDIS_PORT)
           - name: RETRIEVE_PORT
             value: "5600"
           - name: FILTER_HOST
