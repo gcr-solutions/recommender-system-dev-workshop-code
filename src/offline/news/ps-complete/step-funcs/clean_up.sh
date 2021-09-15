@@ -7,7 +7,7 @@ pwd
 echo "------------------------------------------------ "
 Stage=$1
 if [[ -z $Stage ]];then
-  Stage='dev'
+  Stage='dev-workshop'
 fi
 
 echo "Stage=$Stage"
@@ -23,7 +23,7 @@ if [[ -n $AWS_DEFAULT_REGION ]];then
 fi
 
 if [[ -z $REGION ]];then
-    REGION='ap-southeast-1'
+    REGION='ap-northeast-1'
 fi
 
 echo "AWS_CMD: $AWS_CMD"
