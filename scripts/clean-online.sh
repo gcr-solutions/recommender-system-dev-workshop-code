@@ -127,4 +127,11 @@ do
     sleep 5
 done
 
+
+if [[ ${REGION} =~ cn.* ]];then
+   echo "delete eksctl-gcr-rs-dev-application-cluster-addon-iamserviceaccount-kube-system-efs-csi-controller-sa"
+   aws cloudformation delete-stack --region ${REGION} \
+    --stack-name  eksctl-gcr-rs-dev-application-cluster-addon-iamserviceaccount-kube-system-efs-csi-controller-sa  || true
+fi
+
 echo "Please stop printing the log by typing CONTROL+C "

@@ -23,9 +23,18 @@ kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}
 #Open argocd elb 22 port for China regions
 if [[ $REGION =~ ^cn.* ]];then
   echo "open 22 port for china regions"
-  sleep 60
-  ELB_NAME=$(aws resourcegroupstaggingapi get-resources --tag-filters Key=kubernetes.io/service-name,Values=argocd/argocd-server  | jq -r '.ResourceTagMappingList[].ResourceARN' | cut -d'/' -f 2)
-  echo load balance name: $ELB_NAME
+
+  while true; do
+     sleep 60
+     ELB_NAME=$(aws resourcegroupstaggingapi get-resources --tag-filters Key=kubernetes.io/service-name,Values=argocd/argocd-server  | jq -r '.ResourceTagMappingList[].ResourceARN' | cut -d'/' -f 2)
+
+     if [[ -n $ELB_NAME ]];then
+         echo load balance name: $ELB_NAME
+         break
+     else
+         echo "wait for load balance ready ..."
+     fi
+  done
 
   INSTANCE_PORT=$(kubectl get svc argocd-server -n argocd -o=jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
   echo instance port: $INSTANCE_PORT
