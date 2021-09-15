@@ -41,32 +41,48 @@ cd ${curr_dir}/codebuild
 ./register-to-codebuild-offline-codecommit.sh $Stage DELETE
 
 repo_names=(
-  rs/news-inverted-list
-  rs/news-action-preprocessing
-  rs/news-add-item-batch
-  rs/news-add-user-batch
-  rs/news-dashboard
-  rs/news-filter-batch
-  rs/news-item-feature-update-batch
-  rs/news-item-preprocessing
-  rs/news-model-update-action
-  rs/news-model-update-embedding
-  rs/news-portrait-batch
-  rs/news-prepare-training-data
-  rs/news-rank-batch
-  rs/news-recall-batch
-  rs/news-user-preprocessing
+  inverted-list
+  action-preprocessing
+  add-item-batch
+  add-user-batch
+  dashboard
+  filter-batch
+  item-feature-update-batch
+  item-preprocessing
+  model-update-action
+  model-update-embedding
+  portrait-batch
+  prepare-training-data
+  rank-batch
+  recall-batch
+  user-preprocessing
+)
+
+scenario_list=(
+  news
+)
+
+method_list=(
+  customize
+  ps-complete
+  ps-rank
+  ps-sims
 )
 
 echo "Delete ECR repositories ..."
-for repo_name in ${repo_names[@]}; do
-  if [[ "$AWS_ACCOUNT_ID" != '522244679887' ]]; then
-    echo "Delete repo: '$repo_name ...'"
-    $AWS_CMD ecr delete-repository --repository-name $repo_name --region ${REGION} --force >/dev/null 2>&1 || true
-  else
-    # our test  account: 522244679887
-    echo "skip deleting repo: '$repo_name ...'"
-  fi
+
+for scenario in ${scenario_list[@]}; do
+  for method in ${method_list[@]}; do
+    for repo_name in ${repo_names[@]}; do
+      if [[ "$AWS_ACCOUNT_ID" != '522244679887' ]]; then
+        echo "Delete repo: '$repo_name ...'"
+        $AWS_CMD ecr delete-repository --repository-name rs/$scenario-$method-$repo_name --region ${REGION} --force >/dev/null 2>&1 || true
+      else
+        # our test  account: 522244679887
+        echo "skip deleting repo: '$repo_name ...'"
+      fi
+    done
+  done
 done
 
 
