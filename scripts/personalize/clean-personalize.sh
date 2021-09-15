@@ -38,7 +38,11 @@ fi
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
-dataset_group_arn="arn:aws:personalize:${REGION}:${AWS_ACCOUNT_ID}:dataset-group/GCR-RS-${SCENARIO}-Dataset-Group"
+if [[ $REGION =~ cn.* ]];then
+  dataset_group_arn="arn:aws-cn:personalize:${REGION}:${AWS_ACCOUNT_ID}:dataset-group/GCR-RS-${SCENARIO}-Dataset-Group"
+else
+  dataset_group_arn="arn:aws:personalize:${REGION}:${AWS_ACCOUNT_ID}:dataset-group/GCR-RS-${SCENARIO}-Dataset-Group"
+fi
 echo "dataset_group_arn:$dataset_group_arn"
 
 echo "----------------------Clean Campaigns----------------------"
@@ -186,10 +190,15 @@ fi
 
 
 echo "----------------------Clean Schemas----------------------"
-aws personalize delete-schema --schema-arn "arn:aws:personalize:${REGION}:${AWS_ACCOUNT_ID}:schema/${SCENARIO}UserSchema" > /dev/null 2>&1 || true
-aws personalize delete-schema --schema-arn "arn:aws:personalize:${REGION}:${AWS_ACCOUNT_ID}:schema/${SCENARIO}ItemSchema" > /dev/null 2>&1 || true
-aws personalize delete-schema --schema-arn "arn:aws:personalize:${REGION}:${AWS_ACCOUNT_ID}:schema/${SCENARIO}InteractionSchema" > /dev/null 2>&1 || true
-
+if [[ $REGION =~ cn.* ]];then
+  aws personalize delete-schema --schema-arn "arn:aws-cn:personalize:${REGION}:${AWS_ACCOUNT_ID}:schema/${SCENARIO}UserSchema" > /dev/null 2>&1 || true
+  aws personalize delete-schema --schema-arn "arn:aws-cn:personalize:${REGION}:${AWS_ACCOUNT_ID}:schema/${SCENARIO}ItemSchema" > /dev/null 2>&1 || true
+  aws personalize delete-schema --schema-arn "arn:aws-cn:personalize:${REGION}:${AWS_ACCOUNT_ID}:schema/${SCENARIO}InteractionSchema" > /dev/null 2>&1 || true
+else
+  aws personalize delete-schema --schema-arn "arn:aws:personalize:${REGION}:${AWS_ACCOUNT_ID}:schema/${SCENARIO}UserSchema" > /dev/null 2>&1 || true
+  aws personalize delete-schema --schema-arn "arn:aws:personalize:${REGION}:${AWS_ACCOUNT_ID}:schema/${SCENARIO}ItemSchema" > /dev/null 2>&1 || true
+  aws personalize delete-schema --schema-arn "arn:aws:personalize:${REGION}:${AWS_ACCOUNT_ID}:schema/${SCENARIO}InteractionSchema" > /dev/null 2>&1 || true
+fi
 
 echo "----------------------Clean DatasetGroup----------------------"
 aws personalize delete-dataset-group --dataset-group-arn ${dataset_group_arn} > /dev/null 2>&1 || true

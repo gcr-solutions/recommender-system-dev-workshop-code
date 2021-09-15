@@ -171,8 +171,11 @@ then
 fi
 
 
-
-PERSONALIZE_ROLE_BUILD=arn:aws:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-personalize-role
+if [[ $REGION =~ cn.* ]];then
+  PERSONALIZE_ROLE_BUILD=arn:aws-cn:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-personalize-role
+else
+  PERSONALIZE_ROLE_BUILD=arn:aws:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-personalize-role
+fi
 echo "PERSONALIZE_ROLE_BUILD=${PERSONALIZE_ROLE_BUILD}"
 echo "Check if your personalize role arn is equal to the PERSONALIZE_ROLE_BUILD. If not, please follow the previous step to create iam role for personalize!"
 
@@ -268,20 +271,37 @@ fi
 
 
 #create solutions for 3 methods
-userPersonalize_solution_arn=$($AWS_CMD personalize create-solution \
-        --name UserPersonalizeSolution \
-        --dataset-group-arn ${datasetGroupArn} \
-        --recipe-arn arn:aws:personalize:::recipe/aws-user-personalization --output text)
+if [[ $REGION =~ cn.* ]];then
+  userPersonalize_solution_arn=$($AWS_CMD personalize create-solution \
+          --name UserPersonalizeSolution \
+          --dataset-group-arn ${datasetGroupArn} \
+          --recipe-arn arn:aws-cn:personalize:::recipe/aws-user-personalization --output text)
 
-ranking_solution_arn=$($AWS_CMD personalize create-solution \
-        --name RankingSolution \
-        --dataset-group-arn ${datasetGroupArn} \
-        --recipe-arn arn:aws:personalize:::recipe/aws-personalized-ranking --output text)
+  ranking_solution_arn=$($AWS_CMD personalize create-solution \
+          --name RankingSolution \
+          --dataset-group-arn ${datasetGroupArn} \
+          --recipe-arn arn:aws-cn:personalize:::recipe/aws-personalized-ranking --output text)
 
-sims_solution_arn=$($AWS_CMD personalize create-solution \
-        --name SimsSolution \
-        --dataset-group-arn ${datasetGroupArn} \
-        --recipe-arn arn:aws:personalize:::recipe/aws-sims --output text)
+  sims_solution_arn=$($AWS_CMD personalize create-solution \
+          --name SimsSolution \
+          --dataset-group-arn ${datasetGroupArn} \
+          --recipe-arn arn:aws-cn:personalize:::recipe/aws-sims --output text)
+else
+  userPersonalize_solution_arn=$($AWS_CMD personalize create-solution \
+          --name UserPersonalizeSolution \
+          --dataset-group-arn ${datasetGroupArn} \
+          --recipe-arn arn:aws:personalize:::recipe/aws-user-personalization --output text)
+
+  ranking_solution_arn=$($AWS_CMD personalize create-solution \
+          --name RankingSolution \
+          --dataset-group-arn ${datasetGroupArn} \
+          --recipe-arn arn:aws:personalize:::recipe/aws-personalized-ranking --output text)
+
+  sims_solution_arn=$($AWS_CMD personalize create-solution \
+          --name SimsSolution \
+          --dataset-group-arn ${datasetGroupArn} \
+          --recipe-arn arn:aws:personalize:::recipe/aws-sims --output text)
+fi
 
 
 #monitor solution
