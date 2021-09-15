@@ -26,7 +26,10 @@ if [[ -z $REGION ]];then
   REGION='ap-southeast-1'
 fi
 
-
+profile=aws
+if [[ $REGION =~ cn.* ]];then
+  profile=aws-cn
+fi
 
 AWS_CMD="aws"
 if [[ -n $PROFILE ]]; then
@@ -49,19 +52,19 @@ if [ $METHOD = "ps-complete" ]
 then
     solution_name="UserPersonalizeSolution"
     campaign_name="gcr-rs-${Stage}-${SCENARIO}-UserPersonalize-campaign"
-    campaign_arn="arn:aws:personalize:${REGION}:${AWS_ACCOUNT_ID}:campaign/${campaign_name}"
+    campaign_arn="arn:${profile}:personalize:${REGION}:${AWS_ACCOUNT_ID}:campaign/${campaign_name}"
     solution_version_arn=$(aws personalize describe-campaign --campaign-arn ${campaign_arn} | jq '.campaign.solutionVersionArn' -r)
 elif [ $METHOD = "ps-rank" ]
 then
     solution_name="RankingSolution"
     campaign_name="gcr-rs-${Stage}-${SCENARIO}-Ranking-campaign"
-    campaign_arn="arn:aws:personalize:${REGION}:${AWS_ACCOUNT_ID}:campaign/${campaign_name}"
+    campaign_arn="arn:${profile}:personalize:${REGION}:${AWS_ACCOUNT_ID}:campaign/${campaign_name}"
     solution_version_arn=$(aws personalize describe-campaign --campaign-arn ${campaign_arn} | jq '.campaign.solutionVersionArn' -r)
 elif [ $METHOD = "ps-sims" ]
 then
     solution_name="SimsSolution"
     campaign_name="gcr-rs-${Stage}-${SCENARIO}-Sims-campaign"
-    campaign_arn="arn:aws:personalize:${REGION}:${AWS_ACCOUNT_ID}:campaign/${campaign_name}"
+    campaign_arn="arn:${profile}:personalize:${REGION}:${AWS_ACCOUNT_ID}:campaign/${campaign_name}"
     solution_version_arn=$(aws personalize describe-campaign --campaign-arn ${campaign_arn} | jq '.campaign.solutionVersionArn' -r)
 fi
 

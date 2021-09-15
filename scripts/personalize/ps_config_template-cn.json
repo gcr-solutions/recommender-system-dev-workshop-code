@@ -1,0 +1,23 @@
+{
+  "DatasetGroupName": "GCR-RS-News-Dataset-Group",
+  "DatasetGroupArn": "arn:aws-cn:personalize:__REGION__:__AccountID__:dataset-group/GCR-RS-News-Dataset-Group",
+  "UserProperties": "gender",
+  "UserDatasetName": "NewsUserDataset",
+  "UserDatasetArn": "arn:aws-cn:personalize:__REGION__:__AccountID__:dataset/GCR-RS-News-Dataset-Group/USERS",
+  "ItemDatasetName": "NewsItemDataset",
+  "ItemDatasetArn": "arn:aws-cn:personalize:__REGION__:__AccountID__:dataset/GCR-RS-News-Dataset-Group/ITEMS",
+  "InteractionDatasetName": "NewsInteractionDataset",
+  "InteractionDatasetArn": "arn:aws-cn:personalize:__REGION__:__AccountID__:dataset/GCR-RS-News-Dataset-Group/INTERACTIONS",
+  "UserFileName": "ps_user.csv",
+  "ItemFileName": "ps_item.csv",
+  "InteractionFileName": "ps_action.csv",
+  "EventTrackerName": "NewsEventTracker",
+  "EventTrackerArn": "arn:aws-cn:personalize:__REGION__:__AccountID__:event-tracker/2fb1d6e3",
+  "EventTrackerId": "c27682b5-f3da-415f-af87-1aff5974322c",
+  "EventType": "click",
+  "SolutionName": "SimsSolution",
+  "SolutionVersionArn": "arn:aws-cn:personalize:__REGION__:__AccountID__:solution/simsSolution/eed4f46a",
+  "CampaignName": "gcr-rs-dev-workshop-news-sims-campaign",
+  "CampaignArn": "arn:aws-cn:personalize:__REGION__:__AccountID__:campaign/gcr-rs-dev-workshop-news-sims-campaign",
+  "TrainingMode": "FULL"
+}

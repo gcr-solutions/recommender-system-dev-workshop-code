@@ -61,6 +61,9 @@ then
   
   echo "------notice online part-------"
   dns_name=$(kubectl get svc istio-ingressgateway-news-dev -n istio-system -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+  if [[ $REGION =~ cn.* ]];then
+    dns_name=$dns_name:22
+  fi
   curl -X POST -d '{"message": {"file_type": "ps-result","file_path": "sample-data-news/notification/ps-result/","file_name": ["ps_config.json"]}}' -H "Content-Type:application/json" http://${dns_name}/loader/notice
 
 fi

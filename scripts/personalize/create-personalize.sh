@@ -471,16 +471,21 @@ fi
 
 echo "Update ps_config.json ..."
 config_file_path="./ps_config.json"
-sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
+if [[ $REGION =~ cn.* ]];then
+  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
+              ./ps_config_template-cn.json > ${config_file_path}
+else
+  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
             ./ps_config_template.json > ${config_file_path}
+fi
 
 old_event_track_arn=$(awk -F"\"" '/EventTrackerArn/{print $4}' $config_file_path)
 echo "change old_event_track_arn: ${old_event_track_arn} to new_event_track_arn: ${eventTrackerArn}"
 sed -e "s@$old_event_track_arn@$eventTrackerArn@g" -i $config_file_path
 
 old_event_track_id=$(awk -F"\"" '/EventTrackerId/{print $4}' $config_file_path)
-echo "change old_event_track_id: ${old_event_track_id} to new_event_track_id: ${EventTrackerId}"
-sed -e "s@$old_event_track_id@$EventTrackerId@g" -i $config_file_path
+echo "change old_event_track_id: ${old_event_track_id} to new_event_track_id: ${trackingId}"
+sed -e "s@$old_event_track_id@$trackingId@g" -i $config_file_path
 
 cp ./ps_config.json ../../sample-data/system/ps-config/ps_config.json
 cp ./ps_config.json ../../sample-data/notification/ps-result/ps_config.json
