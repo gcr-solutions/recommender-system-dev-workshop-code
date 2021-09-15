@@ -77,7 +77,8 @@ sleep 10
 
 if [[ "${PERSONALIZE}" != "false" ]];then
   echo "========= Create Personalize Service =============="
-  echo "you can run: tail ~/personalize-log/create-personalize.log to check the status"
+  echo "you can run the following command to check the status:"
+  echo "tail -f ~/personalize-log/create-personalize.log"
   cd ${curr_dir}/personalize
   mkdir ~/personalize-log
   nohup ./create-personalize.sh >> ~/personalize-log/create-personalize.log 2>&1 &
