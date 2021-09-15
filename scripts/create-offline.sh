@@ -83,6 +83,7 @@ if [[ "${PERSONALIZE}" != "false" ]];then
   nohup ./create-personalize.sh >> ~/personalize-log/create-personalize.log 2>&1 &
   cd ..
 fi
+echo "==================================================="
 
 echo "You can run your step-funcs with below input"
 echo '{
