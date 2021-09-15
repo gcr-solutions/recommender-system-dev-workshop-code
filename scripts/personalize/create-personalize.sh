@@ -53,8 +53,7 @@ echo "BUCKET=${BUCKET_BUILD}"
 echo "Prefix=${PREFIX}"
 
 #create dataset group
-datasetGroupArn="arn:aws:personalize:us-east-1:466154167985:dataset-group/GCR-RS-News-Dataset-Group"
-#datasetGroupArn=$($AWS_CMD personalize create-dataset-group --name GCR-RS-${Scenario}-Dataset-Group --output text)
+datasetGroupArn=$($AWS_CMD personalize create-dataset-group --name GCR-RS-${Scenario}-Dataset-Group --output text)
 echo "dataset_Group_Arn: ${datasetGroupArn}"
 echo "......"
 
@@ -95,23 +94,20 @@ fi
 
 #create schema
 echo "creating Schema..."
-user_schema_arn="arn:aws:personalize:us-east-1:466154167985:schema/NewsUserSchema"
-#user_schema_arn=$($AWS_CMD personalize create-schema \
-#	--name ${Scenario}UserSchema \
-#	--schema file://./schema/${Scenario}UserSchema.json --output text)
+user_schema_arn=$($AWS_CMD personalize create-schema \
+	--name ${Scenario}UserSchema \
+	--schema file://./schema/${Scenario}UserSchema.json --output text)
 
-item_schema_arn="arn:aws:personalize:us-east-1:466154167985:schema/NewsItemSchema"
-#item_schema_arn=$($AWS_CMD personalize create-schema \
-#	--name ${Scenario}ItemSchema \
-#	--schema file://./schema/${Scenario}ItemSchema.json --output text)
+item_schema_arn=$($AWS_CMD personalize create-schema \
+	--name ${Scenario}ItemSchema \
+	--schema file://./schema/${Scenario}ItemSchema.json --output text)
 
-interaction_schema_arn="arn:aws:personalize:us-east-1:466154167985:schema/NewsInteractionSchema"
-#interaction_schema_arn=$($AWS_CMD personalize create-schema \
-#	--name ${Scenario}InteractionSchema \
-#	--schema file://./schema/${Scenario}InteractionSchema.json --output text)
+interaction_schema_arn=$($AWS_CMD personalize create-schema \
+	--name ${Scenario}InteractionSchema \
+	--schema file://./schema/${Scenario}InteractionSchema.json --output text)
 
-#echo "......"
-#sleep 30
+echo "......"
+sleep 30
 
 #create dataset
 echo "create dataset..."
@@ -473,3 +469,4 @@ rm -f ./ps_config.json
 
 echo "Congratulations. Your AWS Personalize Service Create Successfully."
 
+echo "Please stop printing the log by typing CONTROL+C "
