@@ -63,14 +63,22 @@ sudo curl -sSL -o /usr/local/bin/argocd $install_link
 
 sudo chmod +x /usr/local/bin/argocd
 
-sleep 90
 
 # 3 get admin password
-ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+echo "get admin password"
+sleep 30
+while true; do
+    ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+    if [[ -n $ARGOCD_PASSWORD ]]; then
+      break
+    fi
+    echo "wait argocd-initial-admin-secret ..."
+    sleep 30
+done
 
 dns_name=$(kubectl get svc argocd-server -n argocd -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 echo $dns_name
-sleep 90
+
 echo "-------"
 
 if [[ $REGION =~ cn.* ]];then

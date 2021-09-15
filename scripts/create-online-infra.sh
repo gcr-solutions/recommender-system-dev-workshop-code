@@ -99,7 +99,7 @@ if [[ $REGION =~ ^cn.* ]]; then
   # aws iam delete-policy --policy-arn arn:aws-cn:iam::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy >/dev/null 2>&1 || true
 
   aws iam create-policy \
-    --policy-name AmazonEKS_EFS_CSI_Driver_Policy \
+    --policy-name AmazonEKS_EFS_CSI_Driver_Policy_$REGION \
     --policy-document file://iam-policy-example.json || true
 
   eksctl utils associate-iam-oidc-provider --region=$REGION --cluster=$EKS_CLUSTER --approve
@@ -109,7 +109,7 @@ if [[ $REGION =~ ^cn.* ]]; then
     --name efs-csi-controller-sa \
     --namespace kube-system \
     --cluster $EKS_CLUSTER \
-    --attach-policy-arn arn:aws-cn:iam::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy \
+    --attach-policy-arn arn:aws-cn:iam::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy_$REGION  \
     --approve \
     --override-existing-serviceaccounts \
     --region $REGION
