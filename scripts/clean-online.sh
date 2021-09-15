@@ -132,6 +132,10 @@ if [[ ${REGION} =~ cn.* ]];then
    echo "delete eksctl-gcr-rs-dev-application-cluster-addon-iamserviceaccount-kube-system-efs-csi-controller-sa"
    aws cloudformation delete-stack --region ${REGION} \
     --stack-name  eksctl-gcr-rs-dev-application-cluster-addon-iamserviceaccount-kube-system-efs-csi-controller-sa  || true
+   sleep 30
+   echo "delete-policy AmazonEKS_EFS_CSI_Driver_Policy_$REGION"
+   aws iam delete-policy --policy-arn arn:aws-cn:iam::$AWS_ACCOUNT_ID:policy/AmazonEKS_EFS_CSI_Driver_Policy_$REGION || true
+
 fi
 
 echo "Please stop printing the log by typing CONTROL+C "
