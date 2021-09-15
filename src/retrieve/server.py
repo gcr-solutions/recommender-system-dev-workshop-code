@@ -251,6 +251,13 @@ def get_recommend_data(userId: str, recommendType: str):
 #     logging.info("rs_list: {}".format(rs_list))
 #     return rs_list
 
+
+def read_stream_messages():
+    logging.info('read_stream_messages start')
+    read_pickle_message()
+    read_json_message()
+
+
 @xasync
 def read_pickle_message():
     logging.info('read_pickle_type_message start')
@@ -337,6 +344,26 @@ def convert(data):
         return data
 
 
+def check_plugin_status():
+    logging.info('check plugin status')
+    channel = grpc.insecure_channel('localhost:50051')
+    stub = service_pb2_grpc.RetrieveStub(channel)
+    response = stub.Status(service_pb2.google_dot_protobuf_dot_empty__pb2.Empty())
+    if response.code == 0:
+        logging.info('plugin startup succeed')
+        return True
+    else:
+        logging.info('plugin startup failed')
+        return False
+
+
+def wait_for_plugin_service():
+    while True:
+        if check_plugin_status():
+            return
+        else:
+            logging.info('wait for plugin startup')
+            time.sleep( sleep_interval )
 
 def init():
 
@@ -356,6 +383,12 @@ def init():
     global s3client
     s3client = boto3.client('s3')
     logging.info(json.dumps(s3client.list_buckets(), default=str))
+
+    wait_for_plugin_service()
+
+    logging.info('retrieve start!')
+
+    read_stream_messages()
 
 
 
