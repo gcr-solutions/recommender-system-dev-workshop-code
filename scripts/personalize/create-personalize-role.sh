@@ -34,9 +34,13 @@ echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 Bucket_Build=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
 echo "Bucket=${Bucket_Build}"
 
-sed -e "s|__Stage__|$Stage|g;s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
-            ./role/personalize-access-s3-role-template.json > ./role/personalize-policy.json
-
+if [[ $REGION =~ cn.* ]];then
+  sed -e "s|__Stage__|$Stage|g;s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
+            ./role/personalize-access-s3-role-template-cn.json > ./role/personalize-policy.json
+else
+  sed -e "s|__Stage__|$Stage|g;s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
+              ./role/personalize-access-s3-role-template.json > ./role/personalize-policy.json
+fi
 
 ROLE_NAME=gcr-rs-personalize-role
 ROLE_POLICY=gcr-rs-personalize-policy
@@ -73,8 +77,14 @@ fi
 
 
 echo "Start to put personalize role to S3"
-sed -e "s|__Stage__|$Stage|g;s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
-            ./role/s3-bucket-policy-template.json > ./role/s3-policy.json
+
+if [[ $REGION =~ cn.* ]];then
+  sed -e "s|__Stage__|$Stage|g;s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
+            ./role/s3-bucket-policy-template-cn.json > ./role/s3-policy.json
+else
+  sed -e "s|__Stage__|$Stage|g;s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
+              ./role/s3-bucket-policy-template.json > ./role/s3-policy.json
+fi
 
 $AWS_CMD s3api put-bucket-policy --bucket ${Bucket_Build} --policy file://./role/s3-policy.json
 
