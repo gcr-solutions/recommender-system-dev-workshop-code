@@ -76,7 +76,15 @@ while true; do
     sleep 30
 done
 
-dns_name=$(kubectl get svc argocd-server -n argocd -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+while true; do
+  dns_name=$(kubectl get svc argocd-server -n argocd -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+  if [[ -n $dns_name ]];then
+    break
+  fi
+  echo "wait argocd-server ready ..."
+  sleep 30
+done
+
 echo $dns_name
 
 echo "-------"
