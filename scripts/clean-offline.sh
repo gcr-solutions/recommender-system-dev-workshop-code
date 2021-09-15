@@ -75,7 +75,7 @@ for scenario in ${scenario_list[@]}; do
   for method in ${method_list[@]}; do
     for repo_name in ${repo_names[@]}; do
       if [[ "$AWS_ACCOUNT_ID" != '522244679887' ]]; then
-        echo "Delete repo: '$repo_name ...'"
+        echo "Delete repo: 'rs/$scenario-$method-$repo_name ...'"
         $AWS_CMD ecr delete-repository --repository-name rs/$scenario-$method-$repo_name --region ${REGION} --force >/dev/null 2>&1 || true
       else
         # our test  account: 522244679887

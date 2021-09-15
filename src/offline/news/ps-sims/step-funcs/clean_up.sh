@@ -33,7 +33,7 @@ echo "REGION: $REGION"
 AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity  --o text | awk '{print $1}')
 echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 
-NamePrefix=rs-news-customize-$Stage
+NamePrefix=rs-news-ps-sims-$Stage
 
 all_stepfuncs=(
 infra

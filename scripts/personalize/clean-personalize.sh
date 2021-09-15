@@ -3,6 +3,8 @@ set -e
 
 curr_dir=$(pwd)
 
+echo "==============Clean Personalize======================"
+
 Stage=$1
 if [[ -z $Stage ]];then
   Stage='dev-workshop'

@@ -68,8 +68,14 @@ cd ${curr_dir}/../sample-data
 #cd ${curr_dir}/../src/offline/news/step-funcs
 #./build.sh $Stage
 
+wait 10
+
+echo "========= Create Personalize Service =============="
+echo "you can run: tail ~/personalize-log/create-personalize.log to check the status"
 cd ${curr_dir}/personalize
-nohup ./create-personalize.sh >> ~/personalize.log 2>&1 &
+mkdir ~/personalize-log
+nohup ./create-personalize.sh >> ~/personalize-log/create-personalize.log 2>&1 &
+cd ..
 
 echo "You can run your step-funcs with below input"
 echo '{

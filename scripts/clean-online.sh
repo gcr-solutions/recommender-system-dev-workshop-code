@@ -7,8 +7,9 @@ export EKS_CLUSTER=gcr-rs-dev-application-cluster
 EKS_VPC_ID=$(aws eks describe-cluster --name $EKS_CLUSTER --query "cluster.resourcesVpcConfig.vpcId" --output text)
 
 echo "################ start clean personalize resources ################ "
+echo "you can run: tail ~/personalize-log/clean-personalize.log to check the status"
 cd personalize
-nohup ./clean-personalize.sh > ~/personalize/clean-personalize.log 2>&1 &
+nohup ./clean-personalize.sh >> ~/personalize-log/clean-personalize.log 2>&1 &
 cd ..
 
 

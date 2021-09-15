@@ -29,10 +29,10 @@ if [[ $? -ne 0 ]]; then
 fi
 
 repo_names=(
-rs/ps-complete-news-action-preprocessing
-rs/ps-complete-news-item-preprocessing
-rs/ps-complete-news-user-preprocessing
-rs/ps-complete-news-batch-preprocessing
+rs/news-ps-complete-action-preprocessing
+rs/news-ps-complete-item-preprocessing
+rs/news-ps-complete-user-preprocessing
+rs/news-ps-complete-batch-preprocessing
 )
 
 curr_dir=$(pwd)

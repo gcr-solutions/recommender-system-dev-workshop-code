@@ -44,7 +44,6 @@ rs/news-ps-sims-prepare-training-data
 rs/news-ps-sims-rank-batch
 rs/news-ps-sims-recall-batch
 rs/news-ps-sims-user-preprocessing
-#rs/news-weight-update-batch
 )
 
 curr_dir=$(pwd)

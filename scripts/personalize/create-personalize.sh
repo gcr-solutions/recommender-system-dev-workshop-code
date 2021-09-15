@@ -2,6 +2,7 @@
 set -e
 
 curr_dir=$(pwd)
+echo "==============Create Personalize======================"
 
 echo "--------start creating personalize role ----------"
 ./create-personalize-role.sh $1
@@ -466,6 +467,7 @@ echo "change old_event_track_id: ${old_event_track_id} to new_event_track_id: ${
 sed -e "s@$old_event_track_id@$EventTrackerId@g" -i $config_file_path
 
 cp ./ps_config.json ../../sample-data/system/ps-config/ps_config.json
+cp ./ps_config.json ../../sample-data/notification/ps-result/ps_config.json
 
 rm -f ./ps_config.json
 
