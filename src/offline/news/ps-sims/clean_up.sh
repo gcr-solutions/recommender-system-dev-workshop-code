@@ -30,6 +30,7 @@ fi
 
 repo_names=(
 rs/news-ps-sims-action-preprocessing
+rs/news-ps-sims-batch-preprocessing
 rs/news-ps-sims-add-item-batch
 rs/news-ps-sims-add-user-batch
 rs/news-ps-sims-dashboard
