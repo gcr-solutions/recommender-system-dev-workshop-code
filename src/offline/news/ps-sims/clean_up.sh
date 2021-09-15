@@ -56,7 +56,7 @@ cd $curr_dir
 for repo_name in ${repo_names[@]}
 do
   echo "Delete repo: '$repo_name ...'"
-  $AWS_CMD ecr delete-repository  --repository-name $repo_name --force || true
+  $AWS_CMD ecr delete-repository  --repository-name $repo_name --force > /dev/null 2>&1 || true
 done
 
 echo "Done"
