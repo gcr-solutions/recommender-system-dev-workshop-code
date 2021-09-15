@@ -106,7 +106,7 @@ sync_s3(file_name_list, s3_folder, local_folder)
 
 # ps-sims表加载
 file_name_list = ['ps-sims-batch.out']
-s3_folder = '{}/feature/ps-recommend-list/ps-sims'.format(prefix)
+s3_folder = '{}/feature/ps-recommend-list'.format(prefix)
 sync_s3(file_name_list, s3_folder, local_folder)
 
 # 加载pickle文件
