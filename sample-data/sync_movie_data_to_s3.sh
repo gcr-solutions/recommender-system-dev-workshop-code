@@ -48,7 +48,7 @@ mkdir movie-data && cd movie-data
 echo "wget $dataUrl ..."
 wget --quiet $dataUrl
 
-if [[ $? -nq 0 ]];then
+if [[ $? -ne 0 ]];then
    echo  "error!!! wget $dataUrl"
    exit 1
 fi
@@ -59,7 +59,7 @@ rm sample-data-movie.zip  sync_data_to_s3.sh
 echo "$AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/ ..."
 $AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/ > /dev/null
 
-if [[ $? -nq 0 ]];then
+if [[ $? -ne 0 ]];then
    echo  "error!!! s3 sync"
    exit 1
 fi
