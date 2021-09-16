@@ -15,9 +15,8 @@ fi
 echo "Stage=$Stage"
 echo "REGION=$REGION"
 
-PERSONALIZE=$2
-if [[ -z $PERSONALIZE ]]; then
-  PERSONALIZE='true'
+if [[ -z $METHOD ]]; then
+  METHOD='customize'
 fi
 
 #if [[ -z $GITHUB_USER ]]; then
@@ -75,14 +74,16 @@ cd ${curr_dir}/../sample-data
 
 sleep 10
 
-if [[ "${PERSONALIZE}" != "false" ]];then
+if [[ "${METHOD}" != "customize" ]];then
   echo "========= Create Personalize Service =============="
   echo "you can run the following command to check the status:"
   echo "tail -f ~/personalize-log/create-personalize.log"
   cd ${curr_dir}/personalize
-  mkdir ~/personalize-log
+  if [[ ! -d "~/personalize-log" ]];then
+    mkdir ~/personalize-log
+  fi
   nohup ./create-personalize.sh >> ~/personalize-log/create-personalize.log 2>&1 &
-  cd ..
+  cd ${curr_dir}
 fi
 echo "==================================================="
 

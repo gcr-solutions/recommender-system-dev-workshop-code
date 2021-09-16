@@ -22,6 +22,11 @@ if [[ -n $PROFILE ]]; then
   AWS_CMD="aws --profile $PROFILE"
 fi
 
+if [[ -z $METHOD ]]; then
+  METHOD='customize'
+fi
+
+echo "METHOD=$METHOD"
 echo "Stage=$Stage"
 echo "REGION=$REGION"
 echo "AWS_CMD=$AWS_CMD"

@@ -3,19 +3,19 @@ set -e
 
 curr_dir=$(pwd)
 
-METHOD=$1
+method=$1
+
+if [[ -z $method ]];then
+  method='customize'
+fi
 
 if [[ -z $METHOD ]];then
   METHOD='customize'
 fi
 
-Stage=$2
-
 if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
-
-SCENARIO=$3
 
 if [[ -z $SCENARIO ]];then
   SCENARIO='news'
@@ -37,12 +37,28 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-echo "METHOD: ${METHOD}"
 echo "Stage: ${Stage}"
 echo "SCENARIO: ${SCENARIO}"
 echo "REGION: ${REGION}"
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
+echo "==============Switching method to ${method}================="
+
+if [[ "$method" == "ps-complete" ]]; then
+  existed_solution=$($AWS_CMD personalize list-solutions --region ${REGION} | jq '.[][] | select(.name=="UserPersonalizeSolution")' -r)
+elif [[ "$method" == "ps-rank" ]]; then
+  existed_solution=$($AWS_CMD personalize list-solutions --region ${REGION} | jq '.[][] | select(.name=="RankingSolution")' -r)
+elif [[ "$method" == "ps-sims" ]]; then
+  existed_solution=$($AWS_CMD personalize list-solutions --region ${REGION} | jq '.[][] | select(.name=="SimsSolution")' -r)
+elif [[ "$method" != "customize" ]]; then
+  echo "----------Wrong Method. Please input 'customize' or 'ps-complete' or 'ps-rank' or 'ps-sims'-------------"
+  exit 1
+fi
+
+if [[ "$method" != "customize" && "$existed_solution" == "" ]];then
+  echo "----------${method} method is not existed. Please create ${method} method first.-------------"
+  exit 1
+fi
 
 BUCKET_BUILD=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
 PREFIX=sample-data-${SCENARIO}

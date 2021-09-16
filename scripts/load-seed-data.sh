@@ -7,6 +7,10 @@ if [[ $REGION =~ cn.* ]];then
   dns_name=$dns_name:22
 fi
 
+if [[ -z $METHOD ]];then
+  METHOD="customize"
+fi
+
 echo "endpoint: $dns_name"
 
 #inverted-list
@@ -25,13 +29,17 @@ curl -X POST -d '{"message": {"file_type": "embedding","file_path": "sample-data
 echo -e "\nload news record data!!"
 curl -X POST -d '{"message": {"file_type": "news_records","file_path": "sample-data-news/system/item-data/","file_name": ["item.csv"]}}' -H "Content-Type:application/json" http://$dns_name/api/v1/demo/notice
 
+if [[ "${METHOD}" != "customize" ]];then
 # personalize data
-echo -e "\nload personalize data!!"
-curl -X POST -d '{"message": {"file_type": "ps-result","file_path": "sample-data-news/system/ps-config/","file_name": ["ps_config.json"]}}' -H "Content-Type:application/json" http://$dns_name/loader/notice
+  echo -e "\nload personalize data!!"
+  curl -X POST -d '{"message": {"file_type": "ps-result","file_path": "sample-data-news/system/ps-config/","file_name": ["ps_config.json"]}}' -H "Content-Type:application/json" http://$dns_name/loader/notice
+fi
 
-# ps-sims data
-echo -e "\nload personalize sims item data!!"
-curl -X POST -d '{"message": {"file_type": "ps-sims-dict","file_path": "sample-data-news/notification/ps-sims-dict/","file_name": ["ps-sims-batch.out"]}}' -H "Content-Type:application/json" http://$dns_name/loader/notice
+if [[ "${METHOD}" = "ps-sims" || "${METHOD}" = "all" ]];then
+  # ps-sims data
+  echo -e "\nload personalize sims item data!!"
+  curl -X POST -d '{"message": {"file_type": "ps-sims-dict","file_path": "sample-data-news/notification/ps-sims-dict/","file_name": ["ps-sims-batch.out"]}}' -H "Content-Type:application/json" http://$dns_name/loader/notice
+fi
 
 echo -e '\nLoad seed data complete!'
 

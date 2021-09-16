@@ -1,17 +1,27 @@
 #!/usr/bin/env bash
 #set -e
 
+curr_dir=$(pwd)
+
+if [[ -z $METHOD ]]; then
+  METHOD='customize'
+fi
+
+if [[ "${METHOD}" != "customize" ]]; then
+  echo "################ start clean personalize resources ################ "
+  echo "you can run the following command to check the personalize deleting status"
+  echo "tail -f ~/personalize-log/clean-personalize.log "
+  cd ${curr_dir}/personalize
+  nohup ./clean-personalize.sh >> ~/personalize-log/clean-personalize.log 2>&1 &
+  cd ${curr_dir}
+  echo ""
+fi
+
 ##############################delete resource for application##############################
 export EKS_CLUSTER=gcr-rs-dev-application-cluster
 
 EKS_VPC_ID=$(aws eks describe-cluster --name $EKS_CLUSTER --query "cluster.resourcesVpcConfig.vpcId" --output text)
 
-echo "################ start clean personalize resources ################ "
-echo "you can run the following command to check the personalize deleting status"
-echo "tail -f ~/personalize-log/clean-personalize.log "
-cd personalize
-nohup ./clean-personalize.sh >> ~/personalize-log/clean-personalize.log 2>&1 &
-cd ..
 
 
 echo "################ start clean online resources ################ "

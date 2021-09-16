@@ -9,9 +9,8 @@ if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
 
-METHOD=$2
 if [[ -z $METHOD ]];then
-  METHOD='ps-complete'
+  METHOD='customize'
 fi
 
 echo "Stage=$Stage"

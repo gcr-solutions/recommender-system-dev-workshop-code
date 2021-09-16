@@ -11,7 +11,7 @@ fi
 
 METHOD=$2
 if [[ -z $METHOD ]];then
-  METHOD='ps-complete'
+  METHOD='customize'
 fi
 
 echo "Stage=$Stage"
@@ -61,26 +61,26 @@ fi
 STACK_NAME=rs-$Stage-lambda-stack
 echo "STACK_NAME: ${STACK_NAME}"
 
-if [[ "$METHOD" != "customize"  && "$METHOD" != "" ]]
+if [[ "$METHOD" == "customize" ]]
 then
   echo "$AWS_CMD cloudformation deploy --region ${REGION} \
-  --template-file ./ps-lambda/ps-template.yaml --stack-name ${STACK_NAME} \
+  --template-file ./template.yaml --stack-name ${STACK_NAME} \
   --parameter-overrides ${PARAMETER_OVERRIDES} \
   --capabilities CAPABILITY_NAMED_IAM"
 
   $AWS_CMD  cloudformation deploy --region ${REGION} \
-  --template-file ./ps-lambda/ps-template.yaml --stack-name ${STACK_NAME} \
+  --template-file ./template.yaml --stack-name ${STACK_NAME} \
   --parameter-overrides ${PARAMETER_OVERRIDES} \
   --capabilities CAPABILITY_NAMED_IAM \
   --no-fail-on-empty-changeset
 else
   echo "$AWS_CMD cloudformation deploy --region ${REGION} \
-  --template-file ./template.yaml --stack-name ${STACK_NAME} \
+  --template-file ./ps-lambda/ps-template.yaml --stack-name ${STACK_NAME} \
   --parameter-overrides ${PARAMETER_OVERRIDES} \
   --capabilities CAPABILITY_NAMED_IAM"
 
   $AWS_CMD  cloudformation deploy --region ${REGION} \
-  --template-file ./template.yaml --stack-name ${STACK_NAME} \
+  --template-file ./ps-lambda/ps-template.yaml --stack-name ${STACK_NAME} \
   --parameter-overrides ${PARAMETER_OVERRIDES} \
   --capabilities CAPABILITY_NAMED_IAM \
   --no-fail-on-empty-changeset

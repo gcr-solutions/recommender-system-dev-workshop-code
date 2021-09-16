@@ -15,11 +15,16 @@ if [[ -z $DELETE_FLAG ]];then
   DELETE_FLAG='no'
 fi
 
-PERSONALIZE=$3
-if [[ -z $PERSONALIZE ]];then
-  PERSONALIZE="true"
+if [[ -z $METHOD ]];then
+  METHOD="customize"
 fi
 
+if [[ -z $SCENARIO ]];then
+  SCENARIO="news"
+fi
+
+echo "Scenario: $SCENARIO"
+echo "Method: $METHOD"
 echo "Stage:$Stage"
 
 AWS_CMD="aws"
@@ -82,6 +87,7 @@ create_codebuild_project () {
   sed -e 's/__app_name__/'${build_proj_name}'/g' ./codebuild-template-offline-codecommit.json >./tmp-codebuild.json
   sed -e 's#__app_path__#'${app_path}'#g' ./tmp-codebuild.json > tmp-codebuild_2.json
   sed -e 's#__Stage__#'${Stage}'#g' ./tmp-codebuild_2.json > ./tmp-codebuild_3.json
+  sed -e 's#__METHOD__#'${METHOD}'#g' ./tmp-codebuild_3.json > ./tmp-codebuild_4.json
   sed -e 's#__AWS_REGION__#'${REGION}'#g' ./tmp-codebuild_3.json > ./codebuild.json
 
   if [[ $REGION =~ cn.* ]];then
@@ -150,27 +156,41 @@ projects_dir=(
   "step-funcs"
 )
 
-if [[ "${PERSONALIZE}" != "false" ]];then
+if [[ "${METHOD}" == "customize" ]];then
+  method_list=(
+    "customize"
+  )
+elif [[ "${METHOD}" == "ps-complete" ]]; then
+  method_list=(
+    "ps-complete"
+  )
+elif [[ "${METHOD}" == "ps-rank" ]]; then
+  method_list=(
+    "ps-rank"
+  )
+elif [[ "${METHOD}" == "ps-sims" ]]; then
+  method_list=(
+    "ps-sims"
+  )
+elif [[ "${METHOD}" == "all" ]]; then
   method_list=(
     "customize"
     "ps-complete"
     "ps-rank"
     "ps-sims"
   )
-else
-  method_list=(
-    "customize"
-  )
 fi
+
+
 
 for method in ${method_list[@]}; do
   for project in ${projects_dir[@]}; do
-    build_name="news-${method}-${project}"
+    build_name="${SCENARIO}-${method}-${project}"
     build_proj_name="rs-$Stage-offline-${build_name}-build"
     if [[ -n $CN_REGION ]];then
       build_proj_name="rs-$Stage-offline-${build_name}-$CN_REGION-build"
     fi
-    app_path="news/${method}/${project}"
+    app_path="${SCENARIO}/${method}/${project}"
     if [[ -d "${cur_dir}/../../src/offline/${app_path}" ]];then
       if [[ $DELETE_FLAG == 'DELETE' ]];then
           delete_codebuild_project $build_proj_name $app_path

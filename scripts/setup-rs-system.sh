@@ -3,6 +3,7 @@ set -e
 
 export SECRET_NAME=gcr-rs-dev-workshop-secret
 export APP_CONF_REPO=recommender-system-dev-workshop-code
+export METHOD=customize
 echo "APP_CONF_REPO: $APP_CONF_REPO"
 
 input=$1

@@ -28,7 +28,12 @@ if [[ -z $Scenario ]];then
 fi
 
 if [[ -z $METHOD ]];then
-    METHOD='customize'
+    METHOD='all'
+fi
+
+AWS_P="aws"
+if [[ $REGION =~ cn.* ]];then
+  AWS_P="aws-cn"
 fi
 
 
@@ -171,11 +176,7 @@ then
 fi
 
 
-if [[ $REGION =~ cn.* ]];then
-  PERSONALIZE_ROLE_BUILD=arn:aws-cn:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-personalize-role
-else
-  PERSONALIZE_ROLE_BUILD=arn:aws:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-personalize-role
-fi
+PERSONALIZE_ROLE_BUILD=arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-personalize-role
 echo "PERSONALIZE_ROLE_BUILD=${PERSONALIZE_ROLE_BUILD}"
 echo "Check if your personalize role arn is equal to the PERSONALIZE_ROLE_BUILD. If not, please follow the previous step to create iam role for personalize!"
 
@@ -249,58 +250,37 @@ then
 fi
 
 
-##code for only need one method
-#solution_arn=""
-#if [[ $METHOD == "UserPersonalize" ]]; then
-#    solution_arn=$(aws personalize create-solution \
-#          --name ${METHOD}Solution \
-#          --dataset-group-arn ${datasetGroupArn} \
-#          --recipe-arn arn:aws:personalize:::recipe/aws-user-personalization --output text)
-#elif [[ $METHOD == "Ranking" ]]; then
-#    solution_arn=$(aws personalize create-solution \
-#          --name ${METHOD}Solution \
-#          --dataset-group-arn ${datasetGroupArn} \
-#          --recipe-arn arn:aws:personalize:::recipe/aws-personalized-ranking --output text)
-#elif [[ $METHOD == "Sims" ]]; then
-#    solution_arn=$(aws personalize create-solution \
-#          --name ${METHOD}Solution \
-#          --dataset-group-arn ${datasetGroupArn} \
-#          --recipe-arn arn:aws:personalize:::recipe/aws-sims --output text)
-#fi
-#
-
-
 #create solutions for 3 methods
-if [[ $REGION =~ cn.* ]];then
+if [[ $METHOD == "ps-complete" ]]; then
   userPersonalize_solution_arn=$($AWS_CMD personalize create-solution \
           --name UserPersonalizeSolution \
           --dataset-group-arn ${datasetGroupArn} \
-          --recipe-arn arn:aws-cn:personalize:::recipe/aws-user-personalization --output text)
-
+          --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-user-personalization --output text)
+elif [[ $METHOD == "ps-rank" ]]; then
   ranking_solution_arn=$($AWS_CMD personalize create-solution \
           --name RankingSolution \
           --dataset-group-arn ${datasetGroupArn} \
-          --recipe-arn arn:aws-cn:personalize:::recipe/aws-personalized-ranking --output text)
-
+          --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-personalized-ranking --output text)
+elif [[ $METHOD == "ps-sims" ]]; then
   sims_solution_arn=$($AWS_CMD personalize create-solution \
           --name SimsSolution \
           --dataset-group-arn ${datasetGroupArn} \
-          --recipe-arn arn:aws-cn:personalize:::recipe/aws-sims --output text)
+          --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-sims --output text)
 else
   userPersonalize_solution_arn=$($AWS_CMD personalize create-solution \
           --name UserPersonalizeSolution \
           --dataset-group-arn ${datasetGroupArn} \
-          --recipe-arn arn:aws:personalize:::recipe/aws-user-personalization --output text)
+          --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-user-personalization --output text)
 
   ranking_solution_arn=$($AWS_CMD personalize create-solution \
           --name RankingSolution \
           --dataset-group-arn ${datasetGroupArn} \
-          --recipe-arn arn:aws:personalize:::recipe/aws-personalized-ranking --output text)
+          --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-personalized-ranking --output text)
 
   sims_solution_arn=$($AWS_CMD personalize create-solution \
           --name SimsSolution \
           --dataset-group-arn ${datasetGroupArn} \
-          --recipe-arn arn:aws:personalize:::recipe/aws-sims --output text)
+          --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-sims --output text)
 fi
 
 
@@ -308,35 +288,101 @@ fi
 echo "Solution Creating... It will takes no longer than 10 min..."
 MAX_TIME=`expr 10 \* 60` # 10 min
 CURRENT_TIME=0
-while(( ${CURRENT_TIME} < ${MAX_TIME} ))
-do
-    userPersonalize_solution_status=$($AWS_CMD personalize describe-solution \
-        --solution-arn ${userPersonalize_solution_arn} | jq '.solution.status' -r)
-    ranking_solution_status=$($AWS_CMD personalize describe-solution \
-        --solution-arn ${ranking_solution_arn} | jq '.solution.status' -r)
-    sims_solution_status=$($AWS_CMD personalize describe-solution \
-        --solution-arn ${sims_solution_arn} | jq '.solution.status' -r)
+if [[ $METHOD == "ps-complete" ]]; then
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      userPersonalize_solution_status=$($AWS_CMD personalize describe-solution \
+          --solution-arn ${userPersonalize_solution_arn} | jq '.solution.status' -r)
 
-    echo "userPersonalize_solution_status: ${userPersonalize_solution_status}"
-    echo "ranking_solution_status: ${ranking_solution_status}"
-    echo "sims_solution_status: ${sims_solution_status}"
+      echo "userPersonalize_solution_status: ${userPersonalize_solution_status}"
 
+      if [[ "$userPersonalize_solution_status" = "CREATE FAILED" ]]
+      then
+          echo "!!!Solutions Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [[ "$userPersonalize_solution_status" = "ACTIVE" ]]
+      then
+          echo "Solutions create successfully!"
+          break;
+      fi
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+      echo "wait for 1 min..."
+      sleep 60
+  done
+elif [[ $METHOD == "ps-rank" ]]; then
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      ranking_solution_status=$($AWS_CMD personalize describe-solution \
+          --solution-arn ${ranking_solution_arn} | jq '.solution.status' -r)
 
-    if [[ "$userPersonalize_solution_status" = "CREATE FAILED" || "$ranking_solution_status" = "CREATE FAILED" || "$sims_solution_status" = "CREATE FAILED" ]]
-    then
-        echo "!!!Solutions Create Failed!!!"
-        echo "!!!Personalize Service Create Failed!!!"
-        exit 8
-    elif [[ "$userPersonalize_solution_status" = "ACTIVE" && "$ranking_solution_status" = "ACTIVE" && "$sims_solution_status" = "ACTIVE" ]]
-    then
-        echo "Solutions create successfully!"
-        break;
-    fi
-    CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
-    echo "wait for 1 min..."
-    sleep 60
+      echo "ranking_solution_status: ${ranking_solution_status}"
 
-done
+      if [[ "$ranking_solution_status" = "CREATE FAILED" ]]
+      then
+          echo "!!!Solutions Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [[ "$ranking_solution_status" = "ACTIVE" ]]
+      then
+          echo "Solutions create successfully!"
+          break;
+      fi
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+      echo "wait for 1 min..."
+      sleep 60
+  done
+elif [[ $METHOD == "ps-sims" ]]; then
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      sims_solution_status=$($AWS_CMD personalize describe-solution \
+          --solution-arn ${sims_solution_arn} | jq '.solution.status' -r)
+
+      echo "sims_solution_status: ${sims_solution_status}"
+
+      if [[ "$sims_solution_status" == "CREATE FAILED" ]]
+      then
+          echo "!!!Solutions Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [[ "$sims_solution_status" == "ACTIVE" ]]
+      then
+          echo "Solutions create successfully!"
+          break;
+      fi
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+      echo "wait for 1 min..."
+      sleep 60
+  done
+else
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      userPersonalize_solution_status=$($AWS_CMD personalize describe-solution \
+          --solution-arn ${userPersonalize_solution_arn} | jq '.solution.status' -r)
+      ranking_solution_status=$($AWS_CMD personalize describe-solution \
+          --solution-arn ${ranking_solution_arn} | jq '.solution.status' -r)
+      sims_solution_status=$($AWS_CMD personalize describe-solution \
+          --solution-arn ${sims_solution_arn} | jq '.solution.status' -r)
+
+      echo "userPersonalize_solution_status: ${userPersonalize_solution_status}"
+      echo "ranking_solution_status: ${ranking_solution_status}"
+      echo "sims_solution_status: ${sims_solution_status}"
+
+      if [[ "$userPersonalize_solution_status" = "CREATE FAILED" || "$ranking_solution_status" = "CREATE FAILED" || "$sims_solution_status" = "CREATE FAILED" ]]
+      then
+          echo "!!!Solutions Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [[ "$userPersonalize_solution_status" = "ACTIVE" && "$ranking_solution_status" = "ACTIVE" && "$sims_solution_status" = "ACTIVE" ]]
+      then
+          echo "Solutions create successfully!"
+          break;
+      fi
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+      echo "wait for 1 min..."
+      sleep 60
+  done
+fi
 
 if [ $CURRENT_TIME -ge $MAX_TIME ]
 then
@@ -347,45 +393,125 @@ fi
 
 
 #create solution version
-userPersonalize_solution_version_arn=$($AWS_CMD personalize create-solution-version \
-        --solution-arn ${userPersonalize_solution_arn} --output text)
-ranking_solution_version_arn=$($AWS_CMD personalize create-solution-version \
-        --solution-arn ${ranking_solution_arn} --output text)
-sims_solution_version_arn=$($AWS_CMD personalize create-solution-version \
-        --solution-arn ${sims_solution_arn} --output text)
+if [[ $METHOD == "ps-complete" ]]; then
+  userPersonalize_solution_version_arn=$($AWS_CMD personalize create-solution-version \
+          --solution-arn ${userPersonalize_solution_arn} --output text)
+elif [[ $METHOD == "ps-rank" ]]; then
+  ranking_solution_version_arn=$($AWS_CMD personalize create-solution-version \
+          --solution-arn ${ranking_solution_arn} --output text)
+elif [[ $METHOD == "ps-sims" ]]; then
+  sims_solution_version_arn=$($AWS_CMD personalize create-solution-version \
+          --solution-arn ${sims_solution_arn} --output text)
+else
+  userPersonalize_solution_version_arn=$($AWS_CMD personalize create-solution-version \
+          --solution-arn ${userPersonalize_solution_arn} --output text)
+  ranking_solution_version_arn=$($AWS_CMD personalize create-solution-version \
+          --solution-arn ${ranking_solution_arn} --output text)
+  sims_solution_version_arn=$($AWS_CMD personalize create-solution-version \
+          --solution-arn ${sims_solution_arn} --output text)
+fi
 
 #monitor solution version
 echo "Solution Version Creating... It will takes no longer than 2 hours..."
 MAX_TIME=`expr 2 \* 60 \* 60` # 6 hours
 CURRENT_TIME=0
-while(( ${CURRENT_TIME} < ${MAX_TIME} ))
-do
-    userPersonalize_solution_version_status=$($AWS_CMD personalize describe-solution-version \
-            --solution-version-arn ${userPersonalize_solution_version_arn} | jq '.solutionVersion.status' -r)
-    ranking_solution_version_status=$($AWS_CMD personalize describe-solution-version \
-            --solution-version-arn ${ranking_solution_version_arn} | jq '.solutionVersion.status' -r)
-    sims_solution_version_status=$($AWS_CMD personalize describe-solution-version \
-            --solution-version-arn ${sims_solution_version_arn} | jq '.solutionVersion.status' -r)
+if [[ $METHOD == "ps-complete" ]]; then
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      userPersonalize_solution_version_status=$($AWS_CMD personalize describe-solution-version \
+              --solution-version-arn ${userPersonalize_solution_version_arn} | jq '.solutionVersion.status' -r)
 
-    echo "userPersonalize_solution_version_status: ${userPersonalize_solution_version_status}"
-    echo "ranking_solution_version_status: ${ranking_solution_version_status}"
-    echo "sims_solution_version_status: ${sims_solution_version_status}"
+      echo "userPersonalize_solution_version_status: ${userPersonalize_solution_version_status}"
 
-    if [[ "$userPersonalize_solution_version_status" = "CREATE FAILED" || "$ranking_solution_version_status" = "CREATE FAILED" || "$sims_solution_version_status" = "CREATE FAILED" ]]
-    then
-        echo "!!!Solution Version Create Failed!!!"
-        echo "!!!Personalize Service Create Failed!!!"
-        exit 8
-    elif [[ "$userPersonalize_solution_version_status" = "ACTIVE" && "$ranking_solution_version_status" = "ACTIVE" && "$sims_solution_version_status" = "ACTIVE" ]]
-    then
-        echo "Solution Version create successfully!"
-        break;
-    fi
-    CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
-    echo "wait for 1 min..."
-    sleep 60
+      if [[ "$userPersonalize_solution_version_status" = "CREATE FAILED" ]]
+      then
+          echo "!!!Solution Version Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [[ "$userPersonalize_solution_version_status" = "ACTIVE" ]]
+      then
+          echo "Solution Version create successfully!"
+          break;
+      fi
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+      echo "wait for 1 min..."
+      sleep 60
+  done
+elif [[ $METHOD == "ps-rank" ]]; then
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      ranking_solution_version_status=$($AWS_CMD personalize describe-solution-version \
+              --solution-version-arn ${ranking_solution_version_arn} | jq '.solutionVersion.status' -r)
 
-done
+      echo "ranking_solution_version_status: ${ranking_solution_version_status}"
+
+      if [[ "$ranking_solution_version_status" = "CREATE FAILED" ]]
+      then
+          echo "!!!Solution Version Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [[ "$ranking_solution_version_status" = "ACTIVE" ]]
+      then
+          echo "Solution Version create successfully!"
+          break;
+      fi
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+      echo "wait for 1 min..."
+      sleep 60
+  done
+elif [[ $METHOD == "ps-sims" ]]; then
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      sims_solution_version_status=$($AWS_CMD personalize describe-solution-version \
+              --solution-version-arn ${sims_solution_version_arn} | jq '.solutionVersion.status' -r)
+
+      echo "sims_solution_version_status: ${sims_solution_version_status}"
+
+      if [[ "$sims_solution_version_status" = "CREATE FAILED" ]]
+      then
+          echo "!!!Solution Version Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [[ "$sims_solution_version_status" = "ACTIVE" ]]
+      then
+          echo "Solution Version create successfully!"
+          break;
+      fi
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+      echo "wait for 1 min..."
+      sleep 60
+  done
+else
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      userPersonalize_solution_version_status=$($AWS_CMD personalize describe-solution-version \
+              --solution-version-arn ${userPersonalize_solution_version_arn} | jq '.solutionVersion.status' -r)
+      ranking_solution_version_status=$($AWS_CMD personalize describe-solution-version \
+              --solution-version-arn ${ranking_solution_version_arn} | jq '.solutionVersion.status' -r)
+      sims_solution_version_status=$($AWS_CMD personalize describe-solution-version \
+              --solution-version-arn ${sims_solution_version_arn} | jq '.solutionVersion.status' -r)
+
+      echo "userPersonalize_solution_version_status: ${userPersonalize_solution_version_status}"
+      echo "ranking_solution_version_status: ${ranking_solution_version_status}"
+      echo "sims_solution_version_status: ${sims_solution_version_status}"
+
+      if [[ "$userPersonalize_solution_version_status" = "CREATE FAILED" || "$ranking_solution_version_status" = "CREATE FAILED" || "$sims_solution_version_status" = "CREATE FAILED" ]]
+      then
+          echo "!!!Solution Version Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [[ "$userPersonalize_solution_version_status" = "ACTIVE" && "$ranking_solution_version_status" = "ACTIVE" && "$sims_solution_version_status" = "ACTIVE" ]]
+      then
+          echo "Solution Version create successfully!"
+          break;
+      fi
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+      echo "wait for 1 min..."
+      sleep 60
+
+  done
+fi
+
 
 if [ $CURRENT_TIME -ge $MAX_TIME ]
 then
@@ -407,61 +533,158 @@ echo "trackingId: ${trackingId}"
 
 
 #print metrics
-echo "UserPersonalize Solution Metrics:"
-aws personalize get-solution-metrics --solution-version-arn ${userPersonalize_solution_version_arn}
-echo "Ranking Solution Metrics:"
-aws personalize get-solution-metrics --solution-version-arn ${ranking_solution_version_arn}
-echo "Sims Solution Metrics:"
-aws personalize get-solution-metrics --solution-version-arn ${sims_solution_version_arn}
+if [[ $METHOD == "ps-complete" ]]; then
+  echo "UserPersonalize Solution Metrics:"
+  aws personalize get-solution-metrics --solution-version-arn ${userPersonalize_solution_version_arn}
+elif [[ $METHOD == "ps-rank" ]]; then
+  echo "Ranking Solution Metrics:"
+  aws personalize get-solution-metrics --solution-version-arn ${ranking_solution_version_arn}
+elif [[ $METHOD == "ps-sims" ]]; then
+  echo "Sims Solution Metrics:"
+  aws personalize get-solution-metrics --solution-version-arn ${sims_solution_version_arn}
+else
+  echo "UserPersonalize Solution Metrics:"
+  aws personalize get-solution-metrics --solution-version-arn ${userPersonalize_solution_version_arn}
+  echo "Ranking Solution Metrics:"
+  aws personalize get-solution-metrics --solution-version-arn ${ranking_solution_version_arn}
+  echo "Sims Solution Metrics:"
+  aws personalize get-solution-metrics --solution-version-arn ${sims_solution_version_arn}
+fi
 
 #create campaign
-userPersonalize_campaign_arn=$($AWS_CMD personalize create-campaign \
-        --name gcr-rs-${Stage}-news-UserPersonalize-campaign \
-        --solution-version-arn ${userPersonalize_solution_version_arn} \
-        --min-provisioned-tps 1 --output text)
-ranking_campaign_arn=$($AWS_CMD personalize create-campaign \
-        --name gcr-rs-${Stage}-news-Ranking-campaign \
-        --solution-version-arn ${ranking_solution_version_arn} \
-        --min-provisioned-tps 1 --output text)
-sims_campaign_arn=$($AWS_CMD personalize create-campaign \
-        --name gcr-rs-${Stage}-news-Sims-campaign \
-        --solution-version-arn ${sims_solution_version_arn} \
-        --min-provisioned-tps 1 --output text)
+if [[ $METHOD == "ps-complete" ]]; then
+  userPersonalize_campaign_arn=$($AWS_CMD personalize create-campaign \
+          --name gcr-rs-${Stage}-news-UserPersonalize-campaign \
+          --solution-version-arn ${userPersonalize_solution_version_arn} \
+          --min-provisioned-tps 1 --output text)
+elif [[ $METHOD == "ps-rank" ]]; then
+  ranking_campaign_arn=$($AWS_CMD personalize create-campaign \
+          --name gcr-rs-${Stage}-news-Ranking-campaign \
+          --solution-version-arn ${ranking_solution_version_arn} \
+          --min-provisioned-tps 1 --output text)
+elif [[ $METHOD == "ps-sims" ]]; then
+  sims_campaign_arn=$($AWS_CMD personalize create-campaign \
+          --name gcr-rs-${Stage}-news-Sims-campaign \
+          --solution-version-arn ${sims_solution_version_arn} \
+          --min-provisioned-tps 1 --output text)
+else
+  userPersonalize_campaign_arn=$($AWS_CMD personalize create-campaign \
+          --name gcr-rs-${Stage}-news-UserPersonalize-campaign \
+          --solution-version-arn ${userPersonalize_solution_version_arn} \
+          --min-provisioned-tps 1 --output text)
+  ranking_campaign_arn=$($AWS_CMD personalize create-campaign \
+          --name gcr-rs-${Stage}-news-Ranking-campaign \
+          --solution-version-arn ${ranking_solution_version_arn} \
+          --min-provisioned-tps 1 --output text)
+  sims_campaign_arn=$($AWS_CMD personalize create-campaign \
+          --name gcr-rs-${Stage}-news-Sims-campaign \
+          --solution-version-arn ${sims_solution_version_arn} \
+          --min-provisioned-tps 1 --output text)
+fi
 
 
 #monitor campaign
 echo "Campaign Creating... It will takes no longer than 1 hours..."
 MAX_TIME=`expr 1 \* 60 \* 60` # 1 hours
 CURRENT_TIME=0
-while(( ${CURRENT_TIME} < ${MAX_TIME} )) 
-do
-    userPersonalize_campaign_status=$($AWS_CMD personalize describe-campaign \
-            --campaign-arn ${userPersonalize_campaign_arn} | jq '.campaign.status' -r)
-    ranking_campaign_status=$($AWS_CMD personalize describe-campaign \
-            --campaign-arn ${ranking_campaign_arn} | jq '.campaign.status' -r)
-    sims_campaign_status=$($AWS_CMD personalize describe-campaign \
-            --campaign-arn ${sims_campaign_arn} | jq '.campaign.status' -r)
-            
-    echo "userPersonalize_campaign_status: ${userPersonalize_campaign_status}"
-    echo "ranking_campaign_status: ${ranking_campaign_status}"
-    echo "sims_campaign_status: ${sims_campaign_status}"
+if [[ $METHOD == "ps-complete" ]]; then
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      userPersonalize_campaign_status=$($AWS_CMD personalize describe-campaign \
+              --campaign-arn ${userPersonalize_campaign_arn} | jq '.campaign.status' -r)
 
-    
-    if [[ "$userPersonalize_campaign_status" = "CREATE FAILED" || "$ranking_campaign_status" = "CREATE FAILED" || "$sims_campaign_status" = "CREATE FAILED" ]]
-    then
-        echo "!!!Campaign Create Failed!!!"
-        echo "!!!Personalize Service Create Failed!!!"
-        exit 8
-    elif [[ "$userPersonalize_campaign_status" = "ACTIVE" && "$ranking_campaign_status" = "ACTIVE" && "$sims_campaign_status" = "ACTIVE" ]]
-    then
-        echo "Campaign create successfully!"
-        break;
-    fi
-    CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
-    echo "wait for 1 min..."
-    sleep 60
+      echo "userPersonalize_campaign_status: ${userPersonalize_campaign_status}"
 
-done
+      if [[ "$userPersonalize_campaign_status" = "CREATE FAILED" ]]
+      then
+          echo "!!!Campaign Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [[ "$userPersonalize_campaign_status" = "ACTIVE" ]]
+      then
+          echo "Campaign create successfully!"
+          break;
+      fi
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+      echo "wait for 1 min..."
+      sleep 60
+  done
+elif [[ $METHOD == "ps-rank" ]]; then
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      ranking_campaign_status=$($AWS_CMD personalize describe-campaign \
+              --campaign-arn ${ranking_campaign_arn} | jq '.campaign.status' -r)
+
+      echo "ranking_campaign_status: ${ranking_campaign_status}"
+
+      if [[ "$ranking_campaign_status" = "CREATE FAILED" ]]
+      then
+          echo "!!!Campaign Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [[ "$ranking_campaign_status" = "ACTIVE" ]]
+      then
+          echo "Campaign create successfully!"
+          break;
+      fi
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+      echo "wait for 1 min..."
+      sleep 60
+
+  done
+elif [[ $METHOD == "ps-sims" ]]; then
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      sims_campaign_status=$($AWS_CMD personalize describe-campaign \
+              --campaign-arn ${sims_campaign_arn} | jq '.campaign.status' -r)
+
+      echo "sims_campaign_status: ${sims_campaign_status}"
+
+
+      if [[ "$sims_campaign_status" = "CREATE FAILED" ]]
+      then
+          echo "!!!Campaign Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [[ "$sims_campaign_status" = "ACTIVE" ]]
+      then
+          echo "Campaign create successfully!"
+          break;
+      fi
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+      echo "wait for 1 min..."
+      sleep 60
+  done
+else
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      userPersonalize_campaign_status=$($AWS_CMD personalize describe-campaign \
+              --campaign-arn ${userPersonalize_campaign_arn} | jq '.campaign.status' -r)
+      ranking_campaign_status=$($AWS_CMD personalize describe-campaign \
+              --campaign-arn ${ranking_campaign_arn} | jq '.campaign.status' -r)
+      sims_campaign_status=$($AWS_CMD personalize describe-campaign \
+              --campaign-arn ${sims_campaign_arn} | jq '.campaign.status' -r)
+
+      echo "userPersonalize_campaign_status: ${userPersonalize_campaign_status}"
+      echo "ranking_campaign_status: ${ranking_campaign_status}"
+      echo "sims_campaign_status: ${sims_campaign_status}"
+
+
+      if [[ "$userPersonalize_campaign_status" = "CREATE FAILED" || "$ranking_campaign_status" = "CREATE FAILED" || "$sims_campaign_status" = "CREATE FAILED" ]]
+      then
+          echo "!!!Campaign Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [[ "$userPersonalize_campaign_status" = "ACTIVE" && "$ranking_campaign_status" = "ACTIVE" && "$sims_campaign_status" = "ACTIVE" ]]
+      then
+          echo "Campaign create successfully!"
+          break;
+      fi
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 60`
+      echo "wait for 1 min..."
+      sleep 60
+  done
+fi
 
 if [ $CURRENT_TIME -ge $MAX_TIME ]
 then

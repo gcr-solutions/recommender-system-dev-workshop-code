@@ -35,36 +35,49 @@ echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 BUCKET_BUILD=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
 PREFIX=ops-data
 
+if [[ "$METHOD" == "customize" ]];then
+  lambda_funcs_name=(
+   rs-${Stage}-PreCheckLabmda
+   rs-${Stage}-S3UtilLabmda
+   rs-${Stage}-SNSMessageLambda
+  )
 
-lambda_funcs_name=(
- rs-${Stage}-PreCheckLabmda
- rs-${Stage}-S3UtilLabmda
- rs-${Stage}-SNSMessageLambda
- rs-${Stage}-CreateDatasetImportJobLambda
- rs-${Stage}-CheckDatasetImportJobStatusLambda
- rs-${Stage}-UpdateSolutionVersionLambda
- rs-${Stage}-CheckSolutionVersionStatusLambda
- rs-${Stage}-UpdateCampaignLambda
- rs-${Stage}-CheckCampaignStatusLambda
- rs-${Stage}-CreateBatchInferenceJobLambda
- rs-${Stage}-CheckBatchInferenceJobStatusLambda
- rs-${Stage}-SyncSolutionVersionLambda
-)
+  lambda_funcs_code=(
+   precheck-lambda.zip
+   s3-util-lambda.zip
+   sns-message-lambda.zip
+  )
+else
+  lambda_funcs_name=(
+   rs-${Stage}-PreCheckLabmda
+   rs-${Stage}-S3UtilLabmda
+   rs-${Stage}-SNSMessageLambda
+   rs-${Stage}-CreateDatasetImportJobLambda
+   rs-${Stage}-CheckDatasetImportJobStatusLambda
+   rs-${Stage}-UpdateSolutionVersionLambda
+   rs-${Stage}-CheckSolutionVersionStatusLambda
+   rs-${Stage}-UpdateCampaignLambda
+   rs-${Stage}-CheckCampaignStatusLambda
+   rs-${Stage}-CreateBatchInferenceJobLambda
+   rs-${Stage}-CheckBatchInferenceJobStatusLambda
+   rs-${Stage}-SyncSolutionVersionLambda
+  )
 
-lambda_funcs_code=(
- precheck-lambda.zip
- s3-util-lambda.zip
- sns-message-lambda.zip
- create-dataset-import-job-lambda.zip
- check-dataset-import-job-status-lambda.zip
- update-solution-version-lambda.zip
- check-solution-version-status-lambda.zip
- update-campaign-lambda.zip
- check-campaign-status-lambda.zip
- create-batch-inference-job-lambda.zip
- check-batch-inference-job-status-lambda.zip
- sync-solution-version-lambda.zip
-)
+  lambda_funcs_code=(
+   precheck-lambda.zip
+   s3-util-lambda.zip
+   sns-message-lambda.zip
+   create-dataset-import-job-lambda.zip
+   check-dataset-import-job-status-lambda.zip
+   update-solution-version-lambda.zip
+   check-solution-version-status-lambda.zip
+   update-campaign-lambda.zip
+   check-campaign-status-lambda.zip
+   create-batch-inference-job-lambda.zip
+   check-batch-inference-job-status-lambda.zip
+   sync-solution-version-lambda.zip
+  )
+fi
 
 i=0
 
