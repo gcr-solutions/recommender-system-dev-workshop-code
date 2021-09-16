@@ -71,7 +71,7 @@ cd ${curr_dir}/../sample-data
 if [[ $RS_SCENARIO == 'news' ]];then
    ./sync_data_to_s3.sh $Stage
 elif [[ $RS_SCENARIO == 'movie' ]];then
-   ./sync_moive_data_to_s3.sh $Stage
+   ./sync_movie_data_to_s3.sh $Stage
 fi
 
 
