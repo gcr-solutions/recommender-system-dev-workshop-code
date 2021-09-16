@@ -36,9 +36,18 @@ AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Acc
 
 echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 
+
+if [[ -z $RS_SCENARIO  ]];then
+    RS_SCENARIO=news
+fi
+
+echo "RS_SCENARIO: $RS_SCENARIO"
+
+
 echo "========= Create S3 Bucket =============="
 BUCKET_BUILD=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
-PREFIX=sample-data-news
+PREFIX=sample-data-$RS_SCENARIO
+
 
 echo "BUCKET_BUILD=${BUCKET_BUILD}"
 
@@ -56,9 +65,15 @@ echo "1. ========= Create codebuild =============="
 cd ${curr_dir}/codebuild
 ./register-to-codebuild-offline-codecommit.sh $Stage
 
-echo "2. ========= sync sample data to S3 =============="
+echo "2. ========= sync sample data to S3 ($RS_SCENARIO) =============="
 cd ${curr_dir}/../sample-data
-./sync_data_to_s3.sh $Stage
+
+if [[ $RS_SCENARIO == 'news' ]];then
+   ./sync_data_to_s3.sh $Stage
+elif [[ $RS_SCENARIO == 'movie' ]];then
+   ./sync_moive_data_to_s3.sh $Stage
+fi
+
 
 #echo "3. ========= Build lambda =============="
 #cd ${curr_dir}/../src/offline/lambda
@@ -71,12 +86,13 @@ cd ${curr_dir}/../sample-data
 echo "You can run your step-funcs with below input"
 echo '{
   "Bucket": "aws-gcr-rs-sol-'${Stage}'-'${REGION}'-'${AWS_ACCOUNT_ID}'",
-  "S3Prefix": "sample-data-news",
+  "S3Prefix": '"$PREFIX"',
   "change_type": "ITEM|BATCH|USER|MODEL"
 }'
 echo ""
 echo "Offline resources are created successfully"
 
-echo "Please stop printing the log by typing CONTROL+C "
-
+if [[  -z $NOT_PRINTING_CONTROL_C ]];then
+   echo "Please stop printing the log by typing CONTROL+C "
+fi
 

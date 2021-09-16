@@ -25,8 +25,12 @@ JOB_NAME=${repo_name}-${TIMESTAMP}-${RANDOM}
 JOB_NAME=$(echo $JOB_NAME | sed 's/\//-/g')
 echo "JOB_NAME: ${JOB_NAME}"
 
-IMAGEURI=${account_id}.dkr.ecr.${AWS_REGION}.amazonaws.com/${repo_name}:latest
-SM_ROLE=arn:aws:iam::${account_id}:role/service-role/rs-dev-SMRole-${AWS_REGION}
+IMAGEURI=${account_id}.dkr.ecr.${AWS_REGION}.amazonaws.com/${repo_name}:dev-workshop
+if [[ AWS_REGION =~ cn.* ]];then
+   IMAGEURI=${account_id}.dkr.ecr.${AWS_REGION}.amazonaws.com.cn/${repo_name}:dev-workshop
+fi
+
+SM_ROLE=arn:aws:iam::${account_id}:role/service-role/rs-dev-workshop-SMRole-${AWS_REGION}
 
 echo "JOB_NAME: ${JOB_NAME}"
 

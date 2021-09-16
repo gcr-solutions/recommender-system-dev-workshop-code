@@ -5,6 +5,13 @@ export SECRET_NAME=gcr-rs-dev-workshop-secret
 export APP_CONF_REPO=recommender-system-dev-workshop-code
 echo "APP_CONF_REPO: $APP_CONF_REPO"
 
+if [[ -z $RS_SCENARIO  ]];then
+    RS_SCENARIO=news
+fi
+
+export RS_SCENARIO=$RS_SCENARIO
+echo "RS_SCENARIO: $RS_SCENARIO"
+
 input=$1
 
 if [ $input = "deploy-offline"  ]
@@ -36,6 +43,7 @@ then
     echo "export SECRET_NAME=gcr-rs-dev-workshop-secret"
     echo "export APP_CONF_REPO=recommender-system-dev-workshop-code"
     echo "---------------------------------------------"
+    export NOT_PRINTING_CONTROL_C="yes"
     echo ""
     echo "=== 1/7. start create offline!"
     echo "./create-online-infra.sh"

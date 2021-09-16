@@ -154,4 +154,7 @@ if $(aws iam get-user --user-name ${CODE_COMMIT_USER} >/dev/null 2>&1 );then
   aws iam delete-user --user-name $CODE_COMMIT_USER
 fi
 
-echo "Please stop printing the log by typing CONTROL+C "
+
+if [[  -z $NOT_PRINTING_CONTROL_C ]];then
+   echo "Please stop printing the log by typing CONTROL+C "
+fi

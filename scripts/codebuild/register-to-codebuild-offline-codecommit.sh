@@ -111,7 +111,13 @@ create_codebuild_project () {
 
 echo "----------------projects-------------------------"
 
-projects_dir=(
+if [[ -z $RS_SCENARIO  ]];then
+    RS_SCENARIO=news
+fi
+
+echo "RS_SCENARIO:$RS_SCENARIO"
+
+news_projects_dir=(
   "lambda"
   "news/item-preprocessing"
   "news/add-item-batch"
@@ -130,6 +136,31 @@ projects_dir=(
   "news/inverted-list"
   "news/step-funcs"
 )
+
+movie_projects_dir=(
+  "lambda"
+  "movie/action-preprocessing"
+  "movie/add-item-batch"
+  "movie/add-user-batch"
+  "movie/dashboard"
+  "movie/filter-batch"
+  "movie/inverted-list"
+  "movie/item-feature-update-batch"
+  "movie/item-preprocessing"
+  "movie/model-update-deepfm"
+  "movie/model-update-ub"
+  "movie/portrait-batch"
+  "movie/rank-batch"
+  "movie/recall-batch"
+  "movie/user-preprocessing"
+  "movie/step-funcs"
+)
+
+if [[ $RS_SCENARIO == 'news' ]];then
+  projects_dir=${news_projects_dir[@]}
+elif [[ $RS_SCENARIO == 'movie' ]];then
+  projects_dir=${movie_projects_dir[@]}
+fi
 
 for project in ${projects_dir[@]}; do
   build_name=$(echo ${project} | sed 's#/#-#g')

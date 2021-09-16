@@ -34,13 +34,21 @@ fi
 
 echo "AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID"
 
+
+if [[ -z $RS_SCENARIO  ]];then
+    RS_SCENARIO=news
+fi
+
+echo "RS_SCENARIO: $RS_SCENARIO"
+
+
 sleep 3
 
 echo "==== DELETE all codebuild projects ===="
 cd ${curr_dir}/codebuild
 ./register-to-codebuild-offline-codecommit.sh $Stage DELETE
 
-repo_names=(
+news_repo_names=(
   rs/news-inverted-list
   rs/news-action-preprocessing
   rs/news-add-item-batch
@@ -57,6 +65,31 @@ repo_names=(
   rs/news-recall-batch
   rs/news-user-preprocessing
 )
+
+movie_repo_names=(
+  "rs/movie-action-preprocessing"
+  "rs/movie-add-item-batch"
+  "rs/movie-add-user-batch"
+  "rs/movie-dashboard"
+  "rs/movie-filter-batch"
+  "rs/movie-inverted-list"
+  "rs/movie-item-feature-update-batch"
+  "rs/movie-item-preprocessing"
+  "rs/movie-model-update-deepfm"
+  "rs/movie-model-update-ub"
+  "rs/movie-portrait-batch"
+  "rs/movie-rank-batch"
+  "rs/movie-recall-batch"
+  "rs/movie-user-preprocessing"
+)
+
+
+if [[ $RS_SCENARIO == 'news' ]];then
+  repo_names=${news_repo_names[@]}
+elif [[ $RS_SCENARIO == 'movie' ]];then
+  repo_names=${movie_repo_names[@]}
+fi
+
 
 echo "Delete ECR repositories ..."
 for repo_name in ${repo_names[@]}; do
@@ -85,4 +118,7 @@ cd ${curr_dir}/../src/offline/
 
 echo "All offline resources were deleted"
 
-echo "Please stop printing the log by typing CONTROL+C "
+
+if [[  -z $NOT_PRINTING_CONTROL_C ]];then
+   echo "Please stop printing the log by typing CONTROL+C "
+fi

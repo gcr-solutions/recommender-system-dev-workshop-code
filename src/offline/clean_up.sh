@@ -24,7 +24,6 @@ fi
 if [[ -z $REGION ]]; then
   REGION='ap-northeast-1'
 fi
-AWS_REGION=$REGION
 
 AWS_ACCOUNT_ID=$($AWS_CMD  sts get-caller-identity --region ${REGION} --query Account --output text)
 if [[ $? -ne 0 ]]; then
@@ -34,10 +33,20 @@ fi
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
+if [[ -z $RS_SCENARIO  ]];then
+    RS_SCENARIO=news
+fi
+
+echo "RS_SCENARIO: $RS_SCENARIO"
+
 curr_dir=$(pwd)
 
-cd ${curr_dir}/lambda/
-./clean_up.sh $Stage
+if [[ -z $RS_KEEP_OFFLINE_LAMBDA ]];then
+   echo "skip delete lambda"
+else
+   cd ${curr_dir}/lambda/
+   ./clean_up.sh $Stage
+fi
 
-cd ${curr_dir}/news/
+cd ${curr_dir}/$RS_SCENARIO/
 ./clean_up.sh $Stage

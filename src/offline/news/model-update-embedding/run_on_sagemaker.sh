@@ -26,7 +26,7 @@ JOB_NAME=${repo_name}-${TIMESTAMP}-${RANDOM}
 JOB_NAME=$(echo $JOB_NAME | sed 's/\//-/g')
 
 IMAGEURI=${account_id}.dkr.ecr.${AWS_REGION}.amazonaws.com/${repo_name}:dev
-SM_ROLE=arn:aws:iam::${account_id}:role/service-role/rs-dev-SMRole-${AWS_REGION}
+SM_ROLE=arn:aws:iam::${account_id}:role/service-role/rs-dev-workshop-SMRole-${AWS_REGION}
 
 echo "JOB_NAME: ${JOB_NAME}"
 
