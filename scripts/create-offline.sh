@@ -86,7 +86,7 @@ fi
 echo "You can run your step-funcs with below input"
 echo '{
   "Bucket": "aws-gcr-rs-sol-'${Stage}'-'${REGION}'-'${AWS_ACCOUNT_ID}'",
-  "S3Prefix": '"$PREFIX"',
+  "S3Prefix": "'"$PREFIX"'",
   "change_type": "ITEM|BATCH|USER|MODEL"
 }'
 echo ""
