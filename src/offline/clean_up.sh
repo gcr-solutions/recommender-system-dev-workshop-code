@@ -41,7 +41,7 @@ echo "RS_SCENARIO: $RS_SCENARIO"
 
 curr_dir=$(pwd)
 
-if [[ -z $RS_KEEP_OFFLINE_LAMBDA ]];then
+if [[ -n $RS_KEEP_OFFLINE_LAMBDA ]];then
    echo "skip delete lambda"
 else
    cd ${curr_dir}/lambda/
