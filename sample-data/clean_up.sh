@@ -35,6 +35,6 @@ BUCKET=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
 S3Prefix=sample-data-$RS_SCENARIO
 
 echo "aws  s3 rm s3://${BUCKET}/${S3Prefix}  --recursive"
-$AWS_CMD s3 rm s3://${BUCKET}/ --recursive
+$AWS_CMD s3 rm s3://${BUCKET}/ --recursive > /dev/null
 $AWS_CMD s3api delete-bucket --bucket ${BUCKET}
 
