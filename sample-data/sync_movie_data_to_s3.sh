@@ -46,11 +46,23 @@ fi
 rm -rf movie-data >/dev/null 2>&1
 mkdir movie-data && cd movie-data
 wget --quiet $dataUrl
+
+if [[ $? -nq 0 ]];then
+   echo  "error!!! wget $dataUrl"
+   exit 1
+fi
+
 unzip sample-data-movie.zip
 rm sample-data-movie.zip  sync_data_to_s3.sh
 
 echo "$AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/ ..."
 $AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/
+
+if [[ $? -nq 0 ]];then
+   echo  "error!!! s3 sync"
+   exit 1
+fi
+
 cd ..
 rm -rf movie-data
 echo "data sync completed"
