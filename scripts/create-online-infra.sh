@@ -41,7 +41,7 @@ echo "Install Istio with default profile ..."
 rm -rf tmp_istio >/dev/null 2>&1
 mkdir tmp_istio && cd ./tmp_istio
 curl -LO $istio_link
-unzip istio-1.9.1.zip && rm istio-1.9.1.zip
+unzip istio-1.9.1.zip > /dev/null && rm istio-1.9.1.zip
 cd ./bin
 ./istioctl operator init
 kubectl create ns istio-system
