@@ -12,9 +12,8 @@ if [[ -z $REGION ]]; then
   export REGION='ap-northeast-1'
 fi
 
-#if [[ -n $AWS_PROFILE ]]; then
-#  export PROFILE=$AWS_PROFILE
-#fi
+echo "RS_KEEP_OFFLINE_LAMBDA: $RS_KEEP_OFFLINE_LAMBDA"
+
 
 AWS_CMD='aws'
 
