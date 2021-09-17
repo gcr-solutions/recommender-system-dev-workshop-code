@@ -82,7 +82,7 @@ then
     dns_name=$dns_name:22
   fi
   curl -X POST -d '{"message": {"file_type": "ps-result","file_path": "sample-data-news/notification/ps-result/","file_name": ["ps_config.json"]}}' -H "Content-Type:application/json" http://${dns_name}/loader/notice
-
+  curl -X POST -d '{"message": {"file_type": "ps-sims-dict","file_path": "sample-data-news/notification/ps-sims-dict/","file_name": ["ps-sims-batch.out"]}}' -H "Content-Type:application/json" http://$dns_name/loader/notice
 fi
 
 
