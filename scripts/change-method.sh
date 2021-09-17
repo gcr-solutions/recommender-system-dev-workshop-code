@@ -51,7 +51,7 @@ elif [[ "$method" == "ps-rank" ]]; then
 elif [[ "$method" == "ps-sims" ]]; then
   existed_solution=$($AWS_CMD personalize list-solutions --region ${REGION} | jq '.[][] | select(.name=="SimsSolution")' -r)
 elif [[ "$method" != "customize" ]]; then
-  echo "----------Wrong Method. Please input 'customize' or 'ps-complete' or 'ps-rank' or 'ps-sims'-------------"
+  echo "----------Wrong method. Please input 'customize' or 'ps-complete' or 'ps-rank' or 'ps-sims'-------------"
   exit 1
 fi
 
@@ -65,12 +65,12 @@ BUCKET_BUILD=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
 PREFIX=sample-data-${SCENARIO}
 
 cd ./personalize
-./update-ps-config.sh $METHOD $Stage $SCENARIO
+./update-ps-config.sh $method $Stage $SCENARIO
 cd ..
 
 config_file_path=${curr_dir}/../sample-data/system/ps-config/ps_config.json
 
-if [ $METHOD != "customize" ]
+if [ $method != "customize" ]
 then
   echo "------sync ps_config.json to s3-------"
   aws s3 cp ${config_file_path} s3://${BUCKET_BUILD}/${PREFIX}/system/ps-config/ps_config.json
@@ -89,15 +89,15 @@ fi
 echo "------update config.yaml file------"
 env_config_path=${curr_dir}/../manifests/envs/news-dev/config.yaml
 old_method=$(awk -F "\"" '/method/{print $2}' $env_config_path)
-echo "change old method: ${old_method} to new method: ${METHOD}"
-sed -e "s@$old_method@$METHOD@g" -i $env_config_path
+echo "change old method: ${old_method} to new method: ${method}"
+sed -e "s@$old_method@$method@g" -i $env_config_path
 
 
 echo "------push code to github-------"
 git pull
 git add ${config_file_path}
 git add ${env_config_path}
-git commit -m "change method to ${METHOD}"
+git commit -m "change method to ${method}"
 git push
 
 echo "-------change method successfully-------"
