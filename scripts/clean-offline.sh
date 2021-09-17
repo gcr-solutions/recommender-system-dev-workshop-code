@@ -43,7 +43,7 @@ sleep 3
 
 echo "==== DELETE all codebuild projects ===="
 cd ${curr_dir}/codebuild
-./register-to-codebuild-offline-codecommit.sh $Stage DELETE
+./register-to-codebuild-offline-codecommit.sh $Stage DELETE "all"
 
 repo_names=(
   inverted-list
