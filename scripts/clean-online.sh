@@ -3,11 +3,8 @@
 
 curr_dir=$(pwd)
 
-if [[ -z $METHOD ]]; then
-  METHOD='customize'
-fi
-
-if [[ "${METHOD}" != "customize" ]]; then
+existed_personalize=$(aws personalize list-dataset-groups | jq '.[][] | select(.name=="GCR-RS-News-Dataset-Group")')
+if [[ "${existed_personalize}" != "" ]]; then
   echo "################ start clean personalize resources ################ "
   echo "you can run the following command to check the personalize deleting status"
   echo "tail -f ~/personalize-log/clean-personalize.log "
