@@ -56,6 +56,11 @@ echo "METHOD=$METHOD"
 echo "BUCKET=${BUCKET_BUILD}"
 echo "Prefix=${PREFIX}"
 
+if [[ "${METHOD}" != "ps-complete" && "${METHOD}" != "ps-rank" && "${METHOD}" != "ps-sims" && "${METHOD}" != "all" ]]; then
+  echo "-----Type Wrong Method. You can enter ps-complete or ps-rank or ps-sims or all-------"
+  exit 1
+fi
+
 echo "--------start creating personalize role ----------"
 ./create-personalize-role.sh $Stage
 
@@ -627,7 +632,7 @@ if [[ $METHOD == "ps-complete" ]]; then
   fi
 elif [[ $METHOD == "ps-rank" ]]; then
   ranking_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $ranking_solution_arn | \
-                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-Ranking-campaign")' | \
                                 jq '.campaignArn' -r)
   if [[ "${ranking_campaign_arn}" == "" ]]; then
     ranking_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
@@ -637,7 +642,7 @@ elif [[ $METHOD == "ps-rank" ]]; then
   fi
 elif [[ $METHOD == "ps-sims" ]]; then
   sims_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $sims_solution_arn | \
-                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-Sims-campaign")' | \
                                 jq '.campaignArn' -r)
   if [[ "${sims_campaign_arn}" == "" ]]; then
     sims_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
@@ -650,10 +655,10 @@ else
                                 jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
                                 jq '.campaignArn' -r)
   ranking_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $ranking_solution_arn | \
-                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-Ranking-campaign")' | \
                                 jq '.campaignArn' -r)
   sims_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $sims_solution_arn | \
-                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-Sims-campaign")' | \
                                 jq '.campaignArn' -r)
   if [[ "${userPersonalize_campaign_arn}" == "" ]]; then
     userPersonalize_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
