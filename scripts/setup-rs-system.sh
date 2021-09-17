@@ -32,6 +32,10 @@ elif [ $input = "application" ]
 then
     echo "start create application!"
     ./create-argocd-application.sh
+elif [ $input = "load-data" ]
+then
+    echo "start load data!"
+    ./load-seed-data.sh
 elif [ $input = "ALL" ]
 then
     echo "export SECRET_NAME=gcr-rs-dev-workshop-secret"

@@ -82,7 +82,7 @@ if [[ "${METHOD}" != "customize" ]];then
   if [[ ! -d "~/personalize-log" ]];then
     mkdir ~/personalize-log
   fi
-  nohup ./create-personalize.sh >> ~/personalize-log/create-personalize.log 2>&1 &
+  nohup ./create-personalize.sh ${METHOD} >> ~/personalize-log/create-personalize.log 2>&1 &
   cd ${curr_dir}
 fi
 echo "==================================================="
