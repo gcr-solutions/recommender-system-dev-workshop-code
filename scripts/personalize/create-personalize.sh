@@ -4,10 +4,12 @@ set -e
 curr_dir=$(pwd)
 echo "==============Create Personalize======================"
 
-echo "--------start creating personalize role ----------"
-./create-personalize-role.sh $1
+METHOD=$1
+if [[ -z $METHOD ]];then
+    METHOD='all'
+fi
 
-Stage=$1
+Stage=$2
 if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
@@ -21,15 +23,12 @@ if [[ -z $REGION ]];then
     REGION='ap-northeast-1'
 fi
 
-Scenario=$2
+Scenario=$3
 
 if [[ -z $Scenario ]];then
     Scenario='News'
 fi
 
-if [[ -z $METHOD ]];then
-    METHOD='all'
-fi
 
 AWS_P="aws"
 if [[ $REGION =~ cn.* ]];then
@@ -57,83 +56,119 @@ echo "METHOD=$METHOD"
 echo "BUCKET=${BUCKET_BUILD}"
 echo "Prefix=${PREFIX}"
 
+echo "--------start creating personalize role ----------"
+./create-personalize-role.sh $Stage
+
+PERSONALIZE_ROLE_BUILD=arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-personalize-role
+echo "PERSONALIZE_ROLE_BUILD=${PERSONALIZE_ROLE_BUILD}"
+echo "Check if your personalize role arn is equal to the PERSONALIZE_ROLE_BUILD. If not, please follow the previous step to create iam role for personalize!"
+
+
 #create dataset group
-datasetGroupArn=$($AWS_CMD personalize create-dataset-group --name GCR-RS-${Scenario}-Dataset-Group --output text)
-echo "dataset_Group_Arn: ${datasetGroupArn}"
-echo "......"
+datasetGroupArn=$($AWS_CMD personalize list-dataset-groups --region $REGION | jq '.[][] | select(.name=="GCR-RS-News-Dataset-Group")' | jq '.datasetGroupArn' -r)
+if [[ "${datasetGroupArn}" != "" ]]; then
+  echo "Dataset Group Already Exist"
+else
+  datasetGroupArn=$($AWS_CMD personalize create-dataset-group --region $REGION --name GCR-RS-${Scenario}-Dataset-Group --output text)
 
-#monitor dataset group
-echo "Dataset Group Creating... It will takes no longer than 5 min..."
-MAX_TIME=`expr 10 \* 60` # 10 min
-CURRENT_TIME=0
-while(( ${CURRENT_TIME} < ${MAX_TIME} ))
-do
-    dataset_group_status=$($AWS_CMD personalize describe-dataset-group \
-                --dataset-group-arn ${datasetGroupArn} | jq '.datasetGroup.status' -r)
+  #monitor dataset group
+  echo "Dataset Group Creating... It will takes no longer than 5 min..."
+  MAX_TIME=`expr 10 \* 60` # 10 min
+  CURRENT_TIME=0
+  while(( ${CURRENT_TIME} < ${MAX_TIME} ))
+  do
+      dataset_group_status=$($AWS_CMD personalize describe-dataset-group --region $REGION \
+                  --dataset-group-arn ${datasetGroupArn} | jq '.datasetGroup.status' -r)
 
-    echo "dataset_group_status: ${dataset_group_status}"
+      echo "dataset_group_status: ${dataset_group_status}"
 
-    if [ "$dataset_group_status" = "CREATE FAILED" ]
-    then
-        echo "!!!Dataset Group Create Failed!!!"
-        echo "!!!Personalize Service Create Failed!!!"
-        exit 8
-    elif [ "$dataset_group_status" = "ACTIVE" ]
-    then
-        echo "Dataset Group Create successfully!"
-        break
-    fi
+      if [ "$dataset_group_status" = "CREATE FAILED" ]
+      then
+          echo "!!!Dataset Group Create Failed!!!"
+          echo "!!!Personalize Service Create Failed!!!"
+          exit 8
+      elif [ "$dataset_group_status" = "ACTIVE" ]
+      then
+          echo "Dataset Group Create successfully!"
+          break
+      fi
 
-    CURRENT_TIME=`expr ${CURRENT_TIME} + 10`
-    echo "wait for 10 second..."
-    sleep 10
+      CURRENT_TIME=`expr ${CURRENT_TIME} + 10`
+      echo "wait for 10 second..."
+      sleep 10
 
-done
+  done
 
-if [ $CURRENT_TIME -ge $MAX_TIME ]
-then
-    echo "Dataset Group Create Time exceed 5 min, please delete import job and try again!"
-    exit 8
+  if [ $CURRENT_TIME -ge $MAX_TIME ]
+  then
+      echo "Dataset Group Create Time exceed 5 min, please delete import job and try again!"
+      exit 8
+  fi
+
 fi
+
+echo "dataset_Group_Arn: ${datasetGroupArn}"
+echo "------------------------------------------------"
 
 
 #create schema
 echo "creating Schema..."
-user_schema_arn=$($AWS_CMD personalize create-schema \
-	--name ${Scenario}UserSchema \
-	--schema file://./schema/${Scenario}UserSchema.json --output text)
+user_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="NewsUserSchema")' | jq '.schemaArn' -r)
+if [[ "${user_schema_arn}" == "" ]]; then
+  user_schema_arn=$($AWS_CMD personalize create-schema --region $REGION \
+    --name ${Scenario}UserSchema \
+    --schema file://./schema/${Scenario}UserSchema.json --output text)
+fi
 
-item_schema_arn=$($AWS_CMD personalize create-schema \
-	--name ${Scenario}ItemSchema \
-	--schema file://./schema/${Scenario}ItemSchema.json --output text)
+item_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="NewsItemSchema")' | jq '.schemaArn' -r)
+if [[ "${item_schema_arn}" == "" ]]; then
+  item_schema_arn=$($AWS_CMD personalize create-schema --region $REGION \
+    --name ${Scenario}ItemSchema \
+    --schema file://./schema/${Scenario}ItemSchema.json --output text)
+fi
 
-interaction_schema_arn=$($AWS_CMD personalize create-schema \
-	--name ${Scenario}InteractionSchema \
-	--schema file://./schema/${Scenario}InteractionSchema.json --output text)
+interaction_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="NewsInteractionSchema")' | jq '.schemaArn' -r)
+if [[ "${interaction_schema_arn}" == "" ]]; then
+  interaction_schema_arn=$($AWS_CMD personalize create-schema --region $REGION \
+    --name ${Scenario}InteractionSchema \
+    --schema file://./schema/${Scenario}InteractionSchema.json --output text)
+fi
 
-echo "......"
+
 sleep 30
+echo "------------------------------------------------"
 
 #create dataset
 echo "create dataset..."
-user_dataset_arn=$($AWS_CMD personalize create-dataset \
-	--name ${Scenario}UserDataset \
-	--dataset-group-arn ${datasetGroupArn} \
-	--dataset-type Users \
-	--schema-arn ${user_schema_arn} --output text)
+user_dataset_arn=$($AWS_CMD personalize list-datasets --region $REGION --dataset-group-arn $datasetGroupArn | jq \
+                                            '.datasets[] | select(.name=="NewsUserDataset")' | jq '.datasetArn' -r)
+if [[ "${user_dataset_arn}" == "" ]]; then
+  user_dataset_arn=$($AWS_CMD personalize create-dataset --region $REGION \
+    --name ${Scenario}UserDataset \
+    --dataset-group-arn ${datasetGroupArn} \
+    --dataset-type Users \
+    --schema-arn ${user_schema_arn} --output text)
+fi
 
-item_dataset_arn=$($AWS_CMD personalize create-dataset \
-	--name ${Scenario}ItemDataset \
-	--dataset-group-arn ${datasetGroupArn} \
-	--dataset-type Items \
-	--schema-arn ${item_schema_arn} --output text)
+item_dataset_arn=$($AWS_CMD personalize list-datasets --region $REGION --dataset-group-arn $datasetGroupArn | jq \
+                                            '.datasets[] | select(.name=="NewsItemDataset")' | jq '.datasetArn' -r)
+if [[ "${item_dataset_arn}" == "" ]]; then
+  item_dataset_arn=$($AWS_CMD personalize create-dataset --region $REGION \
+    --name ${Scenario}ItemDataset \
+    --dataset-group-arn ${datasetGroupArn} \
+    --dataset-type Items \
+    --schema-arn ${item_schema_arn} --output text)
+fi
 
-interaction_dataset_arn=$($AWS_CMD personalize create-dataset \
-	--name ${Scenario}InteractionDataset \
-	--dataset-group-arn ${datasetGroupArn} \
-	--dataset-type Interactions \
-	--schema-arn ${interaction_schema_arn} --output text)
-
+interaction_dataset_arn=$($AWS_CMD personalize list-datasets --region $REGION --dataset-group-arn $datasetGroupArn | jq \
+                                            '.datasets[] | select(.name=="NewsInteractionDataset")' | jq '.datasetArn' -r)
+if [[ "${interaction_dataset_arn}" == "" ]]; then
+  interaction_dataset_arn=$($AWS_CMD personalize create-dataset --region $REGION \
+    --name ${Scenario}InteractionDataset \
+    --dataset-group-arn ${datasetGroupArn} \
+    --dataset-type Interactions \
+    --schema-arn ${interaction_schema_arn} --output text)
+fi
 
 #monitor dataset
 echo "Dataset Creating... It will takes no longer than 10 min..."
@@ -141,11 +176,11 @@ MAX_TIME=`expr 10 \* 60` # 10 min
 CURRENT_TIME=0
 while(( ${CURRENT_TIME} < ${MAX_TIME} ))
 do
-    user_dataset_status=$($AWS_CMD personalize describe-dataset \
+    user_dataset_status=$($AWS_CMD personalize describe-dataset --region $REGION \
                 --dataset-arn ${user_dataset_arn} | jq '.dataset.status' -r)
-    item_dataset_status=$($AWS_CMD personalize describe-dataset \
+    item_dataset_status=$($AWS_CMD personalize describe-dataset --region $REGION \
                 --dataset-arn ${item_dataset_arn} | jq '.dataset.status' -r)
-    interaction_dataset_status=$($AWS_CMD personalize describe-dataset \
+    interaction_dataset_status=$($AWS_CMD personalize describe-dataset --region $REGION \
                 --dataset-arn ${interaction_dataset_arn} | jq '.dataset.status' -r)
 
     echo "user_dataset_status: ${user_dataset_status}"
@@ -175,38 +210,43 @@ then
     exit 8
 fi
 
-
-PERSONALIZE_ROLE_BUILD=arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-personalize-role
-echo "PERSONALIZE_ROLE_BUILD=${PERSONALIZE_ROLE_BUILD}"
-echo "Check if your personalize role arn is equal to the PERSONALIZE_ROLE_BUILD. If not, please follow the previous step to create iam role for personalize!"
-
-
+echo "------------------------------------------------"
 
 #create import job
 echo "create dataset import job..."
-user_dataset_import_job_arn=$($AWS_CMD personalize create-dataset-import-job \
-  --job-name ${Scenario}UserImportJob \
-  --dataset-arn ${user_dataset_arn} \
-  --data-source dataLocation=s3://${BUCKET_BUILD}/${PREFIX}/system/ps-ingest-data/user/ps_user.csv \
-  --role-arn ${PERSONALIZE_ROLE_BUILD} \
-  --output text)
+user_dataset_import_job_arn=$($AWS_CMD personalize list-dataset-import-jobs --region $REGION --dataset-arn $user_dataset_arn \
+                                      | jq '.datasetImportJobs[] | select(.jobName=="NewsUserImportJob")' | jq '.datasetImportJobArn' -r)
+if [[ "${user_dataset_import_job_arn}" == "" ]]; then
+  user_dataset_import_job_arn=$($AWS_CMD personalize create-dataset-import-job --region $REGION \
+    --job-name ${Scenario}UserImportJob \
+    --dataset-arn ${user_dataset_arn} \
+    --data-source dataLocation=s3://${BUCKET_BUILD}/${PREFIX}/system/ps-ingest-data/user/ps_user.csv \
+    --role-arn ${PERSONALIZE_ROLE_BUILD} \
+    --output text)
+fi
 
+item_dataset_import_job_arn=$($AWS_CMD personalize list-dataset-import-jobs --region $REGION --dataset-arn $item_dataset_arn \
+                                      | jq '.datasetImportJobs[] | select(.jobName=="NewsItemImportJob")' | jq '.datasetImportJobArn' -r)
+if [[ "${item_dataset_import_job_arn}" == "" ]]; then
+  item_dataset_import_job_arn=$($AWS_CMD personalize create-dataset-import-job --region $REGION \
+    --job-name ${Scenario}ItemImportJob \
+    --dataset-arn ${item_dataset_arn} \
+    --data-source dataLocation=s3://${BUCKET_BUILD}/${PREFIX}/system/ps-ingest-data/item/ps_item.csv \
+    --role-arn ${PERSONALIZE_ROLE_BUILD} \
+    --output text)
+fi
 
-item_dataset_import_job_arn=$($AWS_CMD personalize create-dataset-import-job \
-  --job-name ${Scenario}ItemImportJob \
-  --dataset-arn ${item_dataset_arn} \
-  --data-source dataLocation=s3://${BUCKET_BUILD}/${PREFIX}/system/ps-ingest-data/item/ps_item.csv \
-  --role-arn ${PERSONALIZE_ROLE_BUILD} \
-  --output text)
+interaction_dataset_import_job_arn=$($AWS_CMD personalize list-dataset-import-jobs --region $REGION --dataset-arn $interaction_dataset_arn \
+                                      | jq '.datasetImportJobs[] | select(.jobName=="NewsInteractionImportJob")' | jq '.datasetImportJobArn' -r)
+if [[ "${interaction_dataset_import_job_arn}" == "" ]]; then
+  interaction_dataset_import_job_arn=$($AWS_CMD personalize create-dataset-import-job --region $REGION \
+    --job-name ${Scenario}InteractionImportJob \
+    --dataset-arn ${interaction_dataset_arn} \
+    --data-source dataLocation=s3://${BUCKET_BUILD}/${PREFIX}/system/ps-ingest-data/action/ps_action.csv \
+    --role-arn ${PERSONALIZE_ROLE_BUILD} \
+    --output text)
+fi
 
-interaction_dataset_import_job_arn=$($AWS_CMD personalize create-dataset-import-job \
-  --job-name ${Scenario}InteractionImportJob \
-  --dataset-arn ${interaction_dataset_arn} \
-  --data-source dataLocation=s3://${BUCKET_BUILD}/${PREFIX}/system/ps-ingest-data/action/ps_action.csv \
-  --role-arn ${PERSONALIZE_ROLE_BUILD} \
-  --output text)
-
-echo "......"
 
 
 #monitor import job
@@ -215,11 +255,11 @@ MAX_TIME=`expr 10 \* 60` # 10 min
 CURRENT_TIME=0
 while(( ${CURRENT_TIME} < ${MAX_TIME} ))
 do
-    user_dataset_import_job_status=$($AWS_CMD personalize describe-dataset-import-job \
+    user_dataset_import_job_status=$($AWS_CMD personalize describe-dataset-import-job --region $REGION \
                 --dataset-import-job-arn ${user_dataset_import_job_arn} | jq '.datasetImportJob.status' -r)
-    item_dataset_import_job_status=$($AWS_CMD personalize describe-dataset-import-job \
+    item_dataset_import_job_status=$($AWS_CMD personalize describe-dataset-import-job --region $REGION \
                 --dataset-import-job-arn ${item_dataset_import_job_arn} | jq '.datasetImportJob.status' -r)
-    interaction_dataset_import_job_status=$($AWS_CMD personalize describe-dataset-import-job \
+    interaction_dataset_import_job_status=$($AWS_CMD personalize describe-dataset-import-job --region $REGION \
                 --dataset-import-job-arn ${interaction_dataset_import_job_arn} | jq '.datasetImportJob.status' -r)
 
     echo "user_dataset_import_job_status: ${user_dataset_import_job_status}"
@@ -249,38 +289,57 @@ then
     exit 8
 fi
 
+echo "------------------------------------------------"
 
 #create solutions for 3 methods
+userPersonalize_solution_arn=$($AWS_CMD personalize list-solutions --region $REGION --dataset-group-arn $datasetGroupArn | \
+                                jq '.solutions[] | select(.name=="UserPersonalizeSolution")' | jq '.solutionArn' -r)
+ranking_solution_arn=$($AWS_CMD personalize list-solutions --region $REGION --dataset-group-arn $datasetGroupArn | \
+                                jq '.solutions[] | select(.name=="RankingSolution")' | jq '.solutionArn' -r)
+sims_solution_arn=$($AWS_CMD personalize list-solutions --region $REGION --dataset-group-arn $datasetGroupArn | \
+                                jq '.solutions[] | select(.name=="SimsSolution")' | jq '.solutionArn' -r)
 if [[ $METHOD == "ps-complete" ]]; then
-  userPersonalize_solution_arn=$($AWS_CMD personalize create-solution \
-          --name UserPersonalizeSolution \
-          --dataset-group-arn ${datasetGroupArn} \
-          --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-user-personalization --output text)
+  if [[ "${userPersonalize_solution_arn}" == "" ]]; then
+    userPersonalize_solution_arn=$($AWS_CMD personalize create-solution --region $REGION \
+            --name UserPersonalizeSolution \
+            --dataset-group-arn ${datasetGroupArn} \
+            --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-user-personalization --output text)
+  fi
 elif [[ $METHOD == "ps-rank" ]]; then
-  ranking_solution_arn=$($AWS_CMD personalize create-solution \
-          --name RankingSolution \
-          --dataset-group-arn ${datasetGroupArn} \
-          --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-personalized-ranking --output text)
+  if [[ "${ranking_solution_arn}" == "" ]]; then
+    ranking_solution_arn=$($AWS_CMD personalize create-solution --region $REGION \
+            --name RankingSolution \
+            --dataset-group-arn ${datasetGroupArn} \
+            --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-personalized-ranking --output text)
+  fi
 elif [[ $METHOD == "ps-sims" ]]; then
-  sims_solution_arn=$($AWS_CMD personalize create-solution \
-          --name SimsSolution \
-          --dataset-group-arn ${datasetGroupArn} \
-          --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-sims --output text)
+  if [[ "${sims_solution_arn}" == "" ]]; then
+    sims_solution_arn=$($AWS_CMD personalize create-solution --region $REGION \
+            --name SimsSolution \
+            --dataset-group-arn ${datasetGroupArn} \
+            --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-sims --output text)
+  fi
 else
-  userPersonalize_solution_arn=$($AWS_CMD personalize create-solution \
-          --name UserPersonalizeSolution \
-          --dataset-group-arn ${datasetGroupArn} \
-          --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-user-personalization --output text)
+  if [[ "${userPersonalize_solution_arn}" == "" ]]; then
+    userPersonalize_solution_arn=$($AWS_CMD personalize create-solution --region $REGION \
+            --name UserPersonalizeSolution \
+            --dataset-group-arn ${datasetGroupArn} \
+            --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-user-personalization --output text)
+  fi
 
-  ranking_solution_arn=$($AWS_CMD personalize create-solution \
-          --name RankingSolution \
-          --dataset-group-arn ${datasetGroupArn} \
-          --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-personalized-ranking --output text)
+  if [[ "${ranking_solution_arn}" == "" ]]; then
+    ranking_solution_arn=$($AWS_CMD personalize create-solution --region $REGION \
+            --name RankingSolution \
+            --dataset-group-arn ${datasetGroupArn} \
+            --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-personalized-ranking --output text)
+  fi
 
-  sims_solution_arn=$($AWS_CMD personalize create-solution \
-          --name SimsSolution \
-          --dataset-group-arn ${datasetGroupArn} \
-          --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-sims --output text)
+  if [[ "${sims_solution_arn}" == "" ]]; then
+    sims_solution_arn=$($AWS_CMD personalize create-solution --region $REGION \
+            --name SimsSolution \
+            --dataset-group-arn ${datasetGroupArn} \
+            --recipe-arn arn:${AWS_P}:personalize:::recipe/aws-sims --output text)
+  fi
 fi
 
 
@@ -291,7 +350,7 @@ CURRENT_TIME=0
 if [[ $METHOD == "ps-complete" ]]; then
   while(( ${CURRENT_TIME} < ${MAX_TIME} ))
   do
-      userPersonalize_solution_status=$($AWS_CMD personalize describe-solution \
+      userPersonalize_solution_status=$($AWS_CMD personalize describe-solution --region $REGION \
           --solution-arn ${userPersonalize_solution_arn} | jq '.solution.status' -r)
 
       echo "userPersonalize_solution_status: ${userPersonalize_solution_status}"
@@ -313,7 +372,7 @@ if [[ $METHOD == "ps-complete" ]]; then
 elif [[ $METHOD == "ps-rank" ]]; then
   while(( ${CURRENT_TIME} < ${MAX_TIME} ))
   do
-      ranking_solution_status=$($AWS_CMD personalize describe-solution \
+      ranking_solution_status=$($AWS_CMD personalize describe-solution --region $REGION \
           --solution-arn ${ranking_solution_arn} | jq '.solution.status' -r)
 
       echo "ranking_solution_status: ${ranking_solution_status}"
@@ -335,7 +394,7 @@ elif [[ $METHOD == "ps-rank" ]]; then
 elif [[ $METHOD == "ps-sims" ]]; then
   while(( ${CURRENT_TIME} < ${MAX_TIME} ))
   do
-      sims_solution_status=$($AWS_CMD personalize describe-solution \
+      sims_solution_status=$($AWS_CMD personalize describe-solution --region $REGION \
           --solution-arn ${sims_solution_arn} | jq '.solution.status' -r)
 
       echo "sims_solution_status: ${sims_solution_status}"
@@ -357,11 +416,11 @@ elif [[ $METHOD == "ps-sims" ]]; then
 else
   while(( ${CURRENT_TIME} < ${MAX_TIME} ))
   do
-      userPersonalize_solution_status=$($AWS_CMD personalize describe-solution \
+      userPersonalize_solution_status=$($AWS_CMD personalize describe-solution --region $REGION \
           --solution-arn ${userPersonalize_solution_arn} | jq '.solution.status' -r)
-      ranking_solution_status=$($AWS_CMD personalize describe-solution \
+      ranking_solution_status=$($AWS_CMD personalize describe-solution --region $REGION \
           --solution-arn ${ranking_solution_arn} | jq '.solution.status' -r)
-      sims_solution_status=$($AWS_CMD personalize describe-solution \
+      sims_solution_status=$($AWS_CMD personalize describe-solution --region $REGION \
           --solution-arn ${sims_solution_arn} | jq '.solution.status' -r)
 
       echo "userPersonalize_solution_status: ${userPersonalize_solution_status}"
@@ -394,20 +453,20 @@ fi
 
 #create solution version
 if [[ $METHOD == "ps-complete" ]]; then
-  userPersonalize_solution_version_arn=$($AWS_CMD personalize create-solution-version \
+  userPersonalize_solution_version_arn=$($AWS_CMD personalize create-solution-version --region $REGION \
           --solution-arn ${userPersonalize_solution_arn} --output text)
 elif [[ $METHOD == "ps-rank" ]]; then
-  ranking_solution_version_arn=$($AWS_CMD personalize create-solution-version \
+  ranking_solution_version_arn=$($AWS_CMD personalize create-solution-version --region $REGION \
           --solution-arn ${ranking_solution_arn} --output text)
 elif [[ $METHOD == "ps-sims" ]]; then
-  sims_solution_version_arn=$($AWS_CMD personalize create-solution-version \
+  sims_solution_version_arn=$($AWS_CMD personalize create-solution-version --region $REGION \
           --solution-arn ${sims_solution_arn} --output text)
 else
-  userPersonalize_solution_version_arn=$($AWS_CMD personalize create-solution-version \
+  userPersonalize_solution_version_arn=$($AWS_CMD personalize create-solution-version --region $REGION \
           --solution-arn ${userPersonalize_solution_arn} --output text)
-  ranking_solution_version_arn=$($AWS_CMD personalize create-solution-version \
+  ranking_solution_version_arn=$($AWS_CMD personalize create-solution-version --region $REGION \
           --solution-arn ${ranking_solution_arn} --output text)
-  sims_solution_version_arn=$($AWS_CMD personalize create-solution-version \
+  sims_solution_version_arn=$($AWS_CMD personalize create-solution-version --region $REGION \
           --solution-arn ${sims_solution_arn} --output text)
 fi
 
@@ -418,7 +477,7 @@ CURRENT_TIME=0
 if [[ $METHOD == "ps-complete" ]]; then
   while(( ${CURRENT_TIME} < ${MAX_TIME} ))
   do
-      userPersonalize_solution_version_status=$($AWS_CMD personalize describe-solution-version \
+      userPersonalize_solution_version_status=$($AWS_CMD personalize describe-solution-version --region $REGION \
               --solution-version-arn ${userPersonalize_solution_version_arn} | jq '.solutionVersion.status' -r)
 
       echo "userPersonalize_solution_version_status: ${userPersonalize_solution_version_status}"
@@ -440,7 +499,7 @@ if [[ $METHOD == "ps-complete" ]]; then
 elif [[ $METHOD == "ps-rank" ]]; then
   while(( ${CURRENT_TIME} < ${MAX_TIME} ))
   do
-      ranking_solution_version_status=$($AWS_CMD personalize describe-solution-version \
+      ranking_solution_version_status=$($AWS_CMD personalize describe-solution-version --region $REGION \
               --solution-version-arn ${ranking_solution_version_arn} | jq '.solutionVersion.status' -r)
 
       echo "ranking_solution_version_status: ${ranking_solution_version_status}"
@@ -462,7 +521,7 @@ elif [[ $METHOD == "ps-rank" ]]; then
 elif [[ $METHOD == "ps-sims" ]]; then
   while(( ${CURRENT_TIME} < ${MAX_TIME} ))
   do
-      sims_solution_version_status=$($AWS_CMD personalize describe-solution-version \
+      sims_solution_version_status=$($AWS_CMD personalize describe-solution-version --region $REGION \
               --solution-version-arn ${sims_solution_version_arn} | jq '.solutionVersion.status' -r)
 
       echo "sims_solution_version_status: ${sims_solution_version_status}"
@@ -484,11 +543,11 @@ elif [[ $METHOD == "ps-sims" ]]; then
 else
   while(( ${CURRENT_TIME} < ${MAX_TIME} ))
   do
-      userPersonalize_solution_version_status=$($AWS_CMD personalize describe-solution-version \
+      userPersonalize_solution_version_status=$($AWS_CMD personalize describe-solution-version --region $REGION \
               --solution-version-arn ${userPersonalize_solution_version_arn} | jq '.solutionVersion.status' -r)
-      ranking_solution_version_status=$($AWS_CMD personalize describe-solution-version \
+      ranking_solution_version_status=$($AWS_CMD personalize describe-solution-version --region $REGION \
               --solution-version-arn ${ranking_solution_version_arn} | jq '.solutionVersion.status' -r)
-      sims_solution_version_status=$($AWS_CMD personalize describe-solution-version \
+      sims_solution_version_status=$($AWS_CMD personalize describe-solution-version --region $REGION \
               --solution-version-arn ${sims_solution_version_arn} | jq '.solutionVersion.status' -r)
 
       echo "userPersonalize_solution_version_status: ${userPersonalize_solution_version_status}"
@@ -521,11 +580,15 @@ fi
 
 
 # create event tracker
-eventTrackerArn=$($AWS_CMD personalize create-event-tracker \
-    --name NewsEventTracker \
-    --dataset-group-arn ${datasetGroupArn} | jq '.eventTrackerArn' -r)
+eventTrackerArn=$($AWS_CMD personalize list-event-trackers --region $REGION --dataset-group-arn $datasetGroupArn | \
+                    jq '.eventTrackers[] | select(.name=="NewsEventTracker")' | jq '.eventTrackerArn' -r)
+if [[ "${eventTrackerArn}" == "" ]]; then
+  eventTrackerArn=$($AWS_CMD personalize create-event-tracker --region $REGION \
+      --name NewsEventTracker \
+      --dataset-group-arn ${datasetGroupArn} | jq '.eventTrackerArn' -r)
+fi
 
-trackingId=$($AWS_CMD personalize describe-event-tracker \
+trackingId=$($AWS_CMD personalize describe-event-tracker --region $REGION \
     --event-tracker-arn ${eventTrackerArn} | jq '.eventTracker.trackingId' -r)
     
 echo "eventTrackerArn: ${eventTrackerArn}"
@@ -535,51 +598,81 @@ echo "trackingId: ${trackingId}"
 #print metrics
 if [[ $METHOD == "ps-complete" ]]; then
   echo "UserPersonalize Solution Metrics:"
-  aws personalize get-solution-metrics --solution-version-arn ${userPersonalize_solution_version_arn}
+  aws personalize get-solution-metrics --region $REGION --solution-version-arn ${userPersonalize_solution_version_arn}
 elif [[ $METHOD == "ps-rank" ]]; then
   echo "Ranking Solution Metrics:"
-  aws personalize get-solution-metrics --solution-version-arn ${ranking_solution_version_arn}
+  aws personalize get-solution-metrics --region $REGION --solution-version-arn ${ranking_solution_version_arn}
 elif [[ $METHOD == "ps-sims" ]]; then
   echo "Sims Solution Metrics:"
-  aws personalize get-solution-metrics --solution-version-arn ${sims_solution_version_arn}
+  aws personalize get-solution-metrics --region $REGION --solution-version-arn ${sims_solution_version_arn}
 else
   echo "UserPersonalize Solution Metrics:"
-  aws personalize get-solution-metrics --solution-version-arn ${userPersonalize_solution_version_arn}
+  aws personalize get-solution-metrics --region $REGION --solution-version-arn ${userPersonalize_solution_version_arn}
   echo "Ranking Solution Metrics:"
-  aws personalize get-solution-metrics --solution-version-arn ${ranking_solution_version_arn}
+  aws personalize get-solution-metrics --region $REGION --solution-version-arn ${ranking_solution_version_arn}
   echo "Sims Solution Metrics:"
-  aws personalize get-solution-metrics --solution-version-arn ${sims_solution_version_arn}
+  aws personalize get-solution-metrics --region $REGION --solution-version-arn ${sims_solution_version_arn}
 fi
 
 #create campaign
 if [[ $METHOD == "ps-complete" ]]; then
-  userPersonalize_campaign_arn=$($AWS_CMD personalize create-campaign \
-          --name gcr-rs-${Stage}-news-UserPersonalize-campaign \
-          --solution-version-arn ${userPersonalize_solution_version_arn} \
-          --min-provisioned-tps 1 --output text)
+  userPersonalize_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $userPersonalize_solution_arn | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
+                                jq '.campaignArn' -r)
+  if [[ "${userPersonalize_campaign_arn}" == "" ]]; then
+    userPersonalize_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
+            --name gcr-rs-${Stage}-news-UserPersonalize-campaign \
+            --solution-version-arn ${userPersonalize_solution_version_arn} \
+            --min-provisioned-tps 1 --output text)
+  fi
 elif [[ $METHOD == "ps-rank" ]]; then
-  ranking_campaign_arn=$($AWS_CMD personalize create-campaign \
-          --name gcr-rs-${Stage}-news-Ranking-campaign \
-          --solution-version-arn ${ranking_solution_version_arn} \
-          --min-provisioned-tps 1 --output text)
+  ranking_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $ranking_solution_arn | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
+                                jq '.campaignArn' -r)
+  if [[ "${ranking_campaign_arn}" == "" ]]; then
+    ranking_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
+            --name gcr-rs-${Stage}-news-Ranking-campaign \
+            --solution-version-arn ${ranking_solution_version_arn} \
+            --min-provisioned-tps 1 --output text)
+  fi
 elif [[ $METHOD == "ps-sims" ]]; then
-  sims_campaign_arn=$($AWS_CMD personalize create-campaign \
-          --name gcr-rs-${Stage}-news-Sims-campaign \
-          --solution-version-arn ${sims_solution_version_arn} \
-          --min-provisioned-tps 1 --output text)
+  sims_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $sims_solution_arn | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
+                                jq '.campaignArn' -r)
+  if [[ "${sims_campaign_arn}" == "" ]]; then
+    sims_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
+            --name gcr-rs-${Stage}-news-Sims-campaign \
+            --solution-version-arn ${sims_solution_version_arn} \
+            --min-provisioned-tps 1 --output text)
+  fi
 else
-  userPersonalize_campaign_arn=$($AWS_CMD personalize create-campaign \
-          --name gcr-rs-${Stage}-news-UserPersonalize-campaign \
-          --solution-version-arn ${userPersonalize_solution_version_arn} \
-          --min-provisioned-tps 1 --output text)
-  ranking_campaign_arn=$($AWS_CMD personalize create-campaign \
-          --name gcr-rs-${Stage}-news-Ranking-campaign \
-          --solution-version-arn ${ranking_solution_version_arn} \
-          --min-provisioned-tps 1 --output text)
-  sims_campaign_arn=$($AWS_CMD personalize create-campaign \
-          --name gcr-rs-${Stage}-news-Sims-campaign \
-          --solution-version-arn ${sims_solution_version_arn} \
-          --min-provisioned-tps 1 --output text)
+  userPersonalize_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $userPersonalize_solution_arn | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
+                                jq '.campaignArn' -r)
+  ranking_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $ranking_solution_arn | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
+                                jq '.campaignArn' -r)
+  sims_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $sims_solution_arn | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
+                                jq '.campaignArn' -r)
+  if [[ "${userPersonalize_campaign_arn}" == "" ]]; then
+    userPersonalize_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
+            --name gcr-rs-${Stage}-news-UserPersonalize-campaign \
+            --solution-version-arn ${userPersonalize_solution_version_arn} \
+            --min-provisioned-tps 1 --output text)
+  fi
+  if [[ "${ranking_campaign_arn}" == "" ]]; then
+    ranking_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
+            --name gcr-rs-${Stage}-news-Ranking-campaign \
+            --solution-version-arn ${ranking_solution_version_arn} \
+            --min-provisioned-tps 1 --output text)
+  fi
+  if [[ "${sims_campaign_arn}" == "" ]]; then
+    sims_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
+            --name gcr-rs-${Stage}-news-Sims-campaign \
+            --solution-version-arn ${sims_solution_version_arn} \
+            --min-provisioned-tps 1 --output text)
+  fi
 fi
 
 
@@ -590,7 +683,7 @@ CURRENT_TIME=0
 if [[ $METHOD == "ps-complete" ]]; then
   while(( ${CURRENT_TIME} < ${MAX_TIME} ))
   do
-      userPersonalize_campaign_status=$($AWS_CMD personalize describe-campaign \
+      userPersonalize_campaign_status=$($AWS_CMD personalize describe-campaign --region $REGION \
               --campaign-arn ${userPersonalize_campaign_arn} | jq '.campaign.status' -r)
 
       echo "userPersonalize_campaign_status: ${userPersonalize_campaign_status}"
@@ -612,7 +705,7 @@ if [[ $METHOD == "ps-complete" ]]; then
 elif [[ $METHOD == "ps-rank" ]]; then
   while(( ${CURRENT_TIME} < ${MAX_TIME} ))
   do
-      ranking_campaign_status=$($AWS_CMD personalize describe-campaign \
+      ranking_campaign_status=$($AWS_CMD personalize describe-campaign --region $REGION \
               --campaign-arn ${ranking_campaign_arn} | jq '.campaign.status' -r)
 
       echo "ranking_campaign_status: ${ranking_campaign_status}"
@@ -635,7 +728,7 @@ elif [[ $METHOD == "ps-rank" ]]; then
 elif [[ $METHOD == "ps-sims" ]]; then
   while(( ${CURRENT_TIME} < ${MAX_TIME} ))
   do
-      sims_campaign_status=$($AWS_CMD personalize describe-campaign \
+      sims_campaign_status=$($AWS_CMD personalize describe-campaign --region $REGION \
               --campaign-arn ${sims_campaign_arn} | jq '.campaign.status' -r)
 
       echo "sims_campaign_status: ${sims_campaign_status}"
@@ -658,11 +751,11 @@ elif [[ $METHOD == "ps-sims" ]]; then
 else
   while(( ${CURRENT_TIME} < ${MAX_TIME} ))
   do
-      userPersonalize_campaign_status=$($AWS_CMD personalize describe-campaign \
+      userPersonalize_campaign_status=$($AWS_CMD personalize describe-campaign --region $REGION \
               --campaign-arn ${userPersonalize_campaign_arn} | jq '.campaign.status' -r)
-      ranking_campaign_status=$($AWS_CMD personalize describe-campaign \
+      ranking_campaign_status=$($AWS_CMD personalize describe-campaign --region $REGION \
               --campaign-arn ${ranking_campaign_arn} | jq '.campaign.status' -r)
-      sims_campaign_status=$($AWS_CMD personalize describe-campaign \
+      sims_campaign_status=$($AWS_CMD personalize describe-campaign --region $REGION \
               --campaign-arn ${sims_campaign_arn} | jq '.campaign.status' -r)
 
       echo "userPersonalize_campaign_status: ${userPersonalize_campaign_status}"

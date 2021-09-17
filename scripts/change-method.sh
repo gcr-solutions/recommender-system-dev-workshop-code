@@ -56,7 +56,8 @@ elif [[ "$method" != "customize" ]]; then
 fi
 
 if [[ "$method" != "customize" && "$existed_solution" == "" ]];then
-  echo "----------${method} method is not existed. Please create ${method} method first.-------------"
+  echo "----------${method} method is not exist. Please run the following command to create ${method} method first.-------------"
+  echo "./create-personalize-part.sh ${method}"
   exit 1
 fi
 

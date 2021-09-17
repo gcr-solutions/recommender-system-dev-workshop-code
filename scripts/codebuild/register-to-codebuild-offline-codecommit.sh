@@ -15,6 +15,7 @@ if [[ -z $DELETE_FLAG ]];then
   DELETE_FLAG='no'
 fi
 
+METHOD=$3
 if [[ -z $METHOD ]];then
   METHOD="customize"
 fi

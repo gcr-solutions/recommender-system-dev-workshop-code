@@ -46,12 +46,20 @@ echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
 echo "====================Create Personalize Service==============================="
 cd ${curr_dir}/personalize
-mkdir ~/personalize-log
-nohup ./create-personalize.sh >> ~/personalize-log/create-personalize.log 2>&1 &
+if [ ! -d "~/personalize-log" ]; then
+  mkdir ~/personalize-log
+fi
+nohup ./create-personalize.sh $METHOD >> ~/personalize-log/create-personalize.log 2>&1 &
+echo "you can run the following command to check the personalize creating status"
+echo "tail -f ~/personalize-log/create-personalize.log "
 cd ${curr_dir}
 
 echo "====================Create Personalize Offline Part==============================="
 cd ${curr_dir}/codebuild
-./register-to-codebuild-offline-codecommit.sh $Stage "no" "personalize"
+./register-to-codebuild-offline-codecommit.sh $Stage "no" ${METHOD}
 cd ${curr_dir}
+
+
+
+
 

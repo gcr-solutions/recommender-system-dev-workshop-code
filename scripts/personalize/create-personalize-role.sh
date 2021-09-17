@@ -45,38 +45,34 @@ fi
 ROLE_NAME=gcr-rs-personalize-role
 ROLE_POLICY=gcr-rs-personalize-policy
 
-echo "Start to create personalize role"
-ROLE_NAMES=$(aws iam list-roles | jq '.[][] | select(.RoleName=="gcr-rs-personalize-role")')
-if [ "$ROLE_NAMES" != "" ]
-then
-    echo "Nothing has been done and all clear."
-else
+rolePolicyArn=$(aws iam list-policies | jq '.[][] | select(.PolicyName=="gcr-rs-personalize-policy")' | jq '.Arn' -r)
+if [[ "${rolePolicyArn}" == "" ]]; then
+  echo "-----Create Policy for Personalize Service-------"
+  rolePolicyArn=`aws iam create-policy \
+      --policy-name ${ROLE_POLICY} \
+      --policy-document file://./role/personalize-policy.json | jq -r '.Policy.Arn'`
+fi
+
+roleArn=$(aws iam list-roles | jq '.[][] | select(.RoleName=="gcr-rs-personalize-role")' | jq '.Arn' -r)
+if [[ "${roleArn}" == "" ]]; then
+  echo "-----Create Role for Personalize Service-------"
   roleArn=`aws iam create-role \
       --role-name ${ROLE_NAME} \
       --assume-role-policy-document file://./role/assume-role.json | jq -r '.Role.Arn'`
   echo "Created ${ROLE_NAME} = ${roleArn}"
+fi
 
-  rolePolicyArn=`aws iam create-policy \
-      --policy-name ${ROLE_POLICY} \
-      --policy-document file://./role/personalize-policy.json | jq -r '.Policy.Arn'`
-  echo "Created ${ROLE_POLICY} = ${rolePolicyArn}"
-
+attachedRolePolicy=$(aws iam list-attached-role-policies --role-name $ROLE_NAME | \
+                    jq '.[][] | select(.PolicyName=="gcr-rs-personalize-role")' | jq '.PolicyArn' -r)
+if [[ "${attachedRolePolicy}" == "" ]]; then
+  echo "-----Attach Personalize Policy to Personalize Role------"
   aws iam attach-role-policy \
       --role-name ${ROLE_NAME} \
       --policy-arn ${rolePolicyArn}
-  echo "Attached ${rolePolicyArn} to ${ROLE_NAME} "
-  if [ $? -ne 0 ]
-  then
-      echo "Failed to create role : exit 0"
-      exit 0
-  fi
-
-  echo ${roleArn}>role.arn
-  echo "Create Personalize role successfully"
 fi
 
 
-echo "Start to put personalize role to S3"
+echo "-----Attach Personalize Policy to S3------"
 
 if [[ $REGION =~ cn.* ]];then
   sed -e "s|__Stage__|$Stage|g;s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
