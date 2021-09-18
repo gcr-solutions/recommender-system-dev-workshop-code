@@ -8,6 +8,10 @@ if [[ -z $Stage ]]; then
   Stage='dev-workshop'
 fi
 
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
 if [[ -z $REGION ]]; then
   export REGION='ap-northeast-1'
 fi
@@ -30,6 +34,7 @@ echo "METHOD=$METHOD"
 echo "Stage=$Stage"
 echo "REGION=$REGION"
 echo "AWS_CMD=$AWS_CMD"
+echo "SCENARIO=$SCENARIO"
 
 AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Account --output text)
 if [[ $? -ne 0 ]]; then
@@ -61,10 +66,6 @@ repo_names=(
   rank-batch
   recall-batch
   user-preprocessing
-)
-
-scenario_list=(
-  news
 )
 
 method_list=(

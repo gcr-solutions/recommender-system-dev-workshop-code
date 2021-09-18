@@ -163,14 +163,17 @@ if [[ "${METHOD}" == "customize" ]];then
   )
 elif [[ "${METHOD}" == "ps-complete" ]]; then
   method_list=(
+    "customize"
     "ps-complete"
   )
 elif [[ "${METHOD}" == "ps-rank" ]]; then
   method_list=(
+    "customize"
     "ps-rank"
   )
 elif [[ "${METHOD}" == "ps-sims" ]]; then
   method_list=(
+    "customize"
     "ps-sims"
   )
 elif [[ "${METHOD}" == "all" ]]; then

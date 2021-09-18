@@ -3,6 +3,10 @@ set -e
 
 curr_dir=$(pwd)
 
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
 Stage=$1
 if [[ -z $Stage ]];then
   Stage='dev-workshop'
@@ -42,7 +46,7 @@ echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 
 echo "========= Create S3 Bucket =============="
 BUCKET_BUILD=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
-PREFIX=sample-data-news
+PREFIX=sample-data-${SCENARIO}
 
 echo "BUCKET_BUILD=${BUCKET_BUILD}"
 
@@ -58,7 +62,7 @@ cd ${curr_dir}/codebuild
 
 echo "1. ========= Create codebuild =============="
 cd ${curr_dir}/codebuild
-./register-to-codebuild-offline-codecommit.sh $Stage
+./register-to-codebuild-offline-codecommit.sh $Stage "no" ${METHOD}
 
 echo "2. ========= sync sample data to S3 =============="
 cd ${curr_dir}/../sample-data
