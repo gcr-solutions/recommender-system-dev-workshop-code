@@ -43,4 +43,7 @@ fi
 
 echo -e '\nLoad seed data complete!'
 
-echo "Please stop printing the log by typing CONTROL+C "
+
+if [[  -z $NOT_PRINTING_CONTROL_C ]];then
+   echo "Please stop printing the log by typing CONTROL+C "
+fi

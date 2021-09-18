@@ -34,11 +34,23 @@ fi
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
+if [[ -z $RS_SCENARIO  ]];then
+    RS_SCENARIO=news
+fi
+
+echo "RS_SCENARIO: $RS_SCENARIO"
+
 curr_dir=$(pwd)
 
-cd ${curr_dir}/lambda/
-./clean_up.sh $Stage
+if [[ -n $RS_KEEP_OFFLINE_LAMBDA ]];then
+   echo "skip delete lambda"
+else
+   cd ${curr_dir}/lambda/
+   ./clean_up.sh $Stage
+fi
 
+cd ${curr_dir}/$RS_SCENARIO/
+./clean_up.sh $Stage
 cd ${curr_dir}
 
 scenario_list=(

@@ -69,4 +69,7 @@ sleep 20
 echo "app set gcr-recommender-system-news-dev ..."
 argocd app set gcr-recommender-system-news-dev --sync-policy automated
 
-echo "Please stop printing the log by typing CONTROL+C "
+
+if [[  -z $NOT_PRINTING_CONTROL_C ]];then
+   echo "Please stop printing the log by typing CONTROL+C "
+fi

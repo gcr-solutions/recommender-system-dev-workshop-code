@@ -155,6 +155,8 @@ projects_dir=(
   "filter-batch"
   "inverted-list"
   "step-funcs"
+  "model-update-deepfm"
+  "model-update-ub"
 )
 
 if [[ "${METHOD}" == "customize" ]];then

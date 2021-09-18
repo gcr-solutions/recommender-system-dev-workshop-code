@@ -16,9 +16,8 @@ if [[ -z $REGION ]]; then
   export REGION='ap-northeast-1'
 fi
 
-#if [[ -n $AWS_PROFILE ]]; then
-#  export PROFILE=$AWS_PROFILE
-#fi
+echo "RS_KEEP_OFFLINE_LAMBDA: $RS_KEEP_OFFLINE_LAMBDA"
+
 
 AWS_CMD='aws'
 
@@ -66,6 +65,8 @@ repo_names=(
   rank-batch
   recall-batch
   user-preprocessing
+  model-update-deepfm
+  model-update-ub
 )
 
 method_list=(
@@ -77,11 +78,11 @@ method_list=(
 
 echo "Delete ECR repositories ..."
 
-for scenario in ${scenario_list[@]}; do
-  for method in ${method_list[@]}; do
+
+for method in ${method_list[@]}; do
     for repo_name in ${repo_names[@]}; do
       if [[ "$AWS_ACCOUNT_ID" != '522244679887' ]]; then
-        echo "Delete repo: 'rs/$scenario-$method-$repo_name ...'"
+        echo "Delete repo: 'rs/$SCENARIO-$method-$repo_name ...'"
         $AWS_CMD ecr delete-repository --repository-name rs/$scenario-$method-$repo_name --region ${REGION} --force >/dev/null 2>&1 || true
       else
         # our test  account: 522244679887
@@ -89,7 +90,7 @@ for scenario in ${scenario_list[@]}; do
       fi
     done
   done
-done
+
 
 
 echo "==== Clean sample data in S3 ===="
@@ -107,4 +108,7 @@ cd ${curr_dir}/../src/offline/
 
 echo "All offline resources were deleted"
 
-echo "Please stop printing the log by typing CONTROL+C "
+
+if [[  -z $NOT_PRINTING_CONTROL_C ]];then
+   echo "Please stop printing the log by typing CONTROL+C "
+fi

@@ -64,9 +64,15 @@ echo "1. ========= Create codebuild =============="
 cd ${curr_dir}/codebuild
 ./register-to-codebuild-offline-codecommit.sh $Stage "no" ${METHOD}
 
-echo "2. ========= sync sample data to S3 =============="
+echo "2. ========= sync sample data to S3 ($SCENARIO) =============="
 cd ${curr_dir}/../sample-data
-./sync_data_to_s3.sh $Stage
+
+if [[ $SCENARIO == 'news' ]];then
+   ./sync_data_to_s3.sh $Stage
+elif [[ $SCENARIO == 'movie' ]];then
+   ./sync_movie_data_to_s3.sh $Stage
+fi
+
 
 #echo "3. ========= Build lambda =============="
 #cd ${curr_dir}/../src/offline/lambda
@@ -94,12 +100,13 @@ echo "==================================================="
 echo "You can run your step-funcs with below input"
 echo '{
   "Bucket": "aws-gcr-rs-sol-'${Stage}'-'${REGION}'-'${AWS_ACCOUNT_ID}'",
-  "S3Prefix": "sample-data-news",
+  "S3Prefix": "'"$PREFIX"'",
   "change_type": "ITEM|BATCH|USER|MODEL"
 }'
 echo ""
 echo "Offline resources are created successfully"
 
-echo "Please stop printing the log by typing CONTROL+C "
-
+if [[  -z $NOT_PRINTING_CONTROL_C ]];then
+   echo "Please stop printing the log by typing CONTROL+C "
+fi
 
