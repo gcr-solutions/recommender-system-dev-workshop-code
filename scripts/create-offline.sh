@@ -62,7 +62,7 @@ cd ${curr_dir}/codebuild
 
 echo "1. ========= Create codebuild =============="
 cd ${curr_dir}/codebuild
-./register-to-codebuild-offline-codecommit.sh $Stage "no" ${METHOD}
+./register-to-codebuild-offline-codecommit.sh $Stage "no" ${METHOD} ${SCENARIO}
 
 echo "2. ========= sync sample data to S3 ($SCENARIO) =============="
 cd ${curr_dir}/../sample-data
