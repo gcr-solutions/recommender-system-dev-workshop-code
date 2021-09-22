@@ -157,68 +157,85 @@ projects_dir=(
   "step-funcs"
 )
 
-if [[ "${METHOD}" == "customize" ]];then
-  method_list=(
-    "customize"
-  )
-elif [[ "${METHOD}" == "ps-complete" ]]; then
-  method_list=(
-    "customize"
-    "ps-complete"
-  )
-elif [[ "${METHOD}" == "ps-rank" ]]; then
-  method_list=(
-    "customize"
-    "ps-rank"
-  )
-elif [[ "${METHOD}" == "ps-sims" ]]; then
-  method_list=(
-    "customize"
-    "ps-sims"
-  )
-elif [[ "${METHOD}" == "all" ]]; then
-  method_list=(
-    "customize"
-    "ps-complete"
-    "ps-rank"
-    "ps-sims"
-  )
-fi
 
-
-
-for method in ${method_list[@]}; do
-  for project in ${projects_dir[@]}; do
-    build_name="${SCENARIO}-${method}-${project}"
-    build_proj_name="rs-$Stage-offline-${build_name}-build"
-    if [[ -n $CN_REGION ]];then
-      build_proj_name="rs-$Stage-offline-${build_name}-$CN_REGION-build"
+for project in ${projects_dir[@]}; do
+  build_name="${SCENARIO}-${project}"
+  build_proj_name="rs-$Stage-offline-${build_name}-build"
+  if [[ -n $CN_REGION ]];then
+    build_proj_name="rs-$Stage-offline-${build_name}-$CN_REGION-build"
+  fi
+  app_path="${SCENARIO}/${project}"
+  if [[ -d "${cur_dir}/../../src/offline/${app_path}" ]];then
+    if [[ $DELETE_FLAG == 'DELETE' ]];then
+      delete_codebuild_project $build_proj_name $app_path
+    else
+      create_codebuild_project $build_proj_name $app_path
     fi
-    app_path="${SCENARIO}/${method}/${project}"
-    if [[ -d "${cur_dir}/../../src/offline/${app_path}" ]];then
-      if [[ $DELETE_FLAG == 'DELETE' ]];then
-          delete_codebuild_project $build_proj_name $app_path
-      else
-          create_codebuild_project $build_proj_name $app_path
-      fi
-    fi
-  done
+  fi
 done
 
-build_proj_name="rs-$Stage-offline-build"
-if [[ $DELETE_FLAG == 'DELETE' ]];then
-    echo ""
-else
-   echo ""
-   echo "Please check result in codebuild:"
-   echo "search 'rs-$Stage-offline-'"
-   echo "https://$REGION.console.aws.amazon.com/codesuite/codebuild/projects?region=$REGION"
-   echo ""
-fi
-
-echo "Create/Clean offline codebuild projects done"
-sleep 5
-
-
-
+#if [[ "${METHOD}" == "customize" ]];then
+#  method_list=(
+#    "customize"
+#  )
+#elif [[ "${METHOD}" == "ps-complete" ]]; then
+#  method_list=(
+#    "customize"
+#    "ps-complete"
+#  )
+#elif [[ "${METHOD}" == "ps-rank" ]]; then
+#  method_list=(
+#    "customize"
+#    "ps-rank"
+#  )
+#elif [[ "${METHOD}" == "ps-sims" ]]; then
+#  method_list=(
+#    "customize"
+#    "ps-sims"
+#  )
+#elif [[ "${METHOD}" == "all" ]]; then
+#  method_list=(
+#    "customize"
+#    "ps-complete"
+#    "ps-rank"
+#    "ps-sims"
+#  )
+#fi
+#
+#
+#
+#for method in ${method_list[@]}; do
+#  for project in ${projects_dir[@]}; do
+#    build_name="${SCENARIO}-${method}-${project}"
+#    build_proj_name="rs-$Stage-offline-${build_name}-build"
+#    if [[ -n $CN_REGION ]];then
+#      build_proj_name="rs-$Stage-offline-${build_name}-$CN_REGION-build"
+#    fi
+#    app_path="${SCENARIO}/${method}/${project}"
+#    if [[ -d "${cur_dir}/../../src/offline/${app_path}" ]];then
+#      if [[ $DELETE_FLAG == 'DELETE' ]];then
+#          delete_codebuild_project $build_proj_name $app_path
+#      else
+#          create_codebuild_project $build_proj_name $app_path
+#      fi
+#    fi
+#  done
+#done
+#
+#build_proj_name="rs-$Stage-offline-build"
+#if [[ $DELETE_FLAG == 'DELETE' ]];then
+#    echo ""
+#else
+#   echo ""
+#   echo "Please check result in codebuild:"
+#   echo "search 'rs-$Stage-offline-'"
+#   echo "https://$REGION.console.aws.amazon.com/codesuite/codebuild/projects?region=$REGION"
+#   echo ""
+#fi
+#
+#echo "Create/Clean offline codebuild projects done"
+#sleep 5
+#
+#
+#
 
