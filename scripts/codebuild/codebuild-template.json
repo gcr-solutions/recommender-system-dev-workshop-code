@@ -25,14 +25,6 @@
         "imagePullCredentialsType": "CODEBUILD",
         "environmentVariables": [
           {
-            "name": "Stage",
-            "value": "__Stage__"
-          },
-          {
-            "name": "METHOD",
-            "value": "__METHOD__"
-          },
-          {
             "name": "SCENARIOS",
             "value": "__SCENARIOS__"
           }
