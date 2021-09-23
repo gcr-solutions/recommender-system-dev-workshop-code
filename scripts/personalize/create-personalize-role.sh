@@ -42,34 +42,28 @@ else
               ./role/personalize-access-s3-role-template.json > ./role/personalize-policy.json
 fi
 
-ROLE_NAME=gcr-rs-personalize-role
-ROLE_POLICY=gcr-rs-personalize-policy
+ROLE_NAME=gcr-rs-personalize-role-$REGION
+ROLE_POLICY=gcr-rs-personalize-policy-$REGION
 
-rolePolicyArn=$(aws iam list-policies | jq '.[][] | select(.PolicyName=="gcr-rs-personalize-policy")' | jq '.Arn' -r)
-if [[ "${rolePolicyArn}" == "" ]]; then
-  echo "-----Create Policy for Personalize Service-------"
-  rolePolicyArn=`aws iam create-policy \
-      --policy-name ${ROLE_POLICY} \
-      --policy-document file://./role/personalize-policy.json | jq -r '.Policy.Arn'`
-fi
+echo "-----Create Policy for Personalize Service-------"
+rolePolicyArn=`aws iam create-policy \
+    --policy-name ${ROLE_POLICY} \
+    --policy-document file://./role/personalize-policy.json | jq -r '.Policy.Arn'`
 
-roleArn=$(aws iam list-roles | jq '.[][] | select(.RoleName=="gcr-rs-personalize-role")' | jq '.Arn' -r)
-if [[ "${roleArn}" == "" ]]; then
-  echo "-----Create Role for Personalize Service-------"
-  roleArn=`aws iam create-role \
-      --role-name ${ROLE_NAME} \
-      --assume-role-policy-document file://./role/assume-role.json | jq -r '.Role.Arn'`
-  echo "Created ${ROLE_NAME} = ${roleArn}"
-fi
 
-attachedRolePolicy=$(aws iam list-attached-role-policies --role-name $ROLE_NAME | \
-                    jq '.[][] | select(.PolicyName=="gcr-rs-personalize-role")' | jq '.PolicyArn' -r)
-if [[ "${attachedRolePolicy}" == "" ]]; then
-  echo "-----Attach Personalize Policy to Personalize Role------"
-  aws iam attach-role-policy \
-      --role-name ${ROLE_NAME} \
-      --policy-arn ${rolePolicyArn}
-fi
+echo "-----Create Role for Personalize Service-------"
+roleArn=`aws iam create-role \
+    --role-name ${ROLE_NAME} \
+    --assume-role-policy-document file://./role/assume-role.json | jq -r '.Role.Arn'`
+echo "Created ${ROLE_NAME} = ${roleArn}"
+
+
+
+echo "-----Attach Personalize Policy to Personalize Role------"
+aws iam attach-role-policy \
+    --role-name ${ROLE_NAME} \
+    --policy-arn ${rolePolicyArn}
+
 
 
 echo "-----Attach Personalize Policy to S3------"
