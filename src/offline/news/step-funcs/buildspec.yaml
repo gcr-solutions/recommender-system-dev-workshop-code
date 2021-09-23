@@ -26,7 +26,7 @@ phases:
         commands:
           - echo Build started on `date`
           - pwd
-          - cd $CODEBUILD_SRC_DIR/src/offline/news/customize/step-funcs/
+          - cd $CODEBUILD_SRC_DIR/src/offline/news/step-funcs/
           - echo $Stage
           - ./build.sh $Stage $METHOD
 

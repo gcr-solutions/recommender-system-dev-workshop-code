@@ -54,21 +54,21 @@ train-model
 overall
 )
 
-ps-complete_stepfuncs=(
-prepare-action
-prepare-item
-prepare-user
-batch-update
-item-new
-user-new
-train-model
-train-model-ps
-overall
-#dashboard
-steps
+ps_complete_stepfuncs=(
+  prepare-action
+  prepare-item
+  prepare-user
+  batch-update
+  item-new
+  user-new
+  train-model
+  train-model-ps
+  overall
+  #dashboard
+  steps
 )
 
-ps-rank_stepfuncs=(
+ps_rank_stepfuncs=(
 infra
 steps
 dashboard
@@ -84,7 +84,7 @@ prepare-user
 train-model-ps
 )
 
-ps-sims_stepfuncs=(
+ps_sims_stepfuncs=(
 infra
 steps
 dashboard
@@ -101,8 +101,6 @@ train-ps-model
 item-sims-update
 )
 
-cd $METHOD
-
 if [[ "$METHOD" == "customize" ]];then
   NamePrefix=rs-news-customize-$Stage
   PARAMETER_OVERRIDES="Stage=$Stage NamePrefix=${NamePrefix} Bucket=$BUCKET S3Prefix=$S3Prefix"
@@ -117,7 +115,7 @@ if [[ "$METHOD" == "customize" ]];then
       echo "template_file: ${template_file}"
 
       $AWS_CMD  cloudformation deploy --region ${REGION} \
-      --template-file ${template_file} --stack-name ${STACK_NAME} \
+      --template-file customize/${template_file} --stack-name ${STACK_NAME} \
       --parameter-overrides ${PARAMETER_OVERRIDES} \
       --capabilities CAPABILITY_NAMED_IAM \
       --no-fail-on-empty-changeset
@@ -137,7 +135,7 @@ elif [ $METHOD == "ps-complete" ]; then
   PARAMETER_OVERRIDES="Stage=$Stage NamePrefix=${NamePrefix} Bucket=$BUCKET S3Prefix=$S3Prefix"
   echo PARAMETER_OVERRIDES:$PARAMETER_OVERRIDES
 
-  for name in ${ps-complete_stepfuncs[@]};
+  for name in ${ps_complete_stepfuncs[@]};
   do
       STACK_NAME=${NamePrefix}-${name}-stack
       template_file=${name}-template.yaml
@@ -146,7 +144,7 @@ elif [ $METHOD == "ps-complete" ]; then
       echo "template_file: ${template_file}"
 
       $AWS_CMD  cloudformation deploy --region ${REGION} \
-      --template-file ${template_file} --stack-name ${STACK_NAME} \
+      --template-file ps-complete/${template_file} --stack-name ${STACK_NAME} \
       --parameter-overrides ${PARAMETER_OVERRIDES} \
       --capabilities CAPABILITY_NAMED_IAM \
       --no-fail-on-empty-changeset
@@ -166,7 +164,7 @@ elif [ $METHOD == "ps-rank" ]; then
   PARAMETER_OVERRIDES="Stage=$Stage NamePrefix=${NamePrefix} Bucket=$BUCKET S3Prefix=$S3Prefix"
   echo PARAMETER_OVERRIDES:$PARAMETER_OVERRIDES
 
-  for name in ${ps-rank_stepfuncs[@]};
+  for name in ${ps_rank_stepfuncs[@]};
   do
       STACK_NAME=${NamePrefix}-${name}-stack
       template_file=${name}-template.yaml
@@ -175,7 +173,7 @@ elif [ $METHOD == "ps-rank" ]; then
       echo "template_file: ${template_file}"
 
       $AWS_CMD  cloudformation deploy --region ${REGION} \
-      --template-file ${template_file} --stack-name ${STACK_NAME} \
+      --template-file ps-rank/${template_file} --stack-name ${STACK_NAME} \
       --parameter-overrides ${PARAMETER_OVERRIDES} \
       --capabilities CAPABILITY_NAMED_IAM \
       --no-fail-on-empty-changeset
@@ -195,7 +193,7 @@ elif [ $METHOD == "ps-sims" ]; then
   PARAMETER_OVERRIDES="Stage=$Stage NamePrefix=${NamePrefix} Bucket=$BUCKET S3Prefix=$S3Prefix"
   echo PARAMETER_OVERRIDES:$PARAMETER_OVERRIDES
 
-  for name in ${ps-sims_stepfuncs[@]};
+  for name in ${ps_sims_stepfuncs[@]};
   do
       STACK_NAME=${NamePrefix}-${name}-stack
       template_file=${name}-template.yaml
@@ -204,7 +202,7 @@ elif [ $METHOD == "ps-sims" ]; then
       echo "template_file: ${template_file}"
 
       $AWS_CMD  cloudformation deploy --region ${REGION} \
-      --template-file ${template_file} --stack-name ${STACK_NAME} \
+      --template-file ps-sims/${template_file} --stack-name ${STACK_NAME} \
       --parameter-overrides ${PARAMETER_OVERRIDES} \
       --capabilities CAPABILITY_NAMED_IAM \
       --no-fail-on-empty-changeset
@@ -226,13 +224,20 @@ elif [ $METHOD == "all" ]; then
     "ps-rank"
     "ps-sims"
   )
-  for method in ${method_list[@]};
+  stepfuncs_list=(
+    "customize_stepfuncs"
+    "ps_complete_stepfuncs"
+    "ps_rank_stepfuncs"
+    "ps_sims_stepfuncs"
+  )
+  for i in 0 1 2 3;
   do
-    NamePrefix=rs-news-${method}-$Stage
+    NamePrefix=rs-news-${method_list[i]}-$Stage
     PARAMETER_OVERRIDES="Stage=$Stage NamePrefix=${NamePrefix} Bucket=$BUCKET S3Prefix=$S3Prefix"
     echo PARAMETER_OVERRIDES:$PARAMETER_OVERRIDES
 
-    for name in ${${method}_stepfuncs[@]};
+    stepfuncs_name=${stepfuncs_list[i]}
+    for name in ${${stepfuncs_name}[@]};
     do
         STACK_NAME=${NamePrefix}-${name}-stack
         template_file=${name}-template.yaml
@@ -241,7 +246,7 @@ elif [ $METHOD == "all" ]; then
         echo "template_file: ${template_file}"
 
         $AWS_CMD  cloudformation deploy --region ${REGION} \
-        --template-file ${template_file} --stack-name ${STACK_NAME} \
+        --template-file ${method_list[i]}/${template_file} --stack-name ${STACK_NAME} \
         --parameter-overrides ${PARAMETER_OVERRIDES} \
         --capabilities CAPABILITY_NAMED_IAM \
         --no-fail-on-empty-changeset
@@ -258,7 +263,5 @@ elif [ $METHOD == "all" ]; then
     done
   done
 fi
-
-cd ..
 
 

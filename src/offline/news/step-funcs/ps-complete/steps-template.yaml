@@ -123,8 +123,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/ps-complete-news-action-preprocessing",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-action-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-complete')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 2
                 },
@@ -171,8 +171,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/ps-complete-news-user-preprocessing",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-user-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-complete')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -218,8 +218,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/ps-complete-news-item-preprocessing",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-item-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-complete')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -265,8 +265,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/ps-complete-news-batch-preprocessing",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-batch-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-complete')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },

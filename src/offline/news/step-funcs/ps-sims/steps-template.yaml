@@ -123,8 +123,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-action-preprocessing",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-action-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 2
                 },
@@ -170,8 +170,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-action-preprocessing",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--only4popularity', '1')",
+                  "ImageName": "rs/news-action-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--only4popularity', '1', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 2
                 },
@@ -219,8 +219,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-prepare-training-data",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-prepare-training-data",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -266,8 +266,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-user-preprocessing",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-user-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -313,8 +313,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-add-item-batch",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-add-item-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -361,8 +361,8 @@ Resources:
                 "Parameters": {
                   "Input": {
                     "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                    "ImageName": "rs/news-ps-sims-add-user-batch",
-                    "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                    "ImageName": "rs/news-add-user-batch",
+                    "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                     "InstanceType": "ml.m5.4xlarge",
                     "InstanceCount": 1
                   },
@@ -413,8 +413,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-inverted-list",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-inverted-list",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -461,8 +461,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-item-preprocessing",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-item-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -509,8 +509,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-batch-preprocessing",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-batch-preprocessing",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -558,8 +558,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-portrait-batch",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-portrait-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -613,8 +613,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-recall-batch",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-recall-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -664,8 +664,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-weight-update-batch",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-weight-update-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -715,8 +715,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-filter-batch",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-filter-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -768,8 +768,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-rank-batch",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-rank-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.4xlarge",
                   "InstanceCount": 1
                 },
@@ -824,8 +824,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-item-feature-update-batch",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-item-feature-update-batch",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.p2.xlarge",
                   "InstanceCount": 1
                 },
@@ -871,8 +871,8 @@ Resources:
               "Parameters": {
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "ImageName": "rs/news-ps-sims-load-portrait-data",
-                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "ImageName": "rs/news-load-portrait-data",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--method', 'ps-sims')",
                   "InstanceType": "ml.m5.xlarge",
                   "InstanceCount": 1
                 },

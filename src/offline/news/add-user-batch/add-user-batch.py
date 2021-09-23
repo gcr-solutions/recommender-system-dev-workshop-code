@@ -44,7 +44,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--bucket', type=str)
 parser.add_argument('--prefix', type=str)
 parser.add_argument("--region", type=str, help="aws region")
-parser.add_argument("--method", type=str)
+parser.add_argument("--method", type=str, default='customize', help="method name")
 
 args, _ = parser.parse_known_args()
 print("args:", args)
