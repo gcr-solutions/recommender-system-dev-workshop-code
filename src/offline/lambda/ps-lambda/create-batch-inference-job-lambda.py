@@ -39,6 +39,7 @@ def do_handler(event, context):
 
     bucket = event['bucket']
     s3_key_prefix = event['prefix']
+    region = event['region']
     ps_config_json = get_ps_config(bucket, s3_key_prefix)
     solution_version_arn = ps_config_json['SolutionVersionArn']
 
@@ -46,7 +47,7 @@ def do_handler(event, context):
     aws_account_id = get_caller_identity_response["Account"]
     print("aws_account_id:{}".format(aws_account_id))
 
-    role_arn = "arn:aws:iam::{}:role/gcr-rs-personalize-role".format(aws_account_id, stage)
+    role_arn = "arn:aws:iam::{}:role/gcr-rs-personalize-role-{}".format(aws_account_id, region)
     print("role_arn:{}".format(role_arn))
 
     solution_name = ps_config_json['SolutionName']
