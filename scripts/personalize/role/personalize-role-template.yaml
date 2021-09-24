@@ -28,7 +28,7 @@ Resources:
       ManagedPolicyArns:
         - !Sub "arn:${AWS::Partition}:iam::aws:policy/PowerUserAccess"
       Policies:
-        - PolicyName: gcr-rs-personalize-policy-${AWS::Region}
+        - PolicyName: !Sub gcr-rs-personalize-policy-${AWS::Region}
           PolicyDocument:
             Version: 2012-10-17
             Statement:
