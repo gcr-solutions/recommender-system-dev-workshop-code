@@ -64,7 +64,7 @@ fi
 echo "--------start creating personalize role ----------"
 ./create-personalize-role.sh $Stage
 
-PERSONALIZE_ROLE_BUILD=arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-personalize-role
+PERSONALIZE_ROLE_BUILD=arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-personalize-role-${region}
 echo "PERSONALIZE_ROLE_BUILD=${PERSONALIZE_ROLE_BUILD}"
 echo "Check if your personalize role arn is equal to the PERSONALIZE_ROLE_BUILD. If not, please follow the previous step to create iam role for personalize!"
 
