@@ -237,6 +237,7 @@ class Rank():
                 click_index = user_clicks_set[click_length - 1]
                 if str(click_index) not in self.news_id_news_property:
                     logging.warning('cannot find click_index: {} in news_id_news_property'.format(click_index))
+                    click_length = click_length - 1
                     continue
                 logging.info('clicked_item_id {}'.format(click_index))
                 logging.info('news_id_word_ids_dict {}'.format(
