@@ -34,32 +34,20 @@ fi
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
+if [[ -z $SCENARIO  ]];then
+    SCENARIO=news
+fi
+
+echo "SCENARIO: $SCENARIO"
+
 curr_dir=$(pwd)
 
-cd ${curr_dir}/lambda/
+if [[ -n $RS_KEEP_OFFLINE_LAMBDA ]];then
+   echo "skip delete lambda"
+else
+   cd ${curr_dir}/lambda/
+   ./clean_up.sh $Stage
+fi
+
+cd ${curr_dir}/$SCENARIO/
 ./clean_up.sh $Stage
-
-cd ${curr_dir}
-
-scenario_list=(
-  news
-)
-
-method_list=(
-  customize
-  ps-complete
-  ps-rank
-  ps-sims
-)
-
-for scenario in ${scenario_list[@]};do
-  for method in ${method_list[@]};do
-    dir_path=${curr_dir}/${scenario}/${method}
-    if [[ -d "${dir_path}" ]];then
-      cd ${curr_dir}/${scenario}/${method}
-      ./clean_up.sh $Stage
-      cd ..
-    fi
-  done
-done
-

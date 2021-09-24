@@ -29,28 +29,24 @@ if [[ $? -ne 0 ]]; then
 fi
 
 repo_names=(
-rs/news-customize-action-preprocessing
-rs/news-customize-add-item-batch
-rs/news-customize-add-user-batch
-rs/news-customize-dashboard
-rs/news-customize-filter-batch
-rs/news-customize-inverted-list
-rs/news-customize-item-feature-update-batch
-rs/news-customize-item-preprocessing
-rs/news-customize-model-update-action-gpu
-rs/news-customize-model-update-embedding-gpu
-rs/news-customize-portrait-batch
-rs/news-customize-prepare-training-data
-rs/news-customize-rank-batch
-rs/news-customize-recall-batch
-rs/news-customize-user-preprocessing
-)
-
-method_list=(
-  "customize"
-  "ps-complete"
-  "ps-rank"
-  "ps-sims"
+rs/news-action-preprocessing
+rs/news-add-item-batch
+rs/news-add-user-batch
+rs/news-dashboard
+rs/news-filter-batch
+rs/news-inverted-list
+rs/news-item-feature-update-batch
+rs/news-item-preprocessing
+rs/news-model-update-action-gpu
+rs/news-model-update-embedding-gpu
+rs/news-model-update-action
+rs/news-model-update-embedding
+rs/news-portrait-batch
+rs/news-prepare-training-data
+rs/news-rank-batch
+rs/news-recall-batch
+rs/news-user-preprocessing
+rs/news-batch-preprocessing
 )
 
 curr_dir=$(pwd)
@@ -62,20 +58,17 @@ cd $curr_dir/step-funcs
 cd $curr_dir
 
 echo "2. Delete ECR repositories ..."
-for method in ${method_list[@]}
+for repo_name in ${repo_names[@]}
 do
-  for repo in ${repo_names[@]}
-  do
-    repo_name=rs/news-${method}-${repo}
-    if [[ "$AWS_ACCOUNT_ID" != '522244679887' ]]; then
-         echo "Delete repo: '$repo_name ...'"
-         $AWS_CMD ecr delete-repository  --repository-name $repo_name --region ${REGION} --force  > /dev/null 2>&1 || true
-    else
-        # our test  account: 522244679887
-        echo "skip deleting repo: '$repo_name ...'"
-    fi
-  done
+  if [[ "$AWS_ACCOUNT_ID" != '522244679887' ]]; then
+      echo "Delete repo: '$repo_name ...'"
+      $AWS_CMD ecr delete-repository  --repository-name $repo_name --region ${REGION} --force  > /dev/null 2>&1 || true
+  else
+      # our test  account: 522244679887
+      echo "skip deleting repo: '$repo_name ...'"
+  fi
 done
+
 echo "Done"
 
 
