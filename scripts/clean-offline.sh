@@ -49,49 +49,6 @@ echo "==== DELETE all codebuild projects ===="
 cd ${curr_dir}/codebuild
 ./register-to-codebuild-offline-codecommit.sh $Stage DELETE "all"
 
-repo_names=(
-  inverted-list
-  action-preprocessing
-  add-item-batch
-  add-user-batch
-  dashboard
-  filter-batch
-  item-feature-update-batch
-  item-preprocessing
-  model-update-action
-  model-update-embedding
-  portrait-batch
-  prepare-training-data
-  rank-batch
-  recall-batch
-  user-preprocessing
-  model-update-deepfm
-  model-update-ub
-)
-
-method_list=(
-  customize
-  ps-complete
-  ps-rank
-  ps-sims
-)
-
-echo "Delete ECR repositories ..."
-
-
-for method in ${method_list[@]}; do
-    for repo_name in ${repo_names[@]}; do
-      if [[ "$AWS_ACCOUNT_ID" != '522244679887' ]]; then
-        echo "Delete repo: 'rs/$SCENARIO-$method-$repo_name ...'"
-        $AWS_CMD ecr delete-repository --repository-name rs/$scenario-$method-$repo_name --region ${REGION} --force >/dev/null 2>&1 || true
-      else
-        # our test  account: 522244679887
-        echo "skip deleting repo: '$repo_name ...'"
-      fi
-    done
-  done
-
-
 
 echo "==== Clean sample data in S3 ===="
 cd ${curr_dir}/../sample-data/

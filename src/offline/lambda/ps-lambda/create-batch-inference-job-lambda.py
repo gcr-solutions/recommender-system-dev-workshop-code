@@ -36,6 +36,7 @@ stage = "dev"
 def do_handler(event, context):
     global stage
     stage = os.environ.get('Stage', 'dev')
+    region = os.environ.get('AWS_REGION')
 
     bucket = event['bucket']
     s3_key_prefix = event['prefix']
@@ -46,7 +47,7 @@ def do_handler(event, context):
     aws_account_id = get_caller_identity_response["Account"]
     print("aws_account_id:{}".format(aws_account_id))
 
-    role_arn = "arn:aws:iam::{}:role/gcr-rs-personalize-role".format(aws_account_id, stage)
+    role_arn = "arn:aws:iam::{}:role/gcr-rs-personalize-role-{}".format(aws_account_id, region)
     print("role_arn:{}".format(role_arn))
 
     solution_name = ps_config_json['SolutionName']

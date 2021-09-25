@@ -86,11 +86,8 @@ create_codebuild_project () {
   sleep 1
 
   echo "Re-creating $build_proj_name into CodeBuild ..."
-  sed -e 's/__app_name__/'${build_proj_name}'/g' ./codebuild-template-offline-codecommit.json >./tmp-codebuild.json
-  sed -e 's#__app_path__#'${app_path}'#g' ./tmp-codebuild.json > tmp-codebuild_2.json
-  sed -e 's#__Stage__#'${Stage}'#g' ./tmp-codebuild_2.json > ./tmp-codebuild_3.json
-  sed -e 's#__METHOD__#'${METHOD}'#g' ./tmp-codebuild_3.json > ./tmp-codebuild_4.json
-  sed -e 's#__AWS_REGION__#'${REGION}'#g' ./tmp-codebuild_3.json > ./codebuild.json
+  sed -e "s|__app_name__|${build_proj_name}|g;s|__app_path__|${app_path}|g;s|__Stage__|${Stage}|g;s|__METHOD__|${METHOD}|g;s|__AWS_REGION__|${REGION}|g;" \
+            ./codebuild-template-offline-codecommit.json > ./codebuild.json
 
   if [[ $REGION =~ cn.* ]];then
      sed -i -e 's#amazonaws.com#amazonaws.com.cn#g' ./codebuild.json
@@ -114,7 +111,6 @@ create_codebuild_project () {
   sleep 1
 
   rm -f codebuild.json
-  rm -f tmp-codebuild*.json
 
   echo "Start build: ${build_proj_name}"
   $AWS_CMD codebuild start-build --region $REGION --project-name ${build_proj_name} > /dev/null
@@ -160,68 +156,20 @@ projects_dir=(
   "model-update-ub"
 )
 
-if [[ "${METHOD}" == "customize" ]];then
-  method_list=(
-    "customize"
-  )
-elif [[ "${METHOD}" == "ps-complete" ]]; then
-  method_list=(
-    "customize"
-    "ps-complete"
-  )
-elif [[ "${METHOD}" == "ps-rank" ]]; then
-  method_list=(
-    "customize"
-    "ps-rank"
-  )
-elif [[ "${METHOD}" == "ps-sims" ]]; then
-  method_list=(
-    "customize"
-    "ps-sims"
-  )
-elif [[ "${METHOD}" == "all" ]]; then
-  method_list=(
-    "customize"
-    "ps-complete"
-    "ps-rank"
-    "ps-sims"
-  )
-fi
 
-
-
-for method in ${method_list[@]}; do
-  for project in ${projects_dir[@]}; do
-    build_name="${SCENARIO}-${method}-${project}"
-    build_proj_name="rs-$Stage-offline-${build_name}-build"
-    if [[ -n $CN_REGION ]];then
-      build_proj_name="rs-$Stage-offline-${build_name}-$CN_REGION-build"
+for project in ${projects_dir[@]}; do
+  build_name="${SCENARIO}-${project}"
+  build_proj_name="rs-$Stage-offline-${build_name}-build"
+  if [[ -n $CN_REGION ]];then
+    build_proj_name="rs-$Stage-offline-${build_name}-$CN_REGION-build"
+  fi
+  app_path="${SCENARIO}/${project}"
+  if [[ -d "${cur_dir}/../../src/offline/${app_path}" ]];then
+    if [[ $DELETE_FLAG == 'DELETE' ]];then
+      delete_codebuild_project $build_proj_name $app_path
+    else
+      create_codebuild_project $build_proj_name $app_path
     fi
-    app_path="${SCENARIO}/${method}/${project}"
-    if [[ -d "${cur_dir}/../../src/offline/${app_path}" ]];then
-      if [[ $DELETE_FLAG == 'DELETE' ]];then
-          delete_codebuild_project $build_proj_name $app_path
-      else
-          create_codebuild_project $build_proj_name $app_path
-      fi
-    fi
-  done
+  fi
 done
-
-build_proj_name="rs-$Stage-offline-build"
-if [[ $DELETE_FLAG == 'DELETE' ]];then
-    echo ""
-else
-   echo ""
-   echo "Please check result in codebuild:"
-   echo "search 'rs-$Stage-offline-'"
-   echo "https://$REGION.console.aws.amazon.com/codesuite/codebuild/projects?region=$REGION"
-   echo ""
-fi
-
-echo "Create/Clean offline codebuild projects done"
-sleep 5
-
-
-
 

@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys Lambda
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev-workshop
+
+Resources:
+  PersonalizeRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub gcr-rs-personalize-role-${AWS::Region}
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - personalize.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/PowerUserAccess"
+      Policies:
+        - PolicyName: !Sub gcr-rs-personalize-policy-${AWS::Region}
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: "s3:*"
+                Resource:
+                  - "arn:aws:s3:::aws-gcr-rs-sol-__Stage__-__REGION__-__AccountID__"
+                  - "arn:aws:s3:::aws-gcr-rs-sol-__Stage__-__REGION__-__AccountID__/*"
+              - Effect: Allow
+                Action: "personalize:*"
+                Resource: "*"
