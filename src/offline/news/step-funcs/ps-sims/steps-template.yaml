@@ -855,7 +855,7 @@ Resources:
                   "bucket.$": "$.Bucket",
                   "prefix.$": "$.S3Prefix",
                   "file_list": [
-                    "feature/recommend-list/portrait/portrait.jsonl"
+                    "feature/recommend-list/portrait/portrait.pickle"
                   ]
                 }
               },
