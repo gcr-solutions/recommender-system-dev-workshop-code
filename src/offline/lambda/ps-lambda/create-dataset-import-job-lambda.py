@@ -40,10 +40,10 @@ stage = "dev"
 def do_handler(event, context):
     global stage
     stage = os.environ.get('Stage', 'dev')
-
+    region = os.environ.get('AWS_REGION')
     bucket = event['bucket']
     s3_key_prefix = event['prefix']
-    region = event['region']
+
     ps_config_json = get_ps_config(bucket, s3_key_prefix)
     dataset_group_name = ps_config_json['DatasetGroupName']
     dataset_type = event['datasetType']
