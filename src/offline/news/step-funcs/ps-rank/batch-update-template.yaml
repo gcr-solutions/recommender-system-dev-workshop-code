@@ -119,21 +119,6 @@ Resources:
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
               "ResultPath": "$.FilterBatch",
-              "Next": "Load portrait data"
-            },
-            "Load portrait data": {
-              "Type": "Task",
-              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
-              "Parameters": {
-                "Input": {
-                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
-                  "Bucket.$": "$.Bucket",
-                  "S3Prefix.$": "$.S3Prefix"
-                },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-LoadPortraitDataStepFunc",
-                "Name.$": "States.Format('{}', $$.Execution.Name)"
-              },
-              "ResultPath": "$.LoadPortraitData",
               "Next": "Send notification"
             },
             "Send notification": {
