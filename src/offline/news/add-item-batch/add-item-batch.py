@@ -56,6 +56,7 @@ if args.region:
 
 bucket = args.bucket
 prefix = args.prefix
+region = args.region
 method = args.method
 
 if prefix.endswith("/"):
@@ -63,6 +64,8 @@ if prefix.endswith("/"):
 
 print("bucket={}".format(bucket))
 print("prefix='{}'".format(prefix))
+print("region={}".format(region))
+print("method={}".format(method))
 
 s3client = boto3.client('s3')
 personalize = boto3.client('personalize', args.region)
@@ -148,7 +151,7 @@ def create_item_dataset_import_job():
         dataSource={
             'dataLocation': "s3://{}/{}/system/ps-ingest-data/item/ps_item.csv".format(bucket, prefix)
         },
-        roleArn="arn:aws:iam::{}:role/gcr-rs-personalize-role".format(aws_account_id)
+        roleArn="arn:aws:iam::{}:role/gcr-rs-personalize-role-{}".format(aws_account_id, region)
     )
 
     item_dataset_import_job_arn = response['datasetImportJobArn']
