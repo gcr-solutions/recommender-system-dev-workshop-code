@@ -7,7 +7,7 @@ if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
 
-
+SCENARIO=$2
 if [[ -z $SCENARIO ]]; then
   SCENARIO='news'
 fi

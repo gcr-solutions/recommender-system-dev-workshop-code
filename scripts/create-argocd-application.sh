@@ -5,6 +5,10 @@ if [[ -z $SCENARIO ]]; then
   SCENARIO='news'
 fi
 
+if [[ -z $Stage ]]; then
+  Stage='dev-workshop'
+fi
+
 # 1 login argo cd server
 ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
@@ -24,7 +28,7 @@ fi
 # 2 update lambda env
 
 echo "update-lambda-env"
-./update-lambda-env.sh $SCENARIO
+./update-lambda-env.sh $Stage $SCENARIO
 
 # 3 Create argocd application
 CODE_COMMIT_USER=gcr-rs-codecommit-user_$REGION

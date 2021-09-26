@@ -7,13 +7,6 @@ export METHOD=customize
 export SCENARIO=news
 echo "APP_CONF_REPO: $APP_CONF_REPO"
 
-if [[ -z $RS_SCENARIO  ]];then
-    RS_SCENARIO=news
-fi
-
-export RS_SCENARIO=$RS_SCENARIO
-echo "RS_SCENARIO: $RS_SCENARIO"
-
 input=$1
 
 if [ $input = "deploy-offline"  ]
@@ -43,7 +36,11 @@ then
 elif [ $input = "load-data" ]
 then
     echo "start load data!"
-    ./load-seed-data.sh
+    ./load-$SCENARIO-seed-data.sh
+elif [ $input = "get-endpoint" ];
+then
+    echo "start get endpoint"
+    ./get-ingressgateway-elb-endpoint.sh
 elif [ $input = "ALL" ]
 then
     echo "export SECRET_NAME=gcr-rs-dev-workshop-secret"
@@ -102,4 +99,4 @@ then
     echo "=== ALL Complete ==="
 else
     echo "Please enter correct parameter"
-fi  
+fi

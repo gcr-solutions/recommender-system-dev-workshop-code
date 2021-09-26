@@ -17,3 +17,9 @@ data:
   method: "customize"
   scenario: "movie"
   stage: "dev-workshop"
+  aws-exports.json: |
+    {
+      "DEPLOY_TYPE": "MOVIE",
+      "NEWS_API_URL": "/api/v1/demo",
+      "MOVIE_API_URL": "/api/v1/demo"
+    }

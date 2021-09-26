@@ -17,3 +17,9 @@ data:
   method: "customize"
   scenario: "news"
   stage: "dev-workshop"
+  aws-exports.json: |
+    {
+      "DEPLOY_TYPE": "ALL",
+      "NEWS_API_URL": "http://adf45c54cf8734c0f9c14f4adfecae86-234454018.ap-southeast-1.elb.amazonaws.com/api/v1/demo",
+      "MOVIE_API_URL": "http://a4fb68ded64b0495f90bbaa36c7773cd-1545468192.ap-southeast-1.elb.amazonaws.com/api/v1/demo"
+    }

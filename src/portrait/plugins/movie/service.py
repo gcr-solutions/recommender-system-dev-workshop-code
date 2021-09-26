@@ -40,7 +40,7 @@ MANDATORY_ENV_VARS = {
 }
 
 pickle_type = 'inverted-list'
-
+model_type = 'action-model'
 # lastUpdate
 getLastCall = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 updateLastCall = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
@@ -153,6 +153,8 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         self.check_files_ready(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list, 0)
         if file_type == pickle_type:
             self.reload_pickle_file(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
+        if file_type == model_type:
+            self.reload_action_model(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
         logging.info('Re-initial filter service.')
         commonResponse = service_pb2.CommonResponse(code=0, description='Re-initialled with success')
         return commonResponse 
@@ -280,7 +282,8 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         watch_len = len(input_item_list)
 
         ### TODO 需要获取当前最大用户编号，自动增加编号
-        map_user_id = 6000
+        map_user_id = 0
+        logging.info("raw_embed_user_mapping_dict length: {}".format(len(self.raw_embed_user_mapping_dict)))
         if str(user_id) in self.raw_embed_user_mapping_dict:
             map_user_id = self.raw_embed_user_mapping_dict[str(user_id)]
         for cnt, item in enumerate(input_item_list):
