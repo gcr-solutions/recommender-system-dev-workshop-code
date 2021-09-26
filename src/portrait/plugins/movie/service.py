@@ -14,6 +14,7 @@ from grpc_reflection.v1alpha import reflection
 from deepmatch.layers import custom_objects
 import tensorflow as tf
 from tensorflow.python.keras.backend import set_session
+from tensorflow.python.keras.backend import clear_session
 from tensorflow.python.keras.models import load_model
 
 import cache
@@ -132,7 +133,8 @@ class Portrait(service_pb2_grpc.PortraitServicer):
             if MANDATORY_ENV_VARS['USER_EMBEDDINGS_H5'] in model_path:
                 if os.path.isfile(model_path):
                     logging.info('reload_action_model model_path {}'.format(model_path))
-                    set_session(sess)
+                    # set_session(sess)
+                    clear_session()
                     self.user_embedding_model = load_model(model_path, custom_objects)
                     # self.reload_model(model_path)
                 else:
@@ -286,6 +288,7 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         logging.info("raw_embed_user_mapping_dict length: {}".format(len(self.raw_embed_user_mapping_dict)))
         if str(user_id) in self.raw_embed_user_mapping_dict:
             map_user_id = self.raw_embed_user_mapping_dict[str(user_id)]
+        logging.info("the map id is {}".format(map_user_id))
         for cnt, item in enumerate(input_item_list):
             if cnt < 50:
                 map_input_item_list[0][cnt] = self.raw_embed_item_mapping_dict[str(item)]
@@ -298,7 +301,8 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         #     print("model input {}".format(model_input))
         updatad_user_embs = None
         with graph.as_default():
-            set_session(sess)
+            # set_session(sess)
+            clear_session()
             updated_user_embs = self.user_embedding_model.predict(
                 model_input, batch_size=2 ** 12)
 
