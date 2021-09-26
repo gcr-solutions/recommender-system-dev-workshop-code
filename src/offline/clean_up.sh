@@ -34,6 +34,7 @@ fi
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
+SCENARIO=$2
 if [[ -z $SCENARIO  ]];then
     SCENARIO=news
 fi

@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
 # 1 login argo cd server
 ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
@@ -20,7 +24,7 @@ fi
 # 2 update lambda env
 
 echo "update-lambda-env"
-./update-lambda-env.sh
+./update-lambda-env.sh $SCENARIO
 
 # 3 Create argocd application
 CODE_COMMIT_USER=gcr-rs-codecommit-user_$REGION
@@ -60,14 +64,14 @@ sleep 40
 echo "argocd repo add $REPO_URL ..."
 argocd repo add $REPO_URL --username $REPO_USER --password $CODE_COMMIT_PASSWORD --insecure-skip-server-verification --upsert
 
-echo "argocd app create gcr-recommender-system-news-dev ..."
-argocd app create gcr-recommender-system-news-dev --repo $REPO_URL --path manifests/envs/news-dev --dest-namespace \
-rs-news-dev-ns --dest-server https://kubernetes.default.svc --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1 \
+echo "argocd app create gcr-recommender-system-${SCENARIO}-dev ..."
+argocd app create gcr-recommender-system-${SCENARIO}-dev --repo $REPO_URL --path manifests/envs/${SCENARIO}-dev --dest-namespace \
+rs-${SCENARIO}-dev-ns --dest-server https://kubernetes.default.svc --kustomize-image gcr.io/heptio-images/ks-guestbook-demo:0.1 \
 --upsert
 
 sleep 20
-echo "app set gcr-recommender-system-news-dev ..."
-argocd app set gcr-recommender-system-news-dev --sync-policy automated
+echo "app set gcr-recommender-system-${SCENARIO}-dev ..."
+argocd app set gcr-recommender-system-${SCENARIO}-dev --sync-policy automated
 
 
 if [[  -z $NOT_PRINTING_CONTROL_C ]];then

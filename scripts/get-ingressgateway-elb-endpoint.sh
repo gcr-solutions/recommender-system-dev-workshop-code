@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-dns_name=$(kubectl get svc istio-ingressgateway-news-dev -n istio-system -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
+dns_name=$(kubectl get svc istio-ingressgateway-${SCENARIO}-dev -n istio-system -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 echo $dns_name
 echo "-------"
 

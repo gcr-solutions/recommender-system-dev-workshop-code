@@ -3,6 +3,10 @@
 
 curr_dir=$(pwd)
 
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
 existed_personalize=$(aws personalize list-dataset-groups | jq '.[][] | select(.name=="GCR-RS-News-Dataset-Group")')
 if [[ "${existed_personalize}" != "" ]]; then
   echo "################ start clean personalize resources ################ "
@@ -103,7 +107,7 @@ fi
 ##############################delete resource for application##############################
 
 #clean argocd and istio resources
-./cleanup-argocd-istio.sh
+./cleanup-argocd-istio.sh $SCENARIO
 
 #detach eks cluster roles
 echo "################ Detach eks cluster roles for workshop ################ "

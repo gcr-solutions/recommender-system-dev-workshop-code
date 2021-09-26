@@ -26,6 +26,7 @@ echo "REGION: $REGION"
 AWS_ACCOUNT_ID=$($AWS_CMD  sts get-caller-identity  --o text | awk '{print $1}')
 echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 
+SCENARIO=$2
 if [[ -z $SCENARIO  ]];then
     SCENARIO=news
 fi

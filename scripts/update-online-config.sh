@@ -3,6 +3,10 @@ set -e
 
 # 1 update redis config
 
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
 while true; do
   REDIS_ENDPOINT=$(aws elasticache describe-cache-clusters --cache-cluster-id gcr-rs-dev-workshop-redis-cluster --show-cache-node-info \
   --query "CacheClusters[].CacheNodes[].Endpoint.Address" --output text)
@@ -16,7 +20,7 @@ while true; do
   sleep 10
 done
 
-cd ../manifests/envs/news-dev
+cd ../manifests/envs/${SCENARIO}-dev
 cat config-template.yaml | sed 's/REDIS_HOST_PLACEHOLDER/'"$REDIS_ENDPOINT"'/g' > config_1.yaml
 
 echo "REGION: $REGION"

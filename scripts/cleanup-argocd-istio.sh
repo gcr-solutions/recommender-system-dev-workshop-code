@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+SCENARIO=$1
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
 cd ../manifests
 echo "################ start clean istio and argocd resources ################ "
 
@@ -15,7 +20,7 @@ echo "start check istio ingress gateway security group"
 i=1
 ISTIO_SG_ID=""
 while true; do
-  ISTIO_SG_ID=$(aws ec2 describe-security-groups --filter Name=tag:kubernetes.io/cluster/gcr-rs-dev-application-cluster,Values=owned Name=description,Values=*istio-system/istio-ingressgateway-news-dev* --query "SecurityGroups[*].[GroupId]" --output text)
+  ISTIO_SG_ID=$(aws ec2 describe-security-groups --filter Name=tag:kubernetes.io/cluster/gcr-rs-dev-application-cluster,Values=owned Name=description,Values=*istio-system/istio-ingressgateway-${SCENARIO}-dev* --query "SecurityGroups[*].[GroupId]" --output text)
   if [ "$ISTIO_SG_ID" == "" ]; then
     echo "delete istio security group successfully!"
     break

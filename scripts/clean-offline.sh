@@ -47,16 +47,16 @@ sleep 3
 
 echo "==== DELETE all codebuild projects ===="
 cd ${curr_dir}/codebuild
-./register-to-codebuild-offline-codecommit.sh $Stage DELETE "all"
+./register-to-codebuild-offline-codecommit.sh $Stage DELETE "all" $SCENARIO
 
 
 echo "==== Clean sample data in S3 ===="
 cd ${curr_dir}/../sample-data/
-./clean_up.sh $Stage
+./clean_up.sh $Stage $SCENARIO
 
 echo "==== DELETE all Step funcs and ECR repos ===="
 cd ${curr_dir}/../src/offline/
-./clean_up.sh $Stage
+./clean_up.sh $Stage $SCENARIO
 
 
 #echo "==== DELETE Codebuild Role ===="
