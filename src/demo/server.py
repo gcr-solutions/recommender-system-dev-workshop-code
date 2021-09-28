@@ -938,7 +938,7 @@ def generate_movie_retrieve_response(movie_recommend_list):
 
         data = {
             'id': element['id'],
-            'image': 'https://{}.s3-{}.amazonaws.com/{}/movielens-posters/img/{}.jpg'.format(s3_bucket, aws_region, s3_prefix, element['id']),
+            'image': 'https://{}.s3.{}.amazonaws.com/{}/movielens-posters/img/{}.jpg'.format(s3_bucket, aws_region, s3_prefix, element['id']),
             'title': movie_detail_record['program_name'],
             'release_year': movie_detail_record['release_year'],
             'director': movie_detail_record['director'],
