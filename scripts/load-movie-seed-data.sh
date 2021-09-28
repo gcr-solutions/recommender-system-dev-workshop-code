@@ -29,6 +29,10 @@ curl -X POST -d '{"message": {"file_type": "embedding","file_path": "sample-data
 echo -e "\nload movie record data!!"
 curl -X POST -d '{"message": {"file_type": "movie_records","file_path": "sample-data-movie/system/item-data/","file_name": ["item.csv"]}}' -H "Content-Type:application/json" http://$dns_name/api/v1/demo/notice
 
+# item vector index data
+echo -e "\nload item vector index!!"
+curl -X POST -d '{"message": {"file_type": "vector-index","file_path": "sample-data-movie/notification/vector-index/","file_name": ["ub_item_vector.index"]}}' -H "Content-Type:application/json" http://$dns_name/loader/notice
+
 if [[ "${METHOD}" != "customize" ]];then
 # personalize data
   echo -e "\nload personalize data!!"
