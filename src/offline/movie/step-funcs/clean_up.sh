@@ -41,6 +41,6 @@ echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 
 
 cd ${cur_dir}/${METHOD}
-
+./clean_up.sh
 cd ${cur_dir}
 
