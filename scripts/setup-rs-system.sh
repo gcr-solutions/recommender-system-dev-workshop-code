@@ -41,6 +41,14 @@ elif [ $input = "get-endpoint" ];
 then
     echo "start get endpoint"
     ./get-ingressgateway-elb-endpoint.sh
+elif [ $input = "clean-offline" ];
+then
+    echo "start clean offline"
+    ./clean-offline.sh
+elif [ $input = "clean-online" ];
+then
+    echo "start get endpoint"
+    ./clean-online.sh
 elif [ $input = "ALL" ]
 then
     echo "export SECRET_NAME=gcr-rs-dev-workshop-secret"
