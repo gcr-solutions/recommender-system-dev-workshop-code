@@ -50,7 +50,7 @@ PREFIX=sample-data-${SCENARIO}
 
 echo "BUCKET_BUILD=${BUCKET_BUILD}"
 
-$AWS_CMD s3api --region $REGION create-bucket --bucket ${BUCKET_BUILD}  \
+$AWS_CMD s3api --region $REGION create-bucket --bucket ${BUCKET_BUILD} --acl public-read  \
 --create-bucket-configuration LocationConstraint=$REGION >/dev/null 2>&1 || true
 
 $AWS_CMD  s3 mb s3://${BUCKET_BUILD}  >/dev/null 2>&1 || true
