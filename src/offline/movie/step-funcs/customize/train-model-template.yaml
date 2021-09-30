@@ -7,6 +7,10 @@ Description: >
 
 
 Parameters:
+  NamePrefix:
+    Type: String
+    Default: rs-movie-customize-dev
+
   Stage:
     Type: String
     Default: dev
@@ -37,7 +41,7 @@ Resources:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-      StateMachineName: !Sub rs-${Stage}-Movie-TrainModelStepFunc
+      StateMachineName: !Sub ${NamePrefix}-TrainModelStepFunc
       DefinitionString: !Sub |
         {
           "StartAt": "Prepare training data",
@@ -52,7 +56,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-PrepareTrainingDataStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-PrepareTrainingDataStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
               "ResultPath": "$.ActionProcessing",
@@ -67,7 +71,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-ModelUpdateDeepfmStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-ModelUpdateDeepfmStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
               "Next": "Send notification",
@@ -83,7 +87,7 @@ Resources:
                   "S3Prefix.$": "$.S3Prefix",
                   "file_type": "train-model"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-NotificationStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-NotificationStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
               "Next": "Succeed",

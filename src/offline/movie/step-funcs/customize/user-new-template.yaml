@@ -7,6 +7,10 @@ Description: >
 
 
 Parameters:
+  NamePrefix:
+    Type: String
+    Default: rs-movie-customize-dev
+
   Stage:
     Type: String
     Default: dev
@@ -36,7 +40,7 @@ Resources:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-      StateMachineName: !Sub rs-${Stage}-Movie-UserNewStepFunc
+      StateMachineName: !Sub ${NamePrefix}-UserNewStepFunc
       DefinitionString: !Sub |
         {
           "StartAt": "User processing",
@@ -51,7 +55,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-UserPreProcessingStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-UserPreProcessingStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
               "ResultPath": "$.UserProcessing",
@@ -66,7 +70,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-AddUserBatchStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-AddUserBatchStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
               "ResultPath": "$.AddUserBatch",

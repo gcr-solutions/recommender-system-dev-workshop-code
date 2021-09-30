@@ -7,6 +7,10 @@ Description: >
 
 
 Parameters:
+  NamePrefix:
+    Type: String
+    Default: rs-movie-customize-dev
+
   Stage:
     Type: String
     Default: dev
@@ -32,17 +36,17 @@ Parameters:
     Default: SNSMessageLambda
 
 Resources:
-  ItemNewStepFunc:
+  BatchUpdateStepFunc:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-      StateMachineName: !Sub rs-${Stage}-Movie-ItemNewStepFunc
+      StateMachineName: !Sub ${NamePrefix}-BatchUpdateStepFunc
       DefinitionString: !Sub |
         {
-          "StartAt": "Item data processing",
+          "StartAt": "Action processing",
           "TimeoutSeconds": 36000,
           "States": {
-            "Item data processing": {
+            "Action processing": {
               "Type": "Task",
               "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
               "Parameters": {
@@ -51,14 +55,13 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-ItemPreProcessingStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-ActionPreProcessingStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
-              "ResultPath": "$.ItemPreProcessing",
-              "Next": "Add item batch"
+              "ResultPath": "$.ActionProcessing",
+              "Next": "Portrait batch"
             },
-
-            "Add item batch": {
+            "Portrait batch": {
               "Type": "Task",
               "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
               "Parameters": {
@@ -67,14 +70,13 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-AddItemBatchStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-PortraitBatchStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
-              "ResultPath": "$.AddItemBatch",
-              "Next": "Item feature update batch"
+              "ResultPath": "$.PortraitBatch",
+              "Next": "Recall batch"
             },
-
-            "Item feature update batch": {
+            "Recall batch": {
               "Type": "Task",
               "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
               "Parameters": {
@@ -83,14 +85,13 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-ItemFeatureUpdateBatchStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-RecallBatchStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
-              "Next": "Inverted list",
-              "ResultPath": "$.ItemFeatureUpdateBatch"
+              "ResultPath": "$.RecallBatch",
+              "Next": "Rank batch"
             },
-
-            "Inverted list": {
+            "Rank batch": {
               "Type": "Task",
               "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
               "Parameters": {
@@ -99,14 +100,13 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-InvertedListStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-RankBatchStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
-              "ResultPath": "$.InvertedList",
-              "Next": "Model update ub"
+              "ResultPath": "$.RankBatch",
+              "Next": "Filter batch"
             },
-
-            "Model update ub": {
+            "Filter batch": {
               "Type": "Task",
               "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
               "Parameters": {
@@ -115,10 +115,10 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-ModelUpdateUbStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-FilterBatchStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
-              "ResultPath": "$.ModelUpdateUb",
+              "ResultPath": "$.FilterBatch",
               "Next": "Send notification"
             },
             "Send notification": {
@@ -129,9 +129,9 @@ Resources:
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix",
-                  "file_type": "item-new"
+                  "file_type": "batch-update"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-NotificationStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-NotificationStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
               "Next": "Succeed",
@@ -142,5 +142,3 @@ Resources:
             }
           }
         }
-
-

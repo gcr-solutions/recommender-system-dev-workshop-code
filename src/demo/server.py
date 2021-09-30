@@ -868,7 +868,7 @@ def get_movie_by_id(item_id):
     aws_region = MANDATORY_ENV_VARS['AWS_REGION']
     return {
         'id': item_id,
-        'image': 'https://{}.s3-{}.amazonaws.com/{}/movielens-posters/img/{}.jpg'.format(s3_bucket, aws_region, s3_prefix, item_id),
+        'image': 'https://{}.s3.{}.amazonaws.com/{}/movielens-posters/img/{}.jpg'.format(s3_bucket, aws_region, s3_prefix, item_id),
         'title': movie_detail_record['program_name'],
         'release_year': movie_detail_record['release_year'],
         'director': movie_detail_record['director'],

@@ -7,6 +7,10 @@ Description: >
 
 
 Parameters:
+  NamePrefix:
+    Type: String
+    Default: rs-movie-customize-dev
+
   Stage:
     Type: String
     Default: dev
@@ -37,7 +41,7 @@ Resources:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-      StateMachineName: !Sub rs-${Stage}-Movie-OverallStepFunc
+      StateMachineName: !Sub ${NamePrefix}-OverallStepFunc
       DefinitionString: !Sub |
         {
           "StartAt": "Detect change type",
@@ -93,7 +97,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-BatchUpdateStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-BatchUpdateStepFunc",
                 "Name.$": "States.Format('oa{}', $$.Execution.Name)"
               },
               "End": true
@@ -107,7 +111,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-UserNewStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-UserNewStepFunc",
                 "Name.$": "States.Format('ou{}', $$.Execution.Name)"
               },
               "End": true
@@ -121,7 +125,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-ItemNewStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-ItemNewStepFunc",
                 "Name.$": "States.Format('oc{}', $$.Execution.Name)"
               },
               "End": true
@@ -135,7 +139,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:rs-${Stage}-Movie-TrainModelStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-TrainModelStepFunc",
                 "Name.$": "States.Format('ot{}', $$.Execution.Name)"
               },
               "End": true
