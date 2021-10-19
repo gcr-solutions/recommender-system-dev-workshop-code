@@ -57,7 +57,7 @@ unzip sample-data-movie.zip > /dev/null
 rm sample-data-movie.zip  sync_data_to_s3.sh
 
 echo "$AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/ ..."
-$AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/ > /dev/null
+$AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/ --acl public > /dev/null
 
 if [[ $? -ne 0 ]];then
    echo  "error!!! s3 sync"
