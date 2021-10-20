@@ -9,7 +9,7 @@ fi
 cd ../manifests
 echo "################ start clean istio and argocd resources ################ "
 
-kubectl delete -f istio-ingress-gateway.yaml
+kubectl delete -f ${SCENARIO}-istio-ingress-gateway.yaml
 
 kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
