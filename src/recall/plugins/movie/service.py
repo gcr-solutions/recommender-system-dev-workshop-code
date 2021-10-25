@@ -50,7 +50,10 @@ MANDATORY_ENV_VARS = {
     'REDIS_HOST': 'localhost',
     'REDIS_PORT': 6379,
 
-    'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300'
+    'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300',
+    'PS_CONFIG': 'ps_config.json',
+    'METHOD': "ps-complete",
+    'PS_SIMS_BATCH_RESULT': 'ps-sims-batch.out'
 }
 
 # lastUpdate
@@ -58,6 +61,9 @@ localtime = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 embedding_type = 'embedding'
 pickle_type = 'inverted-list'
 vector_index_type = 'vector-index'
+json_type = 'ps-result'
+out_type = 'ps-sims-dict'
+
 
 class Recall(service_pb2_grpc.RecallServicer):
 
@@ -100,7 +106,10 @@ class Recall(service_pb2_grpc.RecallServicer):
         # Load pickle files
         logging.info('Loading pickle file from NFS ...')
         pickle_file_list = [MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_PROPERTY'],MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_CATEGORY'],MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_DIRECTOR'],MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_ACTOR'],MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_LANGUAGE'],MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_LEVEL'],MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_YEAR'],MANDATORY_ENV_VARS['UB_IDX_MAPPING'],MANDATORY_ENV_VARS['RECALL_CONFIG']]
-        self.reload_pickle_file(local_data_folder, pickle_file_list)        
+        self.reload_pickle_file(local_data_folder, pickle_file_list)
+
+        out_file_list = [MANDATORY_ENV_VARS['PS_SIMS_BATCH_RESULT']]
+        self.reload_out_file(local_data_folder, out_file_list)
 
     def reload_vector_index(self, file_path, file_list):
         logging.info('reload_vector_index file strat')
@@ -156,7 +165,16 @@ class Recall(service_pb2_grpc.RecallServicer):
                     logging.info('reload entity_embed')
                     self.entity_embedding = np.load(embedding_path)
                 else:
-                    logging.info('entity_embed is empty') 
+                    logging.info('entity_embed is empty')
+
+    def reload_out_file(self, file_path, file_list):
+        logging.info("reload_out_file start")
+        for file_name in file_list:
+            out_path = file_path + file_name
+            logging.info("reload_out_type out_path {}".format(out_path))
+            if MANDATORY_ENV_VARS['PS_SIMS_BATCH_RESULT'] in out_path:
+                logging.info('reload ps_sims_batch_result file {}'.format(out_path))
+                self.ps_sims_movie_ids_dict = self.load_out_file(out_path)
 
     def load_pickle(self, file):
         if os.path.isfile(file):
@@ -167,6 +185,20 @@ class Recall(service_pb2_grpc.RecallServicer):
         else:
             logging.info('file {} is not existed'.format(file))
             return {}
+
+
+    def load_out_file(self, file):
+        logging.info("load_out_file start load {}".format(file))
+        ps_sims_movie_ids_dict = {}
+        if os.path.isfile(file):
+            infile = open(file, 'rb')
+            for line in infile.readlines():
+                sims_recommend = json.loads(line)
+                ps_sims_movie_ids_dict[sims_recommend['input']['itemId']] = sims_recommend['output']['recommendedItems']
+            infile.close()
+        else:
+            logging.info('file {} is not existed'.format(file))
+        return ps_sims_movie_ids_dict
 
     def Restart(self, request, context):
         logging.info('Restart(self, request, context)...')
@@ -196,6 +228,8 @@ class Recall(service_pb2_grpc.RecallServicer):
             self.reload_pickle_file(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
         elif file_type == vector_index_type:
             self.reload_vector_index(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
+        elif file_type == out_type:
+            self.reload_out_file(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
 
         logging.info('Re-initial recall service.')
         commonResponse = service_pb2.CommonResponse(code=0, description='Re-initialled with success')
@@ -245,9 +279,8 @@ class Recall(service_pb2_grpc.RecallServicer):
         logging.info('Generated recall_id -> %s at %s', recall_id, localtime)
         # Retrieve request data        
         reqDicts = any_pb2.Any()
-        # request.dicts.Unpack(reqDicts)
-        # reqData = reqDicts.value.decode('utf-8')
         request.dicts.Unpack(reqDicts)
+
         logging.info('Recieved recall process request -> {}'.format(reqDicts))
         reqData = json.loads(reqDicts.value, encoding='utf-8')
         user_id = reqData['user_id']
@@ -280,8 +313,10 @@ class Recall(service_pb2_grpc.RecallServicer):
         recall_wrap['dict_wrap']['language'] = self.movie_id_movie_language_dict
         recall_wrap['dict_wrap']['level'] = self.movie_id_movie_level_dict
         recall_wrap['dict_wrap']['year'] = self.movie_id_movie_year_dict
+        recall_wrap['dict_wrap']['ps-sims'] = self.ps_sims_news_ids_dict
         recall_wrap['config'] = self.recall_config
         config_dict['recall_wrap'] = recall_wrap
+        config_dict['method'] = MANDATORY_ENV_VARS['METHOD']
         recall_wrap['ub_index'] = self.ub_faiss_index
         recall_wrap['ub_idx_mapping'] = self.ub_idx_mapping
 
