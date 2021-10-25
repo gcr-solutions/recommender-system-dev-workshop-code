@@ -1151,9 +1151,13 @@ def get_recommend_movie(userId: str, type: str, curPage: str, pageSize: str):
 
     recommended_history_data, recommend_history_list = get_recommend_history(userId)
 
-    item_recommend_list, present_recommend_item_id_list = remove_duplicate_items(movie_recommend_list, recommend_history_list, user_id)
+    if MANDATORY_ENV_VARS['METHOD'] != 'ps-complete':
+        item_recommend_list, present_recommend_item_id_list = remove_duplicate_items(movie_recommend_list, recommend_history_list, user_id)
+        logging.info('item_recommend_list after remove_duplicate: size:{}'.format(len(item_recommend_list)))
 
-    refresh_recommend_history_data(recommended_history_data, present_recommend_item_id_list, user_id)
+        refresh_recommend_history_data(recommended_history_data, present_recommend_item_id_list, user_id)
+    else:
+        item_recommend_list = movie_recommend_list
 
     refresh_user_click_data(user_id, item_recommend_list, '1', recommend_type, 'movie')
 
