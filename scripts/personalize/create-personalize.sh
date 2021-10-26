@@ -797,10 +797,10 @@ fi
 echo "Update ps_config.json ..."
 config_file_path="./ps_config.json"
 if [[ $REGION =~ cn.* ]];then
-  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
+  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g;s|__SCENARIO__|$SCENARIO|g;s|__Scenario__|$Scenario|g" \
               ./ps_config_template-cn.json > ${config_file_path}
 else
-  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
+  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g;s|__SCENARIO__|$SCENARIO|g;s|__Scenario__|$Scenario|g" \
             ./ps_config_template.json > ${config_file_path}
 fi
 
