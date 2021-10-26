@@ -12,7 +12,7 @@ import random
 from random import sample
 import sys
 import time
-
+import boto3
 import glob
 
 from google.protobuf import descriptor
@@ -38,15 +38,20 @@ MANDATORY_ENV_VARS = {
 
     'RECOMMEND_ITEM_COUNT': 100,
     'COLDSTART_MOVIE_COUNT': 100,
-    'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300'
+    'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300',
+    'PS_CONFIG': 'ps_config.json',
+    'AWS_REGION': 'ap-northeast-1',
+    'METHOD': 'ps-complete'
 }
 
 ##
 user_id_filter_dict='user_id_filter_dict' 
+user_id_personalize_dict='user_id_personalize_dict'
 
 tColdstart = 'coldstart'
 hot_topic_count_array = [2,3]
 pickle_type = 'inverted-list'
+json_type = 'ps-result'
 tRecommend = 'recommend'
 
 # lastUpdate
@@ -61,6 +66,9 @@ class Retrieve(service_pb2_grpc.RetrieveServicer):
         file_list = [MANDATORY_ENV_VARS['MOVIE_CATEGORY_MOVIE_IDS']]
 
         self.reload_pickle_type(local_data_folder, file_list, False)
+        json_file_list = [MANDATORY_ENV_VARS['PS_CONFIG']]
+        self.reload_json_type(local_data_folder, json_file_list)
+        self.personalize_runtime = boto3.client('personalize-runtime', MANDATORY_ENV_VARS['AWS_REGION'])
 
     def Reload(self, request, context):
         logging.info('Restart(self, request, context)...')
@@ -76,6 +84,9 @@ class Retrieve(service_pb2_grpc.RetrieveServicer):
         self.check_files_ready(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list, 0)
         if file_type == pickle_type:
             self.reload_pickle_type(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list, True)
+        elif file_type == json_type:
+            self.reload_json_type(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
+
         logging.info('Re-initial filter service.')
         commonResponse = service_pb2.CommonResponse(code=0, description='Re-initialled with success')
         return commonResponse 
@@ -89,6 +100,18 @@ class Retrieve(service_pb2_grpc.RetrieveServicer):
                 logging.info('reload movie_category_movie_ids_dict file {}'.format(pickle_path))
                 self.movie_category_movie_ids_dict = self.load_pickle(pickle_path) 
                 self.lCfgCompleteType = list(self.movie_category_movie_ids_dict.keys())
+
+    def reload_json_type(self, file_path, file_list):
+        logging.info('reload_json_type start')
+        for file_name in file_list:
+            json_path = file_path + file_name
+            logging.info('reload_json_type json_path {}'.format(json_path))
+            if MANDATORY_ENV_VARS['PS_CONFIG'] in json_path:
+                if os.path.isfile(json_path):
+                    logging.info('reload ps_config file {}'.format(json_path))
+                    self.ps_config = self.load_json(json_path)
+                else:
+                    logging.info('reload ps_config failed, file is empty')
 
     def check_files_ready(self, file_path, file_list, loop_count):
         logging.info('start check files are ready: path {}, file_list {}'.format(file_path, file_list))
@@ -115,7 +138,16 @@ class Retrieve(service_pb2_grpc.RetrieveServicer):
             infile.close()
             return dict
         else:
-            return {} 
+            return {}
+
+    def load_json(self, file):
+        if os.path.isfile(file):
+            infile = open(file, 'rb')
+            dict = json.load(infile)
+            infile.close()
+            return dict
+        else:
+            return {}
 
     def Status(self, request, context):
         logging.info('Status(self, request, context)...')
@@ -160,7 +192,36 @@ class Retrieve(service_pb2_grpc.RetrieveServicer):
         getRecommendDataResponse.results.Pack(getRecommendataResponseAny)        
 
         logging.info("get recommend data complete") 
-        return getRecommendDataResponse 
+        return getRecommendDataResponse
+
+    def GetPsRecommendData(self, request, context):
+        logging.info('GetPsRecommendData start')
+
+        # Retrieve request data
+        request_body = Any()
+        request.requestBody.Unpack(request_body)
+        reqData = json.loads(request_body.value, encoding='utf-8')
+        user_id = reqData['user_id']
+        recommend_type = reqData['recommend_type']
+        logging.info('user_id -> {}'.format(user_id))
+        logging.info('recommend_type -> {}'.format(recommend_type))
+
+        ps_recommend_result = self.get_ps_recommend_result(user_id, recommend_type)
+
+        logging.info("personalize recommend result {}".format(ps_recommend_result))
+
+        getPsRecommendDataResponseValue = {
+            'data': ps_recommend_result
+        }
+
+        getPsRecommendataResponseAny = Any()
+        getPsRecommendataResponseAny.value = json.dumps(getPsRecommendDataResponseValue).encode('utf-8')
+        getPsRecommendDataResponse = service_pb2.GetPsRecommendDataResponse(code=0,
+                                                                        description='retrieve data with success')
+        getPsRecommendDataResponse.results.Pack(getPsRecommendataResponseAny)
+
+        logging.info("get recommend data complete")
+        return getPsRecommendDataResponse
 
     def get_recommend_result(self, user_id, recommend_type):
         logging.info('get_recommend_result start!!')
@@ -194,6 +255,57 @@ class Retrieve(service_pb2_grpc.RetrieveServicer):
 
         return recommend_list
 
+    def get_ps_recommend_result(self, user_id, recommend_type):
+        logging.info('get_ps_recommend_result start!!')
+        ps_recommend_list = []
+        if recommend_type == 'recommend':
+            logging.info('personalize recommend movie list to user')
+            # get personalize data from filter redis cache
+            # personalize_data_redis = rCache.get_data_from_hash(user_id_personalize_dict, user_id)
+            # if personalize_data_redis:
+            #     # [{timestamp: [{"6554153017963184647": "recommend"}...]}, {timestamp: [{"6554153017963184647": "recommend"}...]}]
+            #     personalize_data = json.loads(personalize_data_redis, encoding='utf-8')
+            # else:
+            #     # TODO coldstar data
+            #     logging.info('start coldstart process!')
+            #     personalize_data = self.generate_ps_cold_start_data(user_id)
+            #
+            # logging.info('personalize_data {}'.format(personalize_data))
+            # # generate new personalize recommend data, store them into cache
+            # ps_recommend_list = self.generate_new_ps_recommend_data(user_id, personalize_data)
+            ps_recommend_list = self.get_ps_recommend_list(user_id)
+            logging.info('ps_recommend_list {}'.format(ps_recommend_list))
+        else:
+            logging.info('get movie list by movie type {}'.format(recommend_type))
+            if recommend_type not in self.lCfgCompleteType:
+                return ps_recommend_list
+            logging.info('Get movie_category_movie_ids_dict completed')
+            if not bool(self.movie_category_movie_ids_dict):
+                ps_recommend_list
+            movie_id_list = self.movie_category_movie_ids_dict[recommend_type]
+            ps_recommend_list = self.generate_movie_list_by_type(movie_id_list)
+        logging.info("get_ps_recommend_result return ps_recommend_list size: {}".format(len(ps_recommend_list)))
+        return ps_recommend_list
+
+    def get_ps_recommend_list(self, user_id):
+        logging.info("start get recommend list from Personalize for user: {}".format(user_id))
+        self.personalize_runtime = boto3.client('personalize-runtime', MANDATORY_ENV_VARS['AWS_REGION'])
+        recommend_result = []
+        # trigger personalize api
+        get_recommendations_response = self.personalize_runtime.get_recommendations(
+            campaignArn=self.ps_config['CampaignArn'],
+            userId=str(user_id),
+        )
+        result_list = get_recommendations_response['itemList']
+        for item in result_list:
+            recommend_result.append({
+                "id": item['itemId'],
+                "description": 'ps-complete|{}'.format(str(item['score'])),
+                "tag": 'recommend'
+            })
+        logging.info('personalize recommend list {}'.format(recommend_result))
+        return recommend_result
+
     def generate_cold_start_data(self, user_id):
         logging.info('start cold start algorithm')           
         coldstart_item_list = {}
@@ -219,7 +331,7 @@ class Retrieve(service_pb2_grpc.RetrieveServicer):
             
         if rCache.load_data_into_hash(user_id_filter_dict, user_id, json.dumps(new_filter_record).encode('utf-8')):
             logging.info('Save filter data into Redis with key : %s ', user_id) 
-        return new_filter_record            
+        return new_filter_record
 
 
     def generate_movie_list_by_type(self, movie_id_list):
