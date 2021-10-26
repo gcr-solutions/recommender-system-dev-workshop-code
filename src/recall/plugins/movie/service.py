@@ -313,7 +313,7 @@ class Recall(service_pb2_grpc.RecallServicer):
         recall_wrap['dict_wrap']['language'] = self.movie_id_movie_language_dict
         recall_wrap['dict_wrap']['level'] = self.movie_id_movie_level_dict
         recall_wrap['dict_wrap']['year'] = self.movie_id_movie_year_dict
-        recall_wrap['dict_wrap']['ps-sims'] = self.ps_sims_news_ids_dict
+        recall_wrap['dict_wrap']['ps-sims'] = self.ps_sims_movie_ids_dict
         recall_wrap['config'] = self.recall_config
         config_dict['recall_wrap'] = recall_wrap
         config_dict['method'] = MANDATORY_ENV_VARS['METHOD']
