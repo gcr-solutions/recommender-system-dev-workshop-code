@@ -23,10 +23,14 @@ if [[ -z $REGION ]];then
     REGION='ap-northeast-1'
 fi
 
-Scenario=$3
+SCENARIO=$3
 
-if [[ -z $Scenario ]];then
-    Scenario='News'
+if [[ "${SCENARIO}" == "news" ]];then
+  Scenario='News'
+elif [[ "${SCENARIO}" == "movie" ]]; then
+  Scenario='Movie'
+else
+  Scenario='News'
 fi
 
 
@@ -47,7 +51,7 @@ echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
 
 BUCKET_BUILD=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
-PREFIX=sample-data-news
+PREFIX=sample-data-${SCENARIO}
 
 echo "Stage=$Stage"
 echo "REGION=$REGION"
@@ -589,7 +593,7 @@ eventTrackerArn=$($AWS_CMD personalize list-event-trackers --region $REGION --da
                     jq '.eventTrackers[] | select(.name=="NewsEventTracker")' | jq '.eventTrackerArn' -r)
 if [[ "${eventTrackerArn}" == "" ]]; then
   eventTrackerArn=$($AWS_CMD personalize create-event-tracker --region $REGION \
-      --name NewsEventTracker \
+      --name ${Scenario}EventTracker \
       --dataset-group-arn ${datasetGroupArn} | jq '.eventTrackerArn' -r)
 fi
 
@@ -626,7 +630,7 @@ if [[ $METHOD == "ps-complete" ]]; then
                                 jq '.campaignArn' -r)
   if [[ "${userPersonalize_campaign_arn}" == "" ]]; then
     userPersonalize_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
-            --name gcr-rs-${Stage}-news-UserPersonalize-campaign \
+            --name gcr-rs-${Stage}-${SCENARIO}-UserPersonalize-campaign \
             --solution-version-arn ${userPersonalize_solution_version_arn} \
             --min-provisioned-tps 1 --output text)
   fi
@@ -636,7 +640,7 @@ elif [[ $METHOD == "ps-rank" ]]; then
                                 jq '.campaignArn' -r)
   if [[ "${ranking_campaign_arn}" == "" ]]; then
     ranking_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
-            --name gcr-rs-${Stage}-news-Ranking-campaign \
+            --name gcr-rs-${Stage}-${SCENARIO}-Ranking-campaign \
             --solution-version-arn ${ranking_solution_version_arn} \
             --min-provisioned-tps 1 --output text)
   fi
@@ -646,7 +650,7 @@ elif [[ $METHOD == "ps-sims" ]]; then
                                 jq '.campaignArn' -r)
   if [[ "${sims_campaign_arn}" == "" ]]; then
     sims_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
-            --name gcr-rs-${Stage}-news-Sims-campaign \
+            --name gcr-rs-${Stage}-${SCENARIO}-Sims-campaign \
             --solution-version-arn ${sims_solution_version_arn} \
             --min-provisioned-tps 1 --output text)
   fi
@@ -662,19 +666,19 @@ else
                                 jq '.campaignArn' -r)
   if [[ "${userPersonalize_campaign_arn}" == "" ]]; then
     userPersonalize_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
-            --name gcr-rs-${Stage}-news-UserPersonalize-campaign \
+            --name gcr-rs-${Stage}-${SCENARIO}-UserPersonalize-campaign \
             --solution-version-arn ${userPersonalize_solution_version_arn} \
             --min-provisioned-tps 1 --output text)
   fi
   if [[ "${ranking_campaign_arn}" == "" ]]; then
     ranking_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
-            --name gcr-rs-${Stage}-news-Ranking-campaign \
+            --name gcr-rs-${Stage}-${SCENARIO}-Ranking-campaign \
             --solution-version-arn ${ranking_solution_version_arn} \
             --min-provisioned-tps 1 --output text)
   fi
   if [[ "${sims_campaign_arn}" == "" ]]; then
     sims_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
-            --name gcr-rs-${Stage}-news-Sims-campaign \
+            --name gcr-rs-${Stage}-${SCENARIO}-Sims-campaign \
             --solution-version-arn ${sims_solution_version_arn} \
             --min-provisioned-tps 1 --output text)
   fi

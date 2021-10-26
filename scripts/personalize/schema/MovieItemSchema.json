@@ -1,0 +1,47 @@
+{
+  "type": "record",
+  "name": "Items",
+  "namespace": "com.amazonaws.personalize.schema",
+  "fields": [
+    {
+      "name": "ITEM_ID",
+      "type": "string"
+    },
+    {
+      "name": "ITEM_TYPE",
+      "type": "string",
+      "categorical": true
+    },
+    {
+      "name": "RELEASE_YEAR",
+      "type": "string"
+    },
+    {
+      "name": "DIRECTOR",
+      "type": "string"
+    },
+    {
+      "name": "CATEGORY_PROPERTY",
+      "type": "string",
+      "categorical": true
+    },
+    {
+      "name": "LANGUAGE",
+      "type": "string",
+      "categorical": true
+    },
+    {
+      "name": "TICKET_NUM",
+      "type": "long"
+    },
+    {
+      "name": "SCORE",
+      "type": "double"
+    },
+    {
+      "name": "LEVEL",
+      "type": "string"
+    }
+  ],
+  "version": "1.0"
+}
