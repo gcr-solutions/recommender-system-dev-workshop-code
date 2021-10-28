@@ -25,11 +25,7 @@ fi
 
 
 if [[ "${SCENARIO}" == "news" ]];then
-  Scenario='News'
-elif [[ "${SCENARIO}" == "movie" ]]; then
-  Scenario='Movie'
-else
-  Scenario='News'
+  SCENARIO='News'
 fi
 
 
@@ -54,7 +50,7 @@ PREFIX=sample-data-${SCENARIO}
 
 echo "Stage=$Stage"
 echo "REGION=$REGION"
-echo "Scenario=$Scenario"
+echo "SCENARIO=$SCENARIO"
 echo "METHOD=$METHOD"
 echo "BUCKET=${BUCKET_BUILD}"
 echo "Prefix=${PREFIX}"
@@ -73,11 +69,11 @@ echo "Check if your personalize role arn is equal to the PERSONALIZE_ROLE_BUILD.
 
 
 #create dataset group
-datasetGroupArn=$($AWS_CMD personalize list-dataset-groups --region $REGION | jq '.[][] | select(.name=="GCR-RS-'${Scenario}'-Dataset-Group")' | jq '.datasetGroupArn' -r)
+datasetGroupArn=$($AWS_CMD personalize list-dataset-groups --region $REGION | jq '.[][] | select(.name=="GCR-RS-'${SCENARIO}'-Dataset-Group")' | jq '.datasetGroupArn' -r)
 if [[ "${datasetGroupArn}" != "" ]]; then
   echo "Dataset Group Already Exist"
 else
-  datasetGroupArn=$($AWS_CMD personalize create-dataset-group --region $REGION --name GCR-RS-${Scenario}-Dataset-Group --output text)
+  datasetGroupArn=$($AWS_CMD personalize create-dataset-group --region $REGION --name GCR-RS-${SCENARIO}-Dataset-Group --output text)
 
   #monitor dataset group
   echo "Dataset Group Creating... It will takes no longer than 5 min..."
@@ -121,25 +117,25 @@ echo "------------------------------------------------"
 
 #create schema
 echo "creating Schema..."
-user_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="'${Scenario}'UserSchema")' | jq '.schemaArn' -r)
+user_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="'${SCENARIO}'UserSchema")' | jq '.schemaArn' -r)
 if [[ "${user_schema_arn}" == "" ]]; then
   user_schema_arn=$($AWS_CMD personalize create-schema --region $REGION \
-    --name ${Scenario}UserSchema \
-    --schema file://./schema/${Scenario}UserSchema.json --output text)
+    --name ${SCENARIO}UserSchema \
+    --schema file://./schema/${SCENARIO}UserSchema.json --output text)
 fi
 
-item_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="'${Scenario}'ItemSchema")' | jq '.schemaArn' -r)
+item_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="'${SCENARIO}'ItemSchema")' | jq '.schemaArn' -r)
 if [[ "${item_schema_arn}" == "" ]]; then
   item_schema_arn=$($AWS_CMD personalize create-schema --region $REGION \
-    --name ${Scenario}ItemSchema \
-    --schema file://./schema/${Scenario}ItemSchema.json --output text)
+    --name ${SCENARIO}ItemSchema \
+    --schema file://./schema/${SCENARIO}ItemSchema.json --output text)
 fi
 
-interaction_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="'${Scenario}'InteractionSchema")' | jq '.schemaArn' -r)
+interaction_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="'${SCENARIO}'InteractionSchema")' | jq '.schemaArn' -r)
 if [[ "${interaction_schema_arn}" == "" ]]; then
   interaction_schema_arn=$($AWS_CMD personalize create-schema --region $REGION \
-    --name ${Scenario}InteractionSchema \
-    --schema file://./schema/${Scenario}InteractionSchema.json --output text)
+    --name ${SCENARIO}InteractionSchema \
+    --schema file://./schema/${SCENARIO}InteractionSchema.json --output text)
 fi
 
 
@@ -149,30 +145,30 @@ echo "------------------------------------------------"
 #create dataset
 echo "create dataset..."
 user_dataset_arn=$($AWS_CMD personalize list-datasets --region $REGION --dataset-group-arn $datasetGroupArn | jq \
-                                            '.datasets[] | select(.name=="'${Scenario}'UserDataset")' | jq '.datasetArn' -r)
+                                            '.datasets[] | select(.name=="'${SCENARIO}'UserDataset")' | jq '.datasetArn' -r)
 if [[ "${user_dataset_arn}" == "" ]]; then
   user_dataset_arn=$($AWS_CMD personalize create-dataset --region $REGION \
-    --name ${Scenario}UserDataset \
+    --name ${SCENARIO}UserDataset \
     --dataset-group-arn ${datasetGroupArn} \
     --dataset-type Users \
     --schema-arn ${user_schema_arn} --output text)
 fi
 
 item_dataset_arn=$($AWS_CMD personalize list-datasets --region $REGION --dataset-group-arn $datasetGroupArn | jq \
-                                            '.datasets[] | select(.name=="'${Scenario}'ItemDataset")' | jq '.datasetArn' -r)
+                                            '.datasets[] | select(.name=="'${SCENARIO}'ItemDataset")' | jq '.datasetArn' -r)
 if [[ "${item_dataset_arn}" == "" ]]; then
   item_dataset_arn=$($AWS_CMD personalize create-dataset --region $REGION \
-    --name ${Scenario}ItemDataset \
+    --name ${SCENARIO}ItemDataset \
     --dataset-group-arn ${datasetGroupArn} \
     --dataset-type Items \
     --schema-arn ${item_schema_arn} --output text)
 fi
 
 interaction_dataset_arn=$($AWS_CMD personalize list-datasets --region $REGION --dataset-group-arn $datasetGroupArn | jq \
-                                            '.datasets[] | select(.name=="'${Scenario}'InteractionDataset")' | jq '.datasetArn' -r)
+                                            '.datasets[] | select(.name=="'${SCENARIO}'InteractionDataset")' | jq '.datasetArn' -r)
 if [[ "${interaction_dataset_arn}" == "" ]]; then
   interaction_dataset_arn=$($AWS_CMD personalize create-dataset --region $REGION \
-    --name ${Scenario}InteractionDataset \
+    --name ${SCENARIO}InteractionDataset \
     --dataset-group-arn ${datasetGroupArn} \
     --dataset-type Interactions \
     --schema-arn ${interaction_schema_arn} --output text)
@@ -223,10 +219,10 @@ echo "------------------------------------------------"
 #create import job
 echo "create dataset import job..."
 user_dataset_import_job_arn=$($AWS_CMD personalize list-dataset-import-jobs --region $REGION --dataset-arn $user_dataset_arn \
-                                      | jq '.datasetImportJobs[] | select(.jobName=="'${Scenario}'UserImportJob")' | jq '.datasetImportJobArn' -r)
+                                      | jq '.datasetImportJobs[] | select(.jobName=="'${SCENARIO}'UserImportJob")' | jq '.datasetImportJobArn' -r)
 if [[ "${user_dataset_import_job_arn}" == "" ]]; then
   user_dataset_import_job_arn=$($AWS_CMD personalize create-dataset-import-job --region $REGION \
-    --job-name ${Scenario}UserImportJob \
+    --job-name ${SCENARIO}UserImportJob \
     --dataset-arn ${user_dataset_arn} \
     --data-source dataLocation=s3://${BUCKET_BUILD}/${PREFIX}/system/ps-ingest-data/user/ps_user.csv \
     --role-arn ${PERSONALIZE_ROLE_BUILD} \
@@ -234,10 +230,10 @@ if [[ "${user_dataset_import_job_arn}" == "" ]]; then
 fi
 
 item_dataset_import_job_arn=$($AWS_CMD personalize list-dataset-import-jobs --region $REGION --dataset-arn $item_dataset_arn \
-                                      | jq '.datasetImportJobs[] | select(.jobName=="'${Scenario}'ItemImportJob")' | jq '.datasetImportJobArn' -r)
+                                      | jq '.datasetImportJobs[] | select(.jobName=="'${SCENARIO}'ItemImportJob")' | jq '.datasetImportJobArn' -r)
 if [[ "${item_dataset_import_job_arn}" == "" ]]; then
   item_dataset_import_job_arn=$($AWS_CMD personalize create-dataset-import-job --region $REGION \
-    --job-name ${Scenario}ItemImportJob \
+    --job-name ${SCENARIO}ItemImportJob \
     --dataset-arn ${item_dataset_arn} \
     --data-source dataLocation=s3://${BUCKET_BUILD}/${PREFIX}/system/ps-ingest-data/item/ps_item.csv \
     --role-arn ${PERSONALIZE_ROLE_BUILD} \
@@ -245,10 +241,10 @@ if [[ "${item_dataset_import_job_arn}" == "" ]]; then
 fi
 
 interaction_dataset_import_job_arn=$($AWS_CMD personalize list-dataset-import-jobs --region $REGION --dataset-arn $interaction_dataset_arn \
-                                      | jq '.datasetImportJobs[] | select(.jobName=="'${Scenario}'InteractionImportJob")' | jq '.datasetImportJobArn' -r)
+                                      | jq '.datasetImportJobs[] | select(.jobName=="'${SCENARIO}'InteractionImportJob")' | jq '.datasetImportJobArn' -r)
 if [[ "${interaction_dataset_import_job_arn}" == "" ]]; then
   interaction_dataset_import_job_arn=$($AWS_CMD personalize create-dataset-import-job --region $REGION \
-    --job-name ${Scenario}InteractionImportJob \
+    --job-name ${SCENARIO}InteractionImportJob \
     --dataset-arn ${interaction_dataset_arn} \
     --data-source dataLocation=s3://${BUCKET_BUILD}/${PREFIX}/system/ps-ingest-data/action/ps_action.csv \
     --role-arn ${PERSONALIZE_ROLE_BUILD} \
@@ -589,10 +585,10 @@ fi
 
 # create event tracker
 eventTrackerArn=$($AWS_CMD personalize list-event-trackers --region $REGION --dataset-group-arn $datasetGroupArn | \
-                    jq '.eventTrackers[] | select(.name=="'${Scenario}'EventTracker")' | jq '.eventTrackerArn' -r)
+                    jq '.eventTrackers[] | select(.name=="'${SCENARIO}'EventTracker")' | jq '.eventTrackerArn' -r)
 if [[ "${eventTrackerArn}" == "" ]]; then
   eventTrackerArn=$($AWS_CMD personalize create-event-tracker --region $REGION \
-      --name ${Scenario}EventTracker \
+      --name ${SCENARIO}EventTracker \
       --dataset-group-arn ${datasetGroupArn} | jq '.eventTrackerArn' -r)
 fi
 
@@ -796,10 +792,10 @@ fi
 echo "Update ps_config.json ..."
 config_file_path="./ps_config.json"
 if [[ $REGION =~ cn.* ]];then
-  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g;s|__SCENARIO__|$SCENARIO|g;s|__Scenario__|$Scenario|g" \
+  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g;s|__SCENARIO__|$SCENARIO|g;s|__SCENARIO__|$SCENARIO|g" \
               ./ps_config_template-cn.json > ${config_file_path}
 else
-  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g;s|__SCENARIO__|$SCENARIO|g;s|__Scenario__|$Scenario|g" \
+  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g;s|__SCENARIO__|$SCENARIO|g;s|__SCENARIO__|$SCENARIO|g" \
             ./ps_config_template.json > ${config_file_path}
 fi
 

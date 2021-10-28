@@ -333,17 +333,31 @@ def send_event_to_default(data):
 
 def send_event_to_personalize(data):
     logging.info("Start to load data into AWS Personalize")
-    for item_id in data['clicked_item_ids']:
-        personalize_events.put_events(
-            trackingId=ps_config['EventTrackerId'],
-            userId=data['user_id'],
-            sessionId=data['user_id'],
-            eventList=[{
-                'sentAt': int(time.time()),
-                'itemId': item_id,
-                'eventType': ps_config['EventType']
-            }]
-        )
+    if MANDATORY_ENV_VARS['SCENARIO'] == 'news':
+        for item_id in data['clicked_item_ids']:
+            personalize_events.put_events(
+                trackingId=ps_config['EventTrackerId'],
+                userId=data['user_id'],
+                sessionId=data['user_id'],
+                eventList=[{
+                    'sentAt': int(time.time()),
+                    'itemId': item_id,
+                    'eventType': ps_config['EventType']
+                }]
+            )
+    elif MANDATORY_ENV_VARS['SCENARIO'] == 'movie':
+        for item_id in data['clicked_item_ids']:
+            personalize_events.put_events(
+                trackingId=ps_config['EventTrackerId'],
+                userId=data['user_id'],
+                sessionId=data['user_id'],
+                eventList=[{
+                    'sentAt': int(time.time()),
+                    'itemId': item_id,
+                    'eventType': '1',
+
+                }]
+            )
     return "OK"
 
 

@@ -45,6 +45,10 @@ elif [ $input = "deploy-method" ];
 then
     echo "start deploy method $2"
     ./create-personalize-part.sh $2
+elif [ $input = "change-method" ];
+then
+    echo "start change method $2"
+    ./change-method.sh $2
 elif [ $input = "clean-offline" ];
 then
     echo "start clean offline"

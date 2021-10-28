@@ -77,17 +77,17 @@ then
   aws s3 cp ${config_file_path} s3://${BUCKET_BUILD}/${PREFIX}/notification/ps-result/ps_config.json
   
   echo "------notice online part-------"
-  dns_name=$(kubectl get svc istio-ingressgateway-news-dev -n istio-system -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+  dns_name=$(kubectl get svc istio-ingressgateway-${SCENARIO}-dev -n istio-system -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
   if [[ $REGION =~ cn.* ]];then
     dns_name=$dns_name:22
   fi
-  curl -X POST -d '{"message": {"file_type": "ps-result","file_path": "sample-data-news/notification/ps-result/","file_name": ["ps_config.json"]}}' -H "Content-Type:application/json" http://${dns_name}/loader/notice
-  curl -X POST -d '{"message": {"file_type": "ps-sims-dict","file_path": "sample-data-news/notification/ps-sims-dict/","file_name": ["ps-sims-batch.out"]}}' -H "Content-Type:application/json" http://$dns_name/loader/notice
+  curl -X POST -d '{"message": {"file_type": "ps-result","file_path": "sample-data-'${SCENARIO}'/notification/ps-result/","file_name": ["ps_config.json"]}}' -H "Content-Type:application/json" http://${dns_name}/loader/notice
+  curl -X POST -d '{"message": {"file_type": "ps-sims-dict","file_path": "sample-data-'${SCENARIO}'/notification/ps-sims-dict/","file_name": ["ps-sims-batch.out"]}}' -H "Content-Type:application/json" http://$dns_name/loader/notice
 fi
 
 
 echo "------update config.yaml file------"
-env_config_path=${curr_dir}/../manifests/envs/news-dev/config.yaml
+env_config_path=${curr_dir}/../manifests/envs/${SCENARIO}-dev/config.yaml
 old_method=$(awk -F "\"" '/method/{print $2}' $env_config_path)
 echo "change old method: ${old_method} to new method: ${method}"
 sed -e "s@$old_method@$method@g" -i $env_config_path

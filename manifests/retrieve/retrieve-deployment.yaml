@@ -54,11 +54,11 @@ spec:
             containerPort: 50051
         resources:
           requests:
-            cpu: 6000m
-            memory: 4096Mi
+            cpu: 3000m
+            memory: 2048Mi
           limits:
-            cpu: 8000m
-            memory: 8192Mi
+            cpu: 4000m
+            memory: 4096Mi
         env:
           - name: LOCAL_DATA_FOLDER
             value: $(LOCAL_DATA_FOLDER)

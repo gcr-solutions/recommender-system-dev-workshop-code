@@ -7,13 +7,13 @@ if [[ -z $SCENARIO ]]; then
   SCENARIO='news'
 fi
 
-existed_personalize=$(aws personalize list-dataset-groups | jq '.[][] | select(.name=="GCR-RS-News-Dataset-Group")')
+existed_personalize=$(aws personalize list-dataset-groups | jq '.[][] | select(.name=="GCR-RS-'${SCENARIO}'-Dataset-Group")')
 if [[ "${existed_personalize}" != "" ]]; then
   echo "################ start clean personalize resources ################ "
   echo "you can run the following command to check the personalize deleting status"
   echo "tail -f ~/personalize-log/clean-personalize.log "
   cd ${curr_dir}/personalize
-  nohup ./clean-personalize.sh >> ~/personalize-log/clean-personalize.log 2>&1 &
+  nohup ./clean-personalize.sh ${SCENARIO} >> ~/personalize-log/clean-personalize.log 2>&1 &
   cd ${curr_dir}
   echo ""
 fi

@@ -5,7 +5,6 @@ curr_dir=$(pwd)
 
 echo "==============Clean Personalize======================"
 
-Stage=$1
 if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
@@ -19,7 +18,7 @@ if [[ -z $REGION ]];then
     REGION='ap-northeast-1'
 fi
 
-SCENARIO=$2
+SCENARIO=$1
 
 if [[ -z $SCENARIO ]];then
     SCENARIO='News'
