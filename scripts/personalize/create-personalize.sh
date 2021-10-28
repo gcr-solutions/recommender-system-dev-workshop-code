@@ -23,7 +23,6 @@ if [[ -z $REGION ]];then
     REGION='ap-northeast-1'
 fi
 
-SCENARIO=$3
 
 if [[ "${SCENARIO}" == "news" ]];then
   Scenario='News'
@@ -66,7 +65,7 @@ if [[ "${METHOD}" != "ps-complete" && "${METHOD}" != "ps-rank" && "${METHOD}" !=
 fi
 
 echo "--------start creating personalize role ----------"
-./create-personalize-role.sh $Stage
+./create-personalize-role.sh $SCENARIO
 
 PERSONALIZE_ROLE_BUILD=arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-personalize-role-${REGION}
 echo "PERSONALIZE_ROLE_BUILD=${PERSONALIZE_ROLE_BUILD}"
@@ -74,7 +73,7 @@ echo "Check if your personalize role arn is equal to the PERSONALIZE_ROLE_BUILD.
 
 
 #create dataset group
-datasetGroupArn=$($AWS_CMD personalize list-dataset-groups --region $REGION | jq '.[][] | select(.name=="GCR-RS-News-Dataset-Group")' | jq '.datasetGroupArn' -r)
+datasetGroupArn=$($AWS_CMD personalize list-dataset-groups --region $REGION | jq '.[][] | select(.name=="GCR-RS-'${Scenario}'-Dataset-Group")' | jq '.datasetGroupArn' -r)
 if [[ "${datasetGroupArn}" != "" ]]; then
   echo "Dataset Group Already Exist"
 else
@@ -122,21 +121,21 @@ echo "------------------------------------------------"
 
 #create schema
 echo "creating Schema..."
-user_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="NewsUserSchema")' | jq '.schemaArn' -r)
+user_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="'${Scenario}'UserSchema")' | jq '.schemaArn' -r)
 if [[ "${user_schema_arn}" == "" ]]; then
   user_schema_arn=$($AWS_CMD personalize create-schema --region $REGION \
     --name ${Scenario}UserSchema \
     --schema file://./schema/${Scenario}UserSchema.json --output text)
 fi
 
-item_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="NewsItemSchema")' | jq '.schemaArn' -r)
+item_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="'${Scenario}'ItemSchema")' | jq '.schemaArn' -r)
 if [[ "${item_schema_arn}" == "" ]]; then
   item_schema_arn=$($AWS_CMD personalize create-schema --region $REGION \
     --name ${Scenario}ItemSchema \
     --schema file://./schema/${Scenario}ItemSchema.json --output text)
 fi
 
-interaction_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="NewsInteractionSchema")' | jq '.schemaArn' -r)
+interaction_schema_arn=$($AWS_CMD personalize list-schemas --region $REGION | jq '.[][] | select(.name=="'${Scenario}'InteractionSchema")' | jq '.schemaArn' -r)
 if [[ "${interaction_schema_arn}" == "" ]]; then
   interaction_schema_arn=$($AWS_CMD personalize create-schema --region $REGION \
     --name ${Scenario}InteractionSchema \
@@ -150,7 +149,7 @@ echo "------------------------------------------------"
 #create dataset
 echo "create dataset..."
 user_dataset_arn=$($AWS_CMD personalize list-datasets --region $REGION --dataset-group-arn $datasetGroupArn | jq \
-                                            '.datasets[] | select(.name=="NewsUserDataset")' | jq '.datasetArn' -r)
+                                            '.datasets[] | select(.name=="'${Scenario}'UserDataset")' | jq '.datasetArn' -r)
 if [[ "${user_dataset_arn}" == "" ]]; then
   user_dataset_arn=$($AWS_CMD personalize create-dataset --region $REGION \
     --name ${Scenario}UserDataset \
@@ -160,7 +159,7 @@ if [[ "${user_dataset_arn}" == "" ]]; then
 fi
 
 item_dataset_arn=$($AWS_CMD personalize list-datasets --region $REGION --dataset-group-arn $datasetGroupArn | jq \
-                                            '.datasets[] | select(.name=="NewsItemDataset")' | jq '.datasetArn' -r)
+                                            '.datasets[] | select(.name=="'${Scenario}'ItemDataset")' | jq '.datasetArn' -r)
 if [[ "${item_dataset_arn}" == "" ]]; then
   item_dataset_arn=$($AWS_CMD personalize create-dataset --region $REGION \
     --name ${Scenario}ItemDataset \
@@ -170,7 +169,7 @@ if [[ "${item_dataset_arn}" == "" ]]; then
 fi
 
 interaction_dataset_arn=$($AWS_CMD personalize list-datasets --region $REGION --dataset-group-arn $datasetGroupArn | jq \
-                                            '.datasets[] | select(.name=="NewsInteractionDataset")' | jq '.datasetArn' -r)
+                                            '.datasets[] | select(.name=="'${Scenario}'InteractionDataset")' | jq '.datasetArn' -r)
 if [[ "${interaction_dataset_arn}" == "" ]]; then
   interaction_dataset_arn=$($AWS_CMD personalize create-dataset --region $REGION \
     --name ${Scenario}InteractionDataset \
@@ -224,7 +223,7 @@ echo "------------------------------------------------"
 #create import job
 echo "create dataset import job..."
 user_dataset_import_job_arn=$($AWS_CMD personalize list-dataset-import-jobs --region $REGION --dataset-arn $user_dataset_arn \
-                                      | jq '.datasetImportJobs[] | select(.jobName=="NewsUserImportJob")' | jq '.datasetImportJobArn' -r)
+                                      | jq '.datasetImportJobs[] | select(.jobName=="'${Scenario}'UserImportJob")' | jq '.datasetImportJobArn' -r)
 if [[ "${user_dataset_import_job_arn}" == "" ]]; then
   user_dataset_import_job_arn=$($AWS_CMD personalize create-dataset-import-job --region $REGION \
     --job-name ${Scenario}UserImportJob \
@@ -235,7 +234,7 @@ if [[ "${user_dataset_import_job_arn}" == "" ]]; then
 fi
 
 item_dataset_import_job_arn=$($AWS_CMD personalize list-dataset-import-jobs --region $REGION --dataset-arn $item_dataset_arn \
-                                      | jq '.datasetImportJobs[] | select(.jobName=="NewsItemImportJob")' | jq '.datasetImportJobArn' -r)
+                                      | jq '.datasetImportJobs[] | select(.jobName=="'${Scenario}'ItemImportJob")' | jq '.datasetImportJobArn' -r)
 if [[ "${item_dataset_import_job_arn}" == "" ]]; then
   item_dataset_import_job_arn=$($AWS_CMD personalize create-dataset-import-job --region $REGION \
     --job-name ${Scenario}ItemImportJob \
@@ -246,7 +245,7 @@ if [[ "${item_dataset_import_job_arn}" == "" ]]; then
 fi
 
 interaction_dataset_import_job_arn=$($AWS_CMD personalize list-dataset-import-jobs --region $REGION --dataset-arn $interaction_dataset_arn \
-                                      | jq '.datasetImportJobs[] | select(.jobName=="NewsInteractionImportJob")' | jq '.datasetImportJobArn' -r)
+                                      | jq '.datasetImportJobs[] | select(.jobName=="'${Scenario}'InteractionImportJob")' | jq '.datasetImportJobArn' -r)
 if [[ "${interaction_dataset_import_job_arn}" == "" ]]; then
   interaction_dataset_import_job_arn=$($AWS_CMD personalize create-dataset-import-job --region $REGION \
     --job-name ${Scenario}InteractionImportJob \
@@ -590,7 +589,7 @@ fi
 
 # create event tracker
 eventTrackerArn=$($AWS_CMD personalize list-event-trackers --region $REGION --dataset-group-arn $datasetGroupArn | \
-                    jq '.eventTrackers[] | select(.name=="NewsEventTracker")' | jq '.eventTrackerArn' -r)
+                    jq '.eventTrackers[] | select(.name=="'${Scenario}'EventTracker")' | jq '.eventTrackerArn' -r)
 if [[ "${eventTrackerArn}" == "" ]]; then
   eventTrackerArn=$($AWS_CMD personalize create-event-tracker --region $REGION \
       --name ${Scenario}EventTracker \
@@ -626,7 +625,7 @@ fi
 #create campaign
 if [[ $METHOD == "ps-complete" ]]; then
   userPersonalize_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $userPersonalize_solution_arn | \
-                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-'${SCENARIO}'-UserPersonalize-campaign")' | \
                                 jq '.campaignArn' -r)
   if [[ "${userPersonalize_campaign_arn}" == "" ]]; then
     userPersonalize_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
@@ -636,7 +635,7 @@ if [[ $METHOD == "ps-complete" ]]; then
   fi
 elif [[ $METHOD == "ps-rank" ]]; then
   ranking_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $ranking_solution_arn | \
-                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-Ranking-campaign")' | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-'${SCENARIO}'-Ranking-campaign")' | \
                                 jq '.campaignArn' -r)
   if [[ "${ranking_campaign_arn}" == "" ]]; then
     ranking_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
@@ -646,7 +645,7 @@ elif [[ $METHOD == "ps-rank" ]]; then
   fi
 elif [[ $METHOD == "ps-sims" ]]; then
   sims_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $sims_solution_arn | \
-                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-Sims-campaign")' | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-'${SCENARIO}'-Sims-campaign")' | \
                                 jq '.campaignArn' -r)
   if [[ "${sims_campaign_arn}" == "" ]]; then
     sims_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \
@@ -656,13 +655,13 @@ elif [[ $METHOD == "ps-sims" ]]; then
   fi
 else
   userPersonalize_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $userPersonalize_solution_arn | \
-                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-UserPersonalize-campaign")' | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-'${SCENARIO}'-UserPersonalize-campaign")' | \
                                 jq '.campaignArn' -r)
   ranking_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $ranking_solution_arn | \
-                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-Ranking-campaign")' | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-'${SCENARIO}'-Ranking-campaign")' | \
                                 jq '.campaignArn' -r)
   sims_campaign_arn=$($AWS_CMD personalize list-campaigns --region $REGION --solution-arn $sims_solution_arn | \
-                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-news-Sims-campaign")' | \
+                                jq '.campaigns[] | select(.name=="gcr-rs-dev-workshop-'${SCENARIO}'-Sims-campaign")' | \
                                 jq '.campaignArn' -r)
   if [[ "${userPersonalize_campaign_arn}" == "" ]]; then
     userPersonalize_campaign_arn=$($AWS_CMD personalize create-campaign --region $REGION \

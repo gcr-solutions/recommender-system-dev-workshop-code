@@ -9,13 +9,9 @@ if [[ -z $METHOD ]];then
   METHOD='customize'
 fi
 
-Stage=$2
-
 if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
-
-SCENARIO=$3
 
 if [[ -z $SCENARIO ]];then
   SCENARIO='news'
@@ -53,7 +49,7 @@ else
   echo "Save logs in ~/personalize-log"
   mkdir ~/personalize-log
 fi
-nohup ./create-personalize.sh $METHOD >> ~/personalize-log/create-personalize.log 2>&1 &
+nohup ./create-personalize.sh $METHOD $Stage >> ~/personalize-log/create-personalize.log 2>&1 &
 echo "you can run the following command to check the personalize creating status"
 echo "tail -f ~/personalize-log/create-personalize.log "
 cd ${curr_dir}

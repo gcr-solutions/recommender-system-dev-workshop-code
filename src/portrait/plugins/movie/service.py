@@ -136,8 +136,14 @@ class Portrait(service_pb2_grpc.PortraitServicer):
                     logging.info('reload_action_model model_path {}'.format(model_path))
                     # set_session(sess)
                     # clear_session()
-                    self.user_embedding_model = load_model(model_path, custom_objects)
-                    # self.reload_model(model_path)
+                    reload_time = 0
+                    while (self.user_embedding_model is None):
+                        try:
+                            self.user_embedding_model = load_model(model_path, custom_objects)
+                        except:
+                            logging.info("load_model failed, reload again. reload {} times".format(reload_time))
+                            reload_time += 1
+                        time.sleep(1)
                 else:
                     logging.info('model file is empty')
 

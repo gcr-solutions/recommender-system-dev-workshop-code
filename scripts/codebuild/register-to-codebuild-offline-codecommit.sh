@@ -20,7 +20,6 @@ if [[ -z $METHOD ]];then
   METHOD="customize"
 fi
 
-SCENARIO=$4
 if [[ -z $SCENARIO ]];then
   SCENARIO="news"
 fi

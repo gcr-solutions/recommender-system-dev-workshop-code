@@ -41,6 +41,10 @@ elif [ $input = "get-endpoint" ];
 then
     echo "start get endpoint"
     ./get-ingressgateway-elb-endpoint.sh
+elif [ $input = "deploy-method" ];
+then
+    echo "start deploy method $2"
+    ./create-personalize-part.sh $2
 elif [ $input = "clean-offline" ];
 then
     echo "start clean offline"
