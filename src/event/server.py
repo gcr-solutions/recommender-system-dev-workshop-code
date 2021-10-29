@@ -333,31 +333,17 @@ def send_event_to_default(data):
 
 def send_event_to_personalize(data):
     logging.info("Start to load data into AWS Personalize")
-    if MANDATORY_ENV_VARS['SCENARIO'] == 'news':
-        for item_id in data['clicked_item_ids']:
-            personalize_events.put_events(
-                trackingId=ps_config['EventTrackerId'],
-                userId=data['user_id'],
-                sessionId=data['user_id'],
-                eventList=[{
-                    'sentAt': int(time.time()),
-                    'itemId': item_id,
-                    'eventType': ps_config['EventType']
-                }]
-            )
-    elif MANDATORY_ENV_VARS['SCENARIO'] == 'movie':
-        for item_id in data['clicked_item_ids']:
-            personalize_events.put_events(
-                trackingId=ps_config['EventTrackerId'],
-                userId=data['user_id'],
-                sessionId=data['user_id'],
-                eventList=[{
-                    'sentAt': int(time.time()),
-                    'itemId': item_id,
-                    'eventType': '1',
-
-                }]
-            )
+    for item_id in data['clicked_item_ids']:
+        personalize_events.put_events(
+            trackingId=ps_config['EventTrackerId'],
+            userId=data['user_id'],
+            sessionId=data['user_id'],
+            eventList=[{
+                'sentAt': int(time.time()),
+                'itemId': item_id,
+                'eventType': ps_config['EventType']
+            }]
+        )
     return "OK"
 
 
@@ -372,6 +358,10 @@ def load_config(file):
         return dict
     else:
         return {}
+
+def read_stream_messages():
+    logging.info('read_stream_messages start')
+    read_ps_config_message()
 
 @xasync
 def read_ps_config_message():
@@ -510,6 +500,8 @@ def init():
     ps_config = load_config(MANDATORY_ENV_VARS['PS_CONFIG'])
     global personalize_events
     personalize_events = boto3.client(service_name='personalize-events', region_name=MANDATORY_ENV_VARS['AWS_REGION'])
+
+    read_stream_messages()
 
 
 def get_step_funcs_name():

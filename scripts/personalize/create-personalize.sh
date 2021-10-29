@@ -24,7 +24,7 @@ if [[ -z $REGION ]];then
 fi
 
 
-if [[ "${SCENARIO}" == "news" ]];then
+if [[ -z $SCENARIO ]];then
   SCENARIO='News'
 fi
 
@@ -61,7 +61,7 @@ if [[ "${METHOD}" != "ps-complete" && "${METHOD}" != "ps-rank" && "${METHOD}" !=
 fi
 
 echo "--------start creating personalize role ----------"
-./create-personalize-role.sh $SCENARIO
+./create-personalize-role.sh $Stage
 
 PERSONALIZE_ROLE_BUILD=arn:${AWS_P}:iam::${AWS_ACCOUNT_ID}:role/gcr-rs-personalize-role-${REGION}
 echo "PERSONALIZE_ROLE_BUILD=${PERSONALIZE_ROLE_BUILD}"
@@ -792,10 +792,10 @@ fi
 echo "Update ps_config.json ..."
 config_file_path="./ps_config.json"
 if [[ $REGION =~ cn.* ]];then
-  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g;s|__SCENARIO__|$SCENARIO|g;s|__SCENARIO__|$SCENARIO|g" \
+  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g;s|__SCENARIO__|$SCENARIO|g" \
               ./ps_config_template-cn.json > ${config_file_path}
 else
-  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g;s|__SCENARIO__|$SCENARIO|g;s|__SCENARIO__|$SCENARIO|g" \
+  sed -e "s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g;s|__SCENARIO__|$SCENARIO|g" \
             ./ps_config_template.json > ${config_file_path}
 fi
 

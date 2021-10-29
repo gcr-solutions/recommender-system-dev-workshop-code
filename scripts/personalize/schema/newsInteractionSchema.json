@@ -12,16 +12,12 @@
           "type": "string"
       },
       {
-          "name": "EVENT_TYPE",
-          "type": "string"
-      },
-      {
-          "name": "EVENT_VALUE",
-          "type": "float"
-      },
-      {
           "name": "TIMESTAMP",
           "type": "long"
+      },
+      {
+          "name": "EVENT_TYPE",
+          "type": "string"
       }
   ],
   "version": "1.0"

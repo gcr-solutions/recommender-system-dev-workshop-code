@@ -18,10 +18,8 @@ if [[ -z $REGION ]];then
     REGION='ap-northeast-1'
 fi
 
-SCENARIO=$1
-
 if [[ -z $SCENARIO ]];then
-    SCENARIO='News'
+    SCENARIO='news'
 fi
 
 echo "Stage=$Stage"
