@@ -369,7 +369,7 @@ class Rank(service_pb2_grpc.RankServicer):
             else:
                 rank_result[rank_item['itemId']] = 0
 
-        rank_summary = {'model': 'ps-rank', 'data': rank_result}
+        rank_summary = {'model': 'ps-rank', 'data': {str(user_id): rank_result}}
         return rank_summary
 
     def generate_rank_result(self, mk_test_data):
