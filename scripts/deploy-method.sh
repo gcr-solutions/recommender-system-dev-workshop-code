@@ -39,22 +39,23 @@ echo "SCENARIO: ${SCENARIO}"
 echo "REGION: ${REGION}"
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
-
-echo "====================Create Personalize Service==============================="
-cd ${curr_dir}/personalize
-if [[ -d ~/personalize-log ]]; then
-  echo "Save logs in ~/personalize-log"
-  echo "directory already exist"
-else
-  echo "Save logs in ~/personalize-log"
-  mkdir ~/personalize-log
+if [[ "$METHOD" == "ps-complete" || "$METHOD" == "ps-rank" || "$METHOD" == "ps-sims" ]]; then
+  echo "====================Create Personalize Service==============================="
+  cd ${curr_dir}/personalize
+  if [[ -d ~/personalize-log ]]; then
+    echo "Save logs in ~/personalize-log"
+    echo "directory already exist"
+  else
+    echo "Save logs in ~/personalize-log"
+    mkdir ~/personalize-log
+  fi
+  nohup ./create-personalize.sh $METHOD $Stage >> ~/personalize-log/create-personalize.log 2>&1 &
+  echo "you can run the following command to check the personalize creating status"
+  echo "tail -f ~/personalize-log/create-personalize.log "
+  cd ${curr_dir}
 fi
-nohup ./create-personalize.sh $METHOD $Stage >> ~/personalize-log/create-personalize.log 2>&1 &
-echo "you can run the following command to check the personalize creating status"
-echo "tail -f ~/personalize-log/create-personalize.log "
-cd ${curr_dir}
 
-echo "====================Create Personalize Offline Part==============================="
+echo "====================Create ${METHOD} Offline Part==============================="
 cd ${curr_dir}/codebuild
 ./register-to-codebuild-offline-codecommit.sh $Stage "no" ${METHOD}
 cd ${curr_dir}

@@ -44,7 +44,7 @@ then
 elif [ $input = "deploy-method" ];
 then
     echo "start deploy method $2"
-    ./create-personalize-part.sh $2
+    ./deploy-method.sh $2
 elif [ $input = "change-method" ];
 then
     echo "start change method $2"
