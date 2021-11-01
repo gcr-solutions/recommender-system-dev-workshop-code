@@ -21,15 +21,13 @@ while true; do
 done
 
 cd ../manifests/envs/${SCENARIO}-dev
-cat config-template.yaml | sed 's/REDIS_HOST_PLACEHOLDER/'"$REDIS_ENDPOINT"'/g' > config_1.yaml
 
 echo "REGION: $REGION"
 echo "ACCOUNT_ID: $ACCOUNT_ID"
 
-cat config_1.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > config_2.yaml
-cat config_2.yaml | sed 's/__AWS_ACCOUNT_ID__/'"$ACCOUNT_ID"'/g' >  config.yaml
-rm config_1.yaml
-rm config_2.yaml
+sed -e "s|REDIS_HOST_PLACEHOLDER|$REDIS_ENDPOINT|g;s|__AWS_REGION__|$REGION|g;s|__AWS_ACCOUNT_ID__|$ACCOUNT_ID|g;s|__SCENARIO__|$SCENARIO|g"  \
+            ./config-template.yaml > config.yaml
+
 
 cat config.yaml
 sleep 10

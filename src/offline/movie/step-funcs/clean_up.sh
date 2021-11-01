@@ -39,8 +39,17 @@ echo "REGION: $REGION"
 AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity  --o text | awk '{print $1}')
 echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 
+method_list=(
+    "customize"
+    "ps-complete"
+    "ps-rank"
+    "ps-sims"
+)
+for method in ${method_list[@]};
+do
+  cd ${cur_dir}/${method}
+  ./clean_up.sh
+done
 
-cd ${cur_dir}/${METHOD}
-./clean_up.sh
 cd ${cur_dir}
 
