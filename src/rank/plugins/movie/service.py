@@ -339,14 +339,14 @@ class Rank(service_pb2_grpc.RankServicer):
 
         logging.info("rank result {}".format(rank_result))
 
-        rankProcessResponseValue = {
-            'user_id': user_id,
-            'rank_result': rank_result,
-            'recall_result': recall_result
-        }
+        # rankProcessResponseValue = {
+        #     'user_id': user_id,
+        #     'rank_result': rank_result,
+        #     'recall_result': recall_result
+        # }
 
         rankProcessResponseAny = Any()
-        rankProcessResponseAny.value =  json.dumps(rankProcessResponseValue).encode('utf-8')
+        rankProcessResponseAny.value =  json.dumps(rank_result).encode('utf-8')
         rankProcessResponse = service_pb2.RankProcessResponse(code=0, description='rank process with success')
         rankProcessResponse.results.Pack(rankProcessResponseAny)        
 
@@ -418,7 +418,7 @@ class Rank(service_pb2_grpc.RankServicer):
             sort_id_score_dict = {k: v for k, v in sorted(id_score_dict.items(), key=lambda item: item[1], reverse=True)}
             rank_result[reviewerID] = sort_id_score_dict
 
-        rank_summary = {'model': 'dkn', 'data': rank_result}
+        rank_summary = {'model': 'deepfm', 'data': rank_result}
         return rank_summary
 
 def init():

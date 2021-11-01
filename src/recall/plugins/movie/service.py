@@ -28,7 +28,7 @@ MANDATORY_ENV_VARS = {
 
     'UB_ITEM_VECTOR': 'ub_item_vector.index', 
 
-    'RECALL_CONFIG': 'recall_config.pickle',
+    'RECALL_CONFIG': 'recall_config.json',
 
     'MOVIE_ID_MOVIE_PROPERTY': 'movie_id_movie_property_dict.pickle',
     'MOVIE_ID_MOVIE_CATEGORY': 'movie_category_movie_ids_dict.pickle',
@@ -129,31 +129,31 @@ class Recall(service_pb2_grpc.RecallServicer):
             logging.info('reload_pickle_type pickle_path {}'.format(pickle_path))
             if MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_PROPERTY'] in pickle_path:
                 logging.info('reload movie_id_movie_property_dict file {}'.format(pickle_path))
-                self.movie_id_movie_property_dict = self.load_pickle(pickle_path)
+                self.movie_id_movie_property_dict = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_CATEGORY'] in pickle_path:
                 logging.info('reload movie_id_movie_category_dict file {}'.format(pickle_path))
-                self.movie_id_movie_category_dict = self.load_pickle(pickle_path)
+                self.movie_id_movie_category_dict = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_DIRECTOR'] in pickle_path:
                 logging.info('reload movie_id_movie_director_dict file {}'.format(pickle_path))
-                self.movie_id_movie_director_dict = self.load_pickle(pickle_path)  
+                self.movie_id_movie_director_dict = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_ACTOR'] in pickle_path:
                 logging.info('reload movie_id_movie_actor_dict file {}'.format(pickle_path))
-                self.movie_id_movie_actor_dict = self.load_pickle(pickle_path) 
+                self.movie_id_movie_actor_dict = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_LANGUAGE'] in pickle_path:
                 logging.info('reload movie_id_movie_language_dict file {}'.format(pickle_path))
-                self.movie_id_movie_language_dict = self.load_pickle(pickle_path) 
+                self.movie_id_movie_language_dict = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_LEVEL'] in pickle_path:
                 logging.info('reload movie_id_movie_level_dict file {}'.format(pickle_path))
-                self.movie_id_movie_level_dict = self.load_pickle(pickle_path) 
+                self.movie_id_movie_level_dict = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_YEAR'] in pickle_path:
                 logging.info('reload movie_id_movie_year_dict file {}'.format(pickle_path))
-                self.movie_id_movie_year_dict = self.load_pickle(pickle_path) 
+                self.movie_id_movie_year_dict = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['RECALL_CONFIG'] in pickle_path:
                 logging.info('reload recall_config file {}'.format(pickle_path))
-                self.recall_config = self.load_pickle(pickle_path) 
+                self.recall_config = self.load_pickle_or_json(pickle_path)
             if MANDATORY_ENV_VARS['UB_IDX_MAPPING'] in pickle_path:
                 logging.info('reload ub_idx_mapping file {}'.format(pickle_path))
-                self.ub_idx_mapping = self.load_pickle(pickle_path)                
+                self.ub_idx_mapping = self.load_pickle_or_json(pickle_path)
 
     def reload_embedding_files(self, file_path, file_list):
         logging.info('reload_embedding_files  strat')
@@ -176,16 +176,20 @@ class Recall(service_pb2_grpc.RecallServicer):
                 logging.info('reload ps_sims_batch_result file {}'.format(out_path))
                 self.ps_sims_movie_ids_dict = self.load_out_file(out_path)
 
-    def load_pickle(self, file):
+    def load_pickle_or_json(self, file):
+        logging.info("load_json_or_pickle start load {}".format(file))
         if os.path.isfile(file):
             infile = open(file, 'rb')
-            dict = pickle.load(infile)
+            if file.lower().endswith(".json"):
+                dict = json.load(infile)
+            else:
+                dict = pickle.load(infile)
             infile.close()
+            logging.info("load_json_or_pickle completed, key len:{}".format(len(dict)))
             return dict
         else:
             logging.info('file {} is not existed'.format(file))
             return {}
-
 
     def load_out_file(self, file):
         logging.info("load_out_file start load {}".format(file))
