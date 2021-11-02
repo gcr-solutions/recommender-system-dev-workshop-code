@@ -54,7 +54,7 @@ if [[ $? -ne 0 ]];then
 fi
 
 unzip sample-data-movie.zip > /dev/null
-rm sample-data-movie.zip  sync_data_to_s3.sh
+rm sample-data-movie.zip
 
 echo "$AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/ ..."
 $AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/ --acl public-read > /dev/null
