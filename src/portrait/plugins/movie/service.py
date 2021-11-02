@@ -73,6 +73,7 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         init_model_file_name = [MANDATORY_ENV_VARS['USER_EMBEDDINGS_H5']]
         self.reload_action_model(local_data_folder, init_model_file_name)
 
+
     def reload_pickle_file(self, file_path, file_list):
         logging.info('reload_pickle_file  strat')
         for file_name in file_list:
@@ -137,13 +138,18 @@ class Portrait(service_pb2_grpc.PortraitServicer):
                     # set_session(sess)
                     # clear_session()
                     reload_time = 0
-                    while (self.user_embedding_model is None):
+                    while True:
+                        if reload_time == 5:
+                            logging.info("load_model failed!")
+                            break
                         try:
                             self.user_embedding_model = load_model(model_path, custom_objects)
+                            logging.info("load_model success. reload {} times".format(reload_time))
+                            break
                         except:
                             logging.info("load_model failed, reload again. reload {} times".format(reload_time))
                             reload_time += 1
-                        time.sleep(1)
+                        time.sleep(100)
                 else:
                     logging.info('model file is empty')
 

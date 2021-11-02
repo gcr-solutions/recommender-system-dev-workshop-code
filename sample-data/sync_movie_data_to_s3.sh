@@ -37,7 +37,7 @@ echo "########################################################"
 echo "aws  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/"
 echo "########################################################"
 
-dataUrl=https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/data/sample-data-movie.zip
+dataUrl=https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/develop-movie-data/sample-data-movie.zip
 
 if [[ $REGION =~ cn.* ]];then
   dataUrl=https://aws-gcr-rs-sol-workshop-cn-north-1-common.s3.cn-north-1.amazonaws.com.cn/data/sample-data-movie.zip

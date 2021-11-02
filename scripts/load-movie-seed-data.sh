@@ -15,7 +15,7 @@ echo "endpoint: $dns_name"
 
 #inverted-list
 echo "load pickle data!!"
-curl -X POST -d '{"message": {"file_type": "inverted-list", "file_path": "sample-data-movie/notification/inverted-list/","file_name": ["embed_raw_item_mapping.pickle","embed_raw_user_mapping.pickle","filter_batch_result.pickle","movie_actor_movie_ids_dict.pickle","movie_category_movie_ids_dict.pickle","movie_director_movie_ids_dict.pickle","movie_id_movie_feature_dict.pickle","movie_id_movie_property_dict.pickle","movie_language_movie_ids_dict.pickle","movie_level_movie_ids_dict.pickle","movie_year_movie_ids_dict.pickle","portrait.pickle","rank_batch_result.pickle","raw_embed_item_mapping.pickle","raw_embed_user_mapping.pickle","recall_batch_result.pickle","recall_config.pickle","filter_config.pickle"]}}' -H "Content-Type:application/json" http://$dns_name/loader/notice
+curl -X POST -d '{"message": {"file_type": "inverted-list", "file_path": "sample-data-movie/notification/inverted-list/","file_name": ["embed_raw_item_mapping.pickle","embed_raw_user_mapping.pickle","filter_batch_result.pickle","movie_actor_movie_ids_dict.pickle","movie_category_movie_ids_dict.pickle","movie_director_movie_ids_dict.pickle","movie_id_movie_feature_dict.pickle","movie_id_movie_property_dict.pickle","movie_language_movie_ids_dict.pickle","movie_level_movie_ids_dict.pickle","movie_year_movie_ids_dict.pickle","portrait.pickle","rank_batch_result.pickle","raw_embed_item_mapping.pickle","raw_embed_user_mapping.pickle","recall_batch_result.pickle","recall_config.json","filter_config.pickle"]}}' -H "Content-Type:application/json" http://$dns_name/loader/notice
 
 # action-model
 echo -e "\nload model data!!"
