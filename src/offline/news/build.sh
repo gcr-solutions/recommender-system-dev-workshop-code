@@ -53,6 +53,7 @@ model-update-action
 dashboard
 action-preprocessing
 user-preprocessing
+batch-preprocessing
 add-user-batch
 portrait-batch
 recall-batch
