@@ -35,8 +35,8 @@ Resources:
               - Effect: Allow
                 Action: "s3:*"
                 Resource:
-                  - "arn:aws:s3:::aws-gcr-rs-sol-__Stage__-__REGION__-__AccountID__"
-                  - "arn:aws:s3:::aws-gcr-rs-sol-__Stage__-__REGION__-__AccountID__/*"
+                  - "arn:__AWS_Partition__:s3:::aws-gcr-rs-sol-__Stage__-__REGION__-__AccountID__"
+                  - "arn:__AWS_Partition__:s3:::aws-gcr-rs-sol-__Stage__-__REGION__-__AccountID__/*"
               - Effect: Allow
                 Action: "personalize:*"
                 Resource: "*"

@@ -54,7 +54,7 @@ if [[ $paramDelete == 'DELETE' ]]; then
   exit 0
 fi
 
-sed -e "s|__Stage__|$Stage|g;s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
+sed -e "s|__Stage__|$Stage|g;s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g;s|__AWS_Partition__|$AWS_P|g" \
               ./role/personalize-role-template.yaml > ./role/personalize-role.yaml
 
 PARAMETER_OVERRIDES="Stage=$Stage"
@@ -79,13 +79,8 @@ echo "-----Attach Personalize Policy to S3------"
 Bucket_Build=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
 echo "Bucket=${Bucket_Build}"
 
-if [[ $REGION =~ cn.* ]];then
-  sed -e "s|__Stage__|$Stage|g;s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
-            ./role/s3-bucket-policy-template-cn.json > ./role/s3-policy.json
-else
-  sed -e "s|__Stage__|$Stage|g;s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g" \
-              ./role/s3-bucket-policy-template.json > ./role/s3-policy.json
-fi
+sed -e "s|__Stage__|$Stage|g;s|__REGION__|$REGION|g;s|__AccountID__|$AWS_ACCOUNT_ID|g;s|__AWS_Partition__|$AWS_P|g" \
+            ./role/s3-bucket-policy-template.json > ./role/s3-policy.json
 
 $AWS_CMD s3api put-bucket-policy --bucket ${Bucket_Build} --policy file://./role/s3-policy.json
 
