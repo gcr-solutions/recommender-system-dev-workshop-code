@@ -25,7 +25,7 @@ fi
 
 
 if [[ -z $SCENARIO ]];then
-  SCENARIO='News'
+  SCENARIO='news'
 fi
 
 

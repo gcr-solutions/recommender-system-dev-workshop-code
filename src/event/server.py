@@ -394,7 +394,7 @@ def handle_stream_message(stream_message):
     logging.info('file_list {}'.format(file_list))
 
     global ps_config
-    for file_name in file_list:
+    for file_name in eval(file_list):
         if MANDATORY_ENV_VARS['PS_CONFIG'] in file_name:
             logging.info("reload config file: {}".format(file_name))
             ps_config = load_config(file_name)
