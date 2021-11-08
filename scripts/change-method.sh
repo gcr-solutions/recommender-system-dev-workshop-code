@@ -57,7 +57,8 @@ fi
 
 if [[ "$method" != "customize" && "$existed_solution" == "" ]];then
   echo "----------${method} method is not exist. Please run the following command to create ${method} method first.-------------"
-  echo "./setup-rs-system.sh deploy-method ${method}"
+  echo "nohup ./setup-rs-system.sh deploy-method ${method} >> ~/nohup.log 2>&1 &"
+  echo "tail -f ~/nohup.log"
   exit 1
 fi
 

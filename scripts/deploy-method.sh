@@ -42,16 +42,7 @@ echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 if [[ "$METHOD" == "ps-complete" || "$METHOD" == "ps-rank" || "$METHOD" == "ps-sims" ]]; then
   echo "====================Create Personalize Service==============================="
   cd ${curr_dir}/personalize
-  if [[ -d ~/personalize-log ]]; then
-    echo "Save logs in ~/personalize-log"
-    echo "directory already exist"
-  else
-    echo "Save logs in ~/personalize-log"
-    mkdir ~/personalize-log
-  fi
-  nohup ./create-personalize.sh $METHOD $Stage >> ~/personalize-log/create-personalize.log 2>&1 &
-  echo "you can run the following command to check the personalize creating status"
-  echo "tail -f ~/personalize-log/create-personalize.log "
+  ./create-personalize.sh $METHOD $Stage
   cd ${curr_dir}
 fi
 
@@ -60,7 +51,8 @@ cd ${curr_dir}/codebuild
 ./register-to-codebuild-offline-codecommit.sh $Stage "no" ${METHOD}
 cd ${curr_dir}
 
+echo "====================Switch to ${METHOD} Method=========================="
+./setup-rs-system.sh change-method ps-sims
 
-
-
+echo "Please stop printing the log by typing CONTROL+C "
 
