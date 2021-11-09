@@ -43,7 +43,7 @@ repo_names=(
   "rs/movie-rank-batch"
   "rs/movie-recall-batch"
   "rs/movie-user-preprocessing"
-  "rs/movie-batch-preprocessing""
+  "rs/movie-batch-preprocessing"
 )
 
 curr_dir=$(pwd)

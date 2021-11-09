@@ -48,11 +48,11 @@ fi
 
 echo "====================Create ${METHOD} Offline Part==============================="
 cd ${curr_dir}/codebuild
-./register-to-codebuild-offline-codecommit.sh $Stage "no" ${METHOD}
+./register-to-codebuild-offline-codecommit.sh $Stage "no" ${METHOD} ${SCENARIO}
 cd ${curr_dir}
 
 echo "====================Switch to ${METHOD} Method=========================="
-./setup-rs-system.sh change-method ps-sims
+./setup-rs-system.sh change-method ${METHOD}
 
 echo "Please stop printing the log by typing CONTROL+C "
 

@@ -37,6 +37,10 @@ elif [ $input = "load-data" ]
 then
     echo "start load data!"
     ./load-$SCENARIO-seed-data.sh
+elif [ $input = "sync-method" ]
+then
+    echo "start synchronize data!"
+    ./sync-method.sh
 elif [ $input = "get-endpoint" ];
 then
     echo "start get endpoint"

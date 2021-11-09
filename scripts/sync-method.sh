@@ -36,8 +36,12 @@ if [ $ps_status -ge 1 ]
         done
 fi
 
-echo "Synchronize Method to Online Part"
-./setup-rs-system.sh change-method ${METHOD}
+if [ "$METHOD" != "customize" ]
+then
+  echo "Synchronize Method to Online Part"
+  ./setup-rs-system.sh change-method ${METHOD}
+fi
 
+echo "Synchronize Method Successful "
 echo "Please stop printing the log by typing CONTROL+C "
 
