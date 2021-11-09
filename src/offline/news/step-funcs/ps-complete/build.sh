@@ -38,7 +38,7 @@ BUCKET=aws-gcr-rs-sol-$Stage-${REGION}-${AWS_ACCOUNT_ID}
 S3Prefix=sample-data-news
 
 NamePrefix=rs-news-ps-complete-$Stage
-PARAMETER_OVERRIDES="Bucket=$BUCKET S3Prefix=$S3Prefix Stage=$Stage"
+PARAMETER_OVERRIDES="Bucket=$BUCKET NamePrefix=${NamePrefix} S3Prefix=$S3Prefix Stage=$Stage"
 echo PARAMETER_OVERRIDES:$PARAMETER_OVERRIDES
 
 all_stepfuncs=(
