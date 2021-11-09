@@ -47,7 +47,7 @@ Resources:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-      StateMachineName: !Sub rs-${Stage}-Movie-DashboardStepFunc
+      StateMachineName: !Sub ${NamePrefix}-DashboardStepFunc
       DefinitionString: !Sub |
         {
           "StartAt": "Pre check",
@@ -95,7 +95,7 @@ Resources:
   DashboardScheduledRule:
     Type: AWS::Events::Rule
     Properties:
-      Name: !Sub rs-${Stage}-Movie-DashboardScheduledRule
+      Name: !Sub ${NamePrefix}-DashboardScheduledRule
       ScheduleExpression: "cron(0/30 * ? * MON-FRI *)"
       State: "ENABLED"
       Targets:

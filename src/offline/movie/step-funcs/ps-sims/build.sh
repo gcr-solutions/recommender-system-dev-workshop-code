@@ -37,7 +37,7 @@ echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 BUCKET=aws-gcr-rs-sol-$Stage-${REGION}-${AWS_ACCOUNT_ID}
 S3Prefix=sample-data-movie
 
-NamePrefix=rs-news-ps-sims-$Stage
+NamePrefix=rs-movie-ps-sims-$Stage
 PARAMETER_OVERRIDES="Stage=$Stage NamePrefix=${NamePrefix} Bucket=$BUCKET S3Prefix=$S3Prefix"
 
 echo PARAMETER_OVERRIDES:$PARAMETER_OVERRIDES

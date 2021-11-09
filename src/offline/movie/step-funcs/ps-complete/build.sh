@@ -51,7 +51,7 @@ user-new
 train-model
 train-model-ps
 overall
-#dashboard
+dashboard
 steps
 )
 

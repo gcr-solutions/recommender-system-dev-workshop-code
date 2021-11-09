@@ -120,9 +120,9 @@ Resources:
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
               "ResultPath": "$.ModelUpdateEmbedding",
-              "Next": "Model update (ps-rank)"
+              "Next": "Model update (ps-sims)"
             },
-            "Model update (ps-rank)": {
+            "Model update (ps-sims)": {
               "Type": "Task",
               "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
               "Parameters": {
