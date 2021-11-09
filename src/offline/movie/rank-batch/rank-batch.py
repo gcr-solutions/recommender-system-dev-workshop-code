@@ -1,4 +1,5 @@
 # rank batch logic
+import json
 import pickle
 import argparse
 import boto3
@@ -39,6 +40,8 @@ parser = argparse.ArgumentParser(description="app inputs and outputs")
 parser.add_argument("--bucket", type=str, help="s3 bucket")
 parser.add_argument("--prefix", type=str, help="s3 input key prefix")
 parser.add_argument("--region", type=str, help="aws region")
+parser.add_argument("--method", type=str, default='customize', help="method name")
+
 args, _ = parser.parse_known_args()
 print("args:", args)
 
@@ -48,6 +51,8 @@ if args.region:
 
 bucket = args.bucket
 prefix = args.prefix
+method = args.method
+region = args.region
 if prefix.endswith("/"):
     prefix = prefix[:-1]
 
@@ -83,6 +88,14 @@ sync_s3(file_name_list, s3_folder, local_folder)
 file_name_list = ['deepfm_model.tar.gz']
 s3_folder = '{}/model/rank/action/deepfm/latest/'.format(prefix)
 sync_s3(file_name_list, s3_folder, local_folder)
+#personalize 行为数据与配置文件加载
+ps_config_file_name = ['ps_config.json']
+ps_config_s3_folder = '{}/system/ps-config'.format(prefix)
+sync_s3(ps_config_file_name, ps_config_s3_folder, local_folder)
+#加载json配置文件
+file_to_load = open("info/ps_config.json", "rb")
+ps_config = json.load(file_to_load)
+file_to_load.close()
 
 # 加载pickle文件
 file_to_load = open("info/recall_batch_result.pickle", "rb")

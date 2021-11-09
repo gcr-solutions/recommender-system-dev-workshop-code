@@ -1,5 +1,6 @@
 # importing libraries
 import argparse
+import json
 import logging
 import os
 import pickle
@@ -44,6 +45,7 @@ parser = argparse.ArgumentParser(description="app inputs and outputs")
 parser.add_argument("--bucket", type=str, help="s3 bucket")
 parser.add_argument("--prefix", type=str, help="s3 input key prefix")
 parser.add_argument("--region", type=str, help="aws region")
+parser.add_argument("--method", type=str, default='customize', help="method name")
 args, _ = parser.parse_known_args()
 print("args:", args)
 
@@ -55,6 +57,9 @@ bucket = args.bucket
 prefix = args.prefix
 if prefix.endswith("/"):
     prefix = prefix[:-1]
+region = args.region
+method = args.method
+
 
 print(f"bucket:{bucket}, prefix:{prefix}")
 
@@ -86,8 +91,13 @@ file_name_list = ['movie_id_movie_property_dict.pickle',
 s3_folder = '{}/feature/content/inverted-list/'.format(prefix)
 sync_s3(file_name_list, s3_folder, local_folder)
 
-file_name_list = ['recall_config.pickle']
+file_name_list = ['recall_config.json']
 s3_folder = '{}/model/recall'.format(prefix)
+sync_s3(file_name_list, s3_folder, local_folder)
+
+# ps-sims表加载
+file_name_list = ['ps-sims-batch.out']
+s3_folder = '{}/feature/ps-recommend-list'.format(prefix)
 sync_s3(file_name_list, s3_folder, local_folder)
 
 # 加载pickle文件
@@ -119,8 +129,8 @@ file_to_load = open("info/movie_year_movie_ids_dict.pickle", "rb")
 dict_year_id = pickle.load(file_to_load)
 print("length of movie_year v.s. movie_ids {}".format(len(dict_year_id)))
 
-file_to_load = open("info/recall_config.pickle", "rb")
-recall_config = pickle.load(file_to_load)
+file_to_load = open("info/recall_config.json", "rb")
+recall_config = json.load(file_to_load)
 print("config recall")
 
 ub_faiss_index = faiss.read_index('info/ub_item_vector.index')
@@ -133,6 +143,24 @@ file_to_load = open("info/portrait.pickle", "rb")
 user_portrait = pickle.load(file_to_load)
 print("length of user_portrait {}".format(len(user_portrait)))
 
+# personalize 配置文件加载
+ps_config_file_name = ['ps_config.json']
+ps_config_s3_folder = '{}/system/ps-config'.format(prefix)
+sync_s3(ps_config_file_name, ps_config_s3_folder, local_folder)
+
+# 加载json配置文件
+file_to_load = open("info/ps_config.json", "rb")
+ps_config = json.load(file_to_load)
+file_to_load.close()
+
+# 加载out文件
+file_to_load = open("info/ps-sims-batch.out", "rb")
+dict_ps_sims_id = {}
+for line in file_to_load.readlines():
+    sims_recommend = json.loads(line)
+    dict_ps_sims_id[sims_recommend['input']['itemId']] = sims_recommend['output']['recommendedItems']
+file_to_load.close()
+
 # 配置参数
 config_dict = {}
 recall_wrap = {}
@@ -144,7 +172,9 @@ recall_wrap['dict_wrap']['actor'] = dict_actor_id
 recall_wrap['dict_wrap']['language'] = dict_language_id
 recall_wrap['dict_wrap']['level'] = dict_level_id
 recall_wrap['dict_wrap']['year'] = dict_year_id
+recall_wrap['dict_wrap']['ps-sims'] = dict_ps_sims_id
 recall_wrap['config'] = recall_config
+recall_wrap['method'] = method
 config_dict['recall_wrap'] = recall_wrap
 recall_wrap['ub_index'] = ub_faiss_index
 recall_wrap['ub_idx_mapping'] = ub_idx_mapping

@@ -1,7 +1,9 @@
 import argparse
+import json
 import logging
 import os
 import pickle
+import time
 import re
 
 import boto3
@@ -82,6 +84,8 @@ parser = argparse.ArgumentParser(description="app inputs and outputs")
 parser.add_argument("--bucket", type=str, help="s3 bucket")
 parser.add_argument("--prefix", type=str, help="s3 input key prefix")
 parser.add_argument("--region", type=str, help="aws region")
+parser.add_argument("--method", type=str, default='customize', help="method name")
+
 args, _ = parser.parse_known_args()
 print("args:", args)
 
@@ -91,13 +95,24 @@ if args.region:
 
 bucket = args.bucket
 prefix = args.prefix
+method = args.method
+region = args.region
+
 if prefix.endswith("/"):
     prefix = prefix[:-1]
 
 print(f"bucket:{bucket}, prefix:{prefix}")
+print("region={}".format(region))
+print("method={}".format(method))
 
 s3 = boto3.client('s3')
+personalize = boto3.client('personalize', args.region)
 s3client = s3
+sts = boto3.client('sts')
+
+get_caller_identity_response = sts.get_caller_identity()
+aws_account_id = get_caller_identity_response["Account"]
+print("aws_account_id:{}".format(aws_account_id))
 
 local_folder = 'info'
 if not os.path.exists(local_folder):
@@ -162,3 +177,72 @@ output_file = open(file_name, 'wb')
 pickle.dump(embed_raw_item_id_dict, output_file)
 output_file.close()
 write_to_s3(file_name, bucket, "{}/feature/action/{}".format(prefix, file_name.split('/')[-1]))
+
+#创建ItemDatasetImportJob
+ps_item_file_name_list = ['ps_item.csv']
+ps_item_s3_folder = '{}/system/ps-ingest-data/item'.format(prefix)
+sync_s3(ps_item_file_name_list, ps_item_s3_folder, local_folder)
+
+ps_config_file_name = ['ps_config.json']
+ps_config_s3_folder = '{}/system/ps-config'.format(prefix)
+sync_s3(ps_config_file_name, ps_config_s3_folder, local_folder)
+
+def get_ps_config_from_s3():
+    infile = open('info/ps_config.json')
+    ps_config = json.load(infile)
+    infile.close()
+    return ps_config
+
+def get_dataset_group_arn(dataset_group_name):
+    response = personalize.list_dataset_groups()
+    for dataset_group in response["datasetGroups"]:
+        if dataset_group["name"] == dataset_group_name:
+            return dataset_group["datasetGroupArn"]
+
+def get_dataset_arn(dataset_group_arn, dataset_name):
+    response = personalize.list_datasets(
+        datasetGroupArn=dataset_group_arn
+    )
+    for dataset in response["datasets"]:
+        if dataset["name"] == dataset_name:
+            return dataset["datasetArn"]
+
+def create_item_dataset_import_job():
+    ps_config = get_ps_config_from_s3()
+    dataset_group_arn = get_dataset_group_arn(ps_config['DatasetGroupName'])
+    dataset_arn = get_dataset_arn(dataset_group_arn, ps_config['ItemDatasetName'])
+    response = personalize.create_dataset_import_job(
+        jobName="item-dataset-import-job-{}".format(int(time.time())),
+        datasetArn=dataset_arn,
+        dataSource={
+            'dataLocation': "s3://{}/{}/system/ps-ingest-data/item/ps_item.csv".format(bucket, prefix)
+        },
+        roleArn="arn:aws:iam::{}:role/gcr-rs-personalize-role-{}".format(aws_account_id, region)
+    )
+
+    item_dataset_import_job_arn = response['datasetImportJobArn']
+    print("item_dataset_import_job_arn:{}".format(item_dataset_import_job_arn))
+
+    # check status
+    max_time = time.time() + 3 * 60 * 60
+    while time.time() < max_time:
+        describe_dataset_import_job_response = personalize.describe_dataset_import_job(
+            datasetImportJobArn=item_dataset_import_job_arn
+        )
+        status = describe_dataset_import_job_response["datasetImportJob"]['status']
+        print("DatasetImportJob: {}".format(status))
+
+        if status == "ACTIVE":
+            print("ItemDatasetImportJob Create Successfully!")
+            break
+        elif status == "CREATE FAILED":
+            print("ItemDatasetImportJob Create failed!")
+            break
+        else:
+            time.sleep(60)
+
+    print("ItemDatasetImportJob Exceed Max Create Time!")
+
+
+if "ps" in method:
+    create_item_dataset_import_job()
