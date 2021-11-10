@@ -89,9 +89,7 @@ if [[ "${METHOD}" != "customize" ]];then
   echo "you can run the following command to check the status:"
   echo "tail -f ~/personalize-log/create-personalize.log"
   cd ${curr_dir}/personalize
-  if [[ ! -d "~/personalize-log" ]];then
-    mkdir ~/personalize-log
-  fi
+  mkdir ~/personalize-log > /dev/null 2>&1 || true
   nohup ./create-personalize.sh ${METHOD} ${Stage} >> ~/personalize-log/create-personalize.log 2>&1 &
   cd ${curr_dir}
 fi

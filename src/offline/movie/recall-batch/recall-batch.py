@@ -92,7 +92,7 @@ s3_folder = '{}/feature/content/inverted-list/'.format(prefix)
 sync_s3(file_name_list, s3_folder, local_folder)
 
 file_name_list = ['recall_config.json']
-s3_folder = '{}/model/recall'.format(prefix)
+s3_folder = '{}/feature/content/inverted-list'.format(prefix)
 sync_s3(file_name_list, s3_folder, local_folder)
 
 # ps-sims表加载
@@ -174,7 +174,7 @@ recall_wrap['dict_wrap']['level'] = dict_level_id
 recall_wrap['dict_wrap']['year'] = dict_year_id
 recall_wrap['dict_wrap']['ps-sims'] = dict_ps_sims_id
 recall_wrap['config'] = recall_config
-recall_wrap['method'] = method
+config_dict['method'] = method
 config_dict['recall_wrap'] = recall_wrap
 recall_wrap['ub_index'] = ub_faiss_index
 recall_wrap['ub_idx_mapping'] = ub_idx_mapping
