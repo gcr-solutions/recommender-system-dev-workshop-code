@@ -946,7 +946,7 @@ Resources:
               "Resource": "arn:${AWS::Partition}:states:::sagemaker:createTrainingJob.sync",
               "Parameters": {
                 "AlgorithmSpecification": {
-                  "TrainingImage": "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/rs/news-model-update-action-gpu:${Stage}",
+                  "TrainingImage": "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/rs/news-model-update-action:${Stage}",
                   "TrainingInputMode": "File",
                   "MetricDefinitions": [
                     {
