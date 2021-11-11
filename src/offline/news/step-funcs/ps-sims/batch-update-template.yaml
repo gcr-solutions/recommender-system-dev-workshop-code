@@ -55,7 +55,7 @@ Resources:
                   "Bucket.$": "$.Bucket",
                   "S3Prefix.$": "$.S3Prefix"
                 },
-                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-ActionPreprocessingStepFunc",
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-ActionPreProcessingStepFunc",
                 "Name.$": "States.Format('{}', $$.Execution.Name)"
               },
               "ResultPath": "$.ActionProcessing",

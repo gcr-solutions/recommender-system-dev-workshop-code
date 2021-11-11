@@ -98,7 +98,7 @@ echo "------push code to github-------"
 git pull
 git add ${config_file_path}
 git add ${env_config_path}
-git commit -m "change method to ${method}"
+git commit -m "change method to ${method}" 2>&1 || true
 git push
 
 echo "-------change method successfully-------"

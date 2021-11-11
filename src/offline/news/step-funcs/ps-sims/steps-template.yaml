@@ -89,11 +89,11 @@ Resources:
         }
 
 
-  ActionPreprocessingStepFunc:
+  ActionPreProcessingStepFunc:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-      StateMachineName: !Sub ${NamePrefix}-ActionPreprocessingStepFunc
+      StateMachineName: !Sub ${NamePrefix}-ActionPreProcessingStepFunc
       DefinitionString: !Sub |
         {
           "StartAt": "Pre check",
@@ -136,11 +136,11 @@ Resources:
           }
         }
 
-  ActionPreprocessingForPopularityStepFunc:
+  ActionPreProcessingForPopularityStepFunc:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-      StateMachineName: !Sub ${NamePrefix}-ActionPreprocessingForPopularityStepFunc
+      StateMachineName: !Sub ${NamePrefix}-ActionPreProcessingForPopularityStepFunc
       DefinitionString: !Sub |
         {
           "StartAt": "Pre check",
