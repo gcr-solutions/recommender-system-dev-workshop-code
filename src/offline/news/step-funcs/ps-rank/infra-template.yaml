@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys StepFuncs
+
+
+Parameters:
+  NamePrefix:
+    Type: String
+    Default: rs-news-ps-rank-dev
+
+  Stage:
+    Type: String
+    Default: dev
+
+
+Resources:
+  PortraitDDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${NamePrefix}-portrait
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: "user_id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "user_id"
+          KeyType: "HASH"
+

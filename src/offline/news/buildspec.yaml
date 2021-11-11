@@ -4,6 +4,7 @@ env:
   variables:
     APP_NAME: "news"
     DIR_NAME: "news"
+    METHOD: "customize"
   secrets-manager:
     GITHUB_USER: gcr-rs-dev-workshop-secret:githubUser
     ACCESS_TOKEN: gcr-rs-dev-workshop-secret:accessToken
@@ -28,7 +29,7 @@ phases:
       - export AWS_REGION=$AWS_DEFAULT_REGION
       - cd $CODEBUILD_SRC_DIR/src/offline/${DIR_NAME}
       #- ./start_code_build_all.sh $Stage
-      - ./build.sh $Stage
+      - ./build.sh $Stage $METHOD
       - echo "--------------------------------------------------------------------------------"
   post_build:
     commands:

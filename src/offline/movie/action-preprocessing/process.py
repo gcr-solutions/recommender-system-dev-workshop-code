@@ -4,7 +4,7 @@ import pickle
 
 import boto3
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, size, row_number, expr, array_join
+from pyspark.sql.functions import col, size, row_number, expr, array_join, lit
 from pyspark.sql.types import StructType, StructField, StringType
 from pyspark.sql.window import Window
 
@@ -41,6 +41,7 @@ parser.add_argument("--prefix", type=str,
 
 parser.add_argument("--only4training", type=str, default="0",
                     help="set to '1' if gen file [train_action.csv] only for training")
+parser.add_argument("--method", type=str, default='customize', help="method name")
 
 parser.add_argument("--region", type=str, help="aws region")
 args, _ = parser.parse_known_args()
@@ -53,6 +54,7 @@ if args.region:
 bucket = args.bucket
 prefix = args.prefix
 only4training = False
+method = args.method
 
 if int(args.only4training) > 0:
     only4training = True
@@ -68,8 +70,13 @@ input_action_file = "s3://{}/{}/system/ingest-data/action/".format(
     bucket, prefix)
 emr_action_output_key_prefix = "{}/system/emr/action-preprocessing/output/action".format(
     prefix)
+emr_ps_action_output_key_prefix = "{}/system/emr/action-preprocessing/output/ps-action".format(
+    prefix)
+emr_ps_action_output_bucket_key_prefix = "s3://{}/{}".format(
+    bucket, emr_ps_action_output_key_prefix)
 
 output_action_file_key = "{}/system/action-data/action.csv".format(prefix)
+output_ps_action_file_key = "{}/system/ps-ingest-data/action/ps_action.csv".format(prefix)
 
 if only4training:
     emr_action_output_key_prefix = "{}/system/emr/action-preprocessing/output/train-action".format(
@@ -93,8 +100,8 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     #
     # read item file
     #
-    df_item = spark.read.text(item_file)
-    df_item = df_item.selectExpr("split(value, '_!_') as row") \
+    df_item_raw = spark.read.text(item_file)
+    df_item = df_item_raw.selectExpr("split(value, '_!_') as row") \
         .selectExpr("row[0] as program_id",
                     "row[1] as program_type",
                     "row[2] as program_name",
@@ -117,9 +124,9 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     #
     # read user file
     #
-    df_user_input = spark.read.text(user_file)
+    df_user_raw = spark.read.text(user_file)
     # 2361_!_M_!_57_!_1608411863_!_gutturalPie9
-    df_user_input = df_user_input.selectExpr("split(value, '_!_') as row").where(
+    df_user_input = df_user_raw.selectExpr("split(value, '_!_') as row").where(
         size(col("row")) > 4).selectExpr("row[0] as user_id",
                                          "row[1] as sex",
                                          "row[2] as age",
@@ -132,8 +139,8 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     #
     print("start processing action file: {}".format(input_action_file))
     # 18892_!_534_!_1617862565_!_1_!_0_!_1
-    df_action_input = spark.read.text(input_action_file)
-    df_action_input = df_action_input.selectExpr("split(value, '_!_') as row").where(
+    df_action_input_raw = spark.read.text(input_action_file)
+    df_action_input = df_action_input_raw.selectExpr("split(value, '_!_') as row").where(
         size(col("row")) > 5).selectExpr("row[0] as user_id",
                                          "row[1] as item_id",
                                          "row[2] as timestamp",
@@ -145,6 +152,16 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     df_action_input = df_action_input.join(df_item_id, df_action_input["item_id"] == df_item_id["program_id"], "inner") \
         .select("user_id", "item_id", "action_type", "action_value", "timestamp")
     df_action_input.cache()
+
+    if "ps" in method:
+        ps_df_action_input = df_action_input_raw.selectExpr("split(value, '_!_') as row").where(
+            size(col("row")) > 4).selectExpr("row[0] as USER_ID",
+                                             "row[1] as ITEM_ID",
+                                             "row[2] as TIMESTAMP",
+                                             "row[4] as EVENT_TYPE",
+                                             ).withColumn("EVENT_TYPE", lit("CLICK"))
+        ps_df_action_input.cache()
+
     total_action_count = df_action_input.count()
     print("after jon df_item, total_action_count: {}".format(total_action_count))
 
@@ -161,6 +178,17 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     df_action_input.coalesce(1).write.mode("overwrite").option(
         "header", "false").option("sep", "_!_").csv(emr_action_output_bucket_key_prefix)
 
+    if "ps" in method:
+        ps_df_item_id = df_item_raw.selectExpr("split(value, '_!_') as row").where(
+            size(col("row")) > 6).selectExpr("row[0] as ITEM_ID")
+        ps_df_user_id = df_user_raw.selectExpr("split(value, '_!_') as row").where(
+            size(col("row")) > 4).selectExpr("row[0] as USER_ID")
+        df_ps_action_output = ps_df_action_input.join(ps_df_item_id, ['ITEM_ID']).join(ps_df_user_id, ['USER_ID'])
+        df_ps_action_output \
+            .select("USER_ID", "ITEM_ID", "TIMESTAMP", "EVENT_TYPE") \
+            .coalesce(1).write.mode("overwrite") \
+            .option("header", "true").option("sep", ",").csv(emr_ps_action_output_bucket_key_prefix)
+
 emr_action_output_file_key = list_s3_by_prefix(
     bucket,
     emr_action_output_key_prefix,
@@ -168,5 +196,14 @@ emr_action_output_file_key = list_s3_by_prefix(
 print("emr_action_output_file_key:", emr_action_output_file_key)
 s3_copy(bucket, emr_action_output_file_key, output_action_file_key)
 print("output_action_file_key:", output_action_file_key)
+
+if "ps" in method:
+    emr_ps_action_output_file_key = list_s3_by_prefix(
+        bucket,
+        emr_ps_action_output_key_prefix,
+        lambda key: key.endswith(".csv"))[0]
+    print("emr_ps_action_output_file_key:", emr_ps_action_output_file_key)
+    s3_copy(bucket, emr_ps_action_output_file_key, output_ps_action_file_key)
+    print("output_ps_action_file_key:", output_ps_action_file_key)
 
 print("All done")

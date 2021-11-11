@@ -26,3 +26,12 @@ spec:
           limits:
             cpu: 2000m
             memory: 2048Mi
+        volumeMounts:
+          - name:  rs-news-dev-config-volume
+            mountPath: /usr/share/nginx/html/aws-exports.json
+            subPath: aws-exports.json
+            readOnly: true
+      volumes:
+        - name: rs-news-dev-config-volume
+          configMap:
+            name: rs-news-dev-config

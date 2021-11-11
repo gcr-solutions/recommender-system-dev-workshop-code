@@ -1,0 +1,219 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    (SO8010)
+
+    CloudFormation for RecSys StepFuncs
+
+
+Parameters:
+  NamePrefix:
+    Type: String
+    Default: rs-movie-ps-sims-dev
+
+  Stage:
+    Type: String
+    Default: dev
+
+  StepFuncAndLambdaRoleName:
+    Type: String
+    Default: LambdaAndStepFuncsRole
+
+  PreCheckLabmda:
+    Type: String
+    Default: PreCheckLabmda
+
+  CreateDatasetImportJobLambda:
+    Type: String
+    Default: CreateDatasetImportJobLambda
+
+  UpdateSolutionVersionLambda:
+    Type: String
+    Default: UpdateSolutionVersionLambda
+
+  UpdateCampaignLambda:
+    Type: String
+    Default: UpdateCampaignLambda
+
+  CheckDatasetImportJobStatusLambda:
+    Type: String
+    Default: CheckDatasetImportJobStatusLambda
+
+  CheckSolutionVersionStatusLambda:
+    Type: String
+    Default: CheckSolutionVersionStatusLambda
+
+  CheckCampaignStatusLambda:
+    Type: String
+    Default: CheckCampaignStatusLambda
+
+  SyncSolutionVersionLambda:
+    Type: String
+    Default: SyncSolutionVersionLambda
+
+Resources:
+  TrainModelStepFuncPersonalize:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub ${NamePrefix}-TrainPsModelStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Update Solution Version",
+          "TimeoutSeconds": 72000,
+          "States": {
+            "Update Solution Version": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${UpdateSolutionVersionLambda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix"
+                }
+              },
+              "ResultPath": "$.UpdateSolutionVersion",
+              "Next": "Wait 5 Minutes for updating solution version"
+            },
+            "Wait 5 Minutes for updating solution version": {
+              "Type": "Wait",
+              "Seconds": 300,
+              "Next": "Check Solution Version Status"
+            },
+            "Check Solution Version Status": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${CheckSolutionVersionStatusLambda}",
+                "Payload": {
+                  "updateSolutionVersion.$": "$.UpdateSolutionVersion"
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.CheckSolutionVersionStatus",
+              "Next": "Solution Version Status Choice"
+            },
+            "Solution Version Status Choice": {
+              "Type": "Choice",
+              "Choices": [
+                {
+                  "Or": [
+                    {
+                      "Variable": "$.CheckSolutionVersionStatus.Payload.solution_version_status",
+                      "StringEquals": "CREATE PENDING"
+                    },
+                    {
+                      "Variable": "$.CheckSolutionVersionStatus.Payload.solution_version_status",
+                      "StringEquals": "CREATE IN_PROGRESS"
+                    }
+                  ],
+                  "Next": "Wait 5 Minutes for updating solution version"
+                },
+                {
+                  "Variable": "$.CheckSolutionVersionStatus.Payload.solution_version_status",
+                  "StringEquals": "ACTIVE",
+                  "Next": "Update Campaign"
+                },
+                {
+                  "Variable": "$.CheckSolutionVersionStatus.Payload.solution_version_status",
+                  "StringEquals": "CREATE FAILED",
+                  "Next": "Fail"
+                }
+              ],
+              "Default": "Fail"
+            },
+            "Update Campaign": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${UpdateCampaignLambda}",
+                "Payload": {
+                  "updateSolutionVersion.$": "$.UpdateSolutionVersion",
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix"
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.UpdateCampaign",
+              "Next": "Wait 5 Minutes for updating campaign"
+            },
+            "Wait 5 Minutes for updating campaign": {
+              "Type": "Wait",
+              "Seconds": 300,
+              "Next": "Check Campaign Status"
+            },
+            "Check Campaign Status": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${CheckCampaignStatusLambda}",
+                "Payload": {
+                  "updateCampaign.$": "$.UpdateCampaign"
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.CheckCampaignStatus",
+              "Next": "Campaign Status Choice"
+            },
+            "Campaign Status Choice": {
+              "Type": "Choice",
+              "Choices": [
+                {
+                  "Or": [
+                    {
+                      "Variable": "$.CheckCampaignStatus.Payload.campaign_status",
+                      "StringEquals": "CREATE PENDING"
+                    },
+                    {
+                      "Variable": "$.CheckCampaignStatus.Payload.campaign_status",
+                      "StringEquals": "CREATE IN_PROGRESS"
+                    }
+                  ],
+                  "Next": "Wait 5 Minutes for updating campaign"
+                },
+                {
+                  "Variable": "$.CheckCampaignStatus.Payload.campaign_status",
+                  "StringEquals": "ACTIVE",
+                  "Next": "Sync Solution Version to S3"
+                },
+                {
+                  "Variable": "$.CheckCampaignStatus.Payload.campaign_status",
+                  "StringEquals": "CREATE FAILED",
+                  "Next": "Fail"
+                }
+              ],
+              "Default": "Fail"
+            },
+            "Sync Solution Version to S3": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${SyncSolutionVersionLambda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "updateSolutionVersion.$": "$.UpdateSolutionVersion"
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.SyncSolutionVersion",
+              "Next": "Succeed"
+            },
+            "Fail": {
+              "Type": "Fail",
+              "Error": "Train Model Failed"
+            },
+            "Succeed": {
+              "Type": "Succeed"
+            }
+          }
+        }
+

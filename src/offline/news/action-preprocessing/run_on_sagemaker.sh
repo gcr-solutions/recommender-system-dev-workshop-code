@@ -24,7 +24,6 @@ repo_name=rs/news-action-preprocessing
 JOB_NAME=${repo_name}-${TIMESTAMP}-${RANDOM}
 JOB_NAME=$(echo $JOB_NAME | sed 's/\//-/g')
 
-
 IMAGEURI=${account_id}.dkr.ecr.${AWS_REGION}.amazonaws.com/${repo_name}:dev-workshop
 if [[ AWS_REGION =~ cn.* ]];then
    IMAGEURI=${account_id}.dkr.ecr.${AWS_REGION}.amazonaws.com.cn/${repo_name}:dev-workshop

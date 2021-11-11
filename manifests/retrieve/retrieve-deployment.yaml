@@ -37,5 +37,63 @@ spec:
             value: "filter"
           - name: FILTER_PORT
             value: "5200"
+          - name: PS_CONFIG
+            value: "ps_config.json"
           - name: AWS_REGION
             value: $(AWS_REGION)
+          - name: S3_BUCKET
+            value: $(S3_BUCKET)
+          - name: S3_PREFIX
+            value: $(S3_PREFIX)
+          - name: METHOD
+            value: $(METHOD)
+      - name: rs-retrieve-plugin
+        image:  rs/retrieve-plugin:latest
+        ports:
+          - name: http
+            containerPort: 50051
+        resources:
+          requests:
+            cpu: 3000m
+            memory: 2048Mi
+          limits:
+            cpu: 4000m
+            memory: 4096Mi
+        env:
+          - name: LOCAL_DATA_FOLDER
+            value: $(LOCAL_DATA_FOLDER)
+          - name: REDIS_HOST
+            value: $(REDIS_HOST)
+          - name: REDIS_PORT
+            value: $(REDIS_PORT)
+          - name: PORTRAIT_SERVICE_ENDPOINT
+            value: "http://portrait:5300"
+          - name: N_DIVERSITY
+            value: "4"
+          - name: N_FILTER
+            value: "20"
+          - name: RANK_THRESHOLD
+            value: "0.5"
+          - name: DUPLICATE_INTERVAL
+            value: "10"
+          - name: COLDSTART_NEWS_COUNT
+            value: "100"
+          - name: RECOMMEND_ITEM_COUNT
+            value: "20"
+          - name: PS_CONFIG
+            value: "ps_config.json"
+          - name: AWS_REGION
+            value: $(AWS_REGION)
+          - name: S3_BUCKET
+            value: $(S3_BUCKET)
+          - name: S3_PREFIX
+            value: $(S3_PREFIX)
+          - name: METHOD
+            value: $(METHOD)
+        volumeMounts:
+          - name: persistent-storage
+            mountPath: /rs-data
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: efs-claim

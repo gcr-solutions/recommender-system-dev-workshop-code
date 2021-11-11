@@ -10,6 +10,10 @@ if [[ -z $REGION ]]; then
   REGION='ap-northeast-1'
 fi
 
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
 echo "Stage=$Stage"
 echo "REGION=$REGION"
 
@@ -23,7 +27,7 @@ AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Acc
 echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 
 BUCKET=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
-PREFIX=sample-data-news
+PREFIX=sample-data-${SCENARIO}
 
 ls -l ../sample-data/notification/inverted-list/recall_config_v2.pickle
 
@@ -32,7 +36,11 @@ $AWS_CMD s3 cp ../sample-data/notification/inverted-list/recall_config_v2.pickle
 
 echo "Start notifying online service"
 
-NOTIFY_STEP_FUNC=arn:aws:states:${REGION}:${AWS_ACCOUNT_ID}:stateMachine:rs-dev-workshop-News-NotificationStepFunc
+if [ $SCENARIO = news ];then
+  NOTIFY_STEP_FUNC=arn:aws:states:${REGION}:${AWS_ACCOUNT_ID}:stateMachine:rs-dev-workshop-News-NotificationStepFunc
+elif [ $SCENARIO = movie ];then
+  NOTIFY_STEP_FUNC=arn:aws:states:${REGION}:${AWS_ACCOUNT_ID}:stateMachine:rs-dev-workshop-Movie-NotificationStepFunc
+fi
 
 echo "start-execution ${NOTIFY_STEP_FUNC} ..."
 

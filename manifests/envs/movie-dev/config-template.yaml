@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rs-movie-dev-config
+data:
+  redis_port: "6379"
+  redis_host: "REDIS_HOST_PLACEHOLDER"
+  messge_broker_redis_port: "6379"
+  messge_broker_redis_host: "redis-cart"
+  aws_region: "__AWS_REGION__"
+  s3_bucket: "aws-gcr-rs-sol-dev-workshop-__AWS_REGION__-__AWS_ACCOUNT_ID__"
+  s3_prefix: "sample-data-movie"
+  click_record_file_path: 'sample-data-movie/system/ingest-data/action/'
+  user_record_file_path: 'sample-data-movie/system/ingest-data/user/'
+  click_record_bucket: 'aws-gcr-rs-sol-dev-workshop-__AWS_REGION__-__AWS_ACCOUNT_ID__'
+  local_data_folder: '/rs-data/movie-dev/'
+  method: "__METHOD__"
+  scenario: "movie"
+  stage: "dev-workshop"
+  aws-exports.json: |
+    {
+      "DEPLOY_TYPE": "MOVIE",
+      "NEWS_API_URL": "/api/v1/demo",
+      "MOVIE_API_URL": "/api/v1/demo"
+    }

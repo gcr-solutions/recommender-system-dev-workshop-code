@@ -1,17 +1,11 @@
 from __future__ import print_function
-import os
-import sys
-import math
 import pickle
+import json
 import boto3
 import os
-import numpy as np
 import pandas as pd
 from tqdm import tqdm
-import time
 import argparse
-import logging
-import re
 import service_impl
 
 # tqdm.pandas()
@@ -56,6 +50,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--bucket', type=str)
 parser.add_argument('--prefix', type=str)
 parser.add_argument("--region", type=str, help="aws region")
+parser.add_argument("--method", type=str, default='customize', help="method name")
+
 args, _ = parser.parse_known_args()
 print("args:", args)
 
@@ -65,6 +61,8 @@ if args.region:
 
 bucket = args.bucket
 prefix = args.prefix
+region = args.region
+method = args.method
 
 if prefix.endswith("/"):
     prefix = prefix[:-1]
@@ -96,8 +94,13 @@ file_name_list = ['news_id_news_property_dict.pickle',
 s3_folder = '{}/feature/content/inverted-list/'.format(prefix)
 sync_s3(file_name_list, s3_folder, local_folder)
 
-file_name_list = ['recall_config.pickle']
+file_name_list = ['recall_config.json']
 s3_folder = '{}/feature/content/inverted-list'.format(prefix)
+sync_s3(file_name_list, s3_folder, local_folder)
+
+# ps-sims表加载
+file_name_list = ['ps-sims-batch.out']
+s3_folder = '{}/feature/ps-recommend-list'.format(prefix)
 sync_s3(file_name_list, s3_folder, local_folder)
 
 # 加载pickle文件
@@ -121,13 +124,31 @@ file_to_load = open("info/news_words_news_ids_dict.pickle", "rb")
 dict_words_id = pickle.load(file_to_load)
 print("length of news_words v.s. news_ids {}".format(len(dict_words_id)))
 
-file_to_load = open("info/recall_config.pickle", "rb")
-recall_config = pickle.load(file_to_load)
+file_to_load = open("info/recall_config.json", "rb")
+recall_config = json.load(file_to_load)
 print("config recall")
 
 file_to_load = open("info/portrait.pickle", "rb")
 user_portrait = pickle.load(file_to_load)
 print("length of user_portrait {}".format(len(user_portrait)))
+
+# personalize 配置文件加载
+ps_config_file_name = ['ps_config.json']
+ps_config_s3_folder = '{}/system/ps-config'.format(prefix)
+sync_s3(ps_config_file_name, ps_config_s3_folder, local_folder)
+
+# 加载json配置文件
+file_to_load = open("info/ps_config.json", "rb")
+ps_config = json.load(file_to_load)
+file_to_load.close()
+
+# 加载out文件
+file_to_load = open("info/ps-sims-batch.out", "rb")
+dict_ps_sims_id = {}
+for line in file_to_load.readlines():
+    sims_recommend = json.loads(line)
+    dict_ps_sims_id[sims_recommend['input']['itemId']] = sims_recommend['output']['recommendedItems']
+file_to_load.close()
 
 df_filter_action = pd.read_csv('info/action.csv', sep='_!_',
                                names=['user_id', 'news_id', 'timestamp', 'action_type', 'action'])
@@ -141,6 +162,8 @@ recall_wrap['dict_wrap']['type'] = dict_type_id
 recall_wrap['dict_wrap']['entities'] = dict_entities_id
 recall_wrap['dict_wrap']['words'] = dict_words_id
 recall_wrap['dict_wrap']['keywords'] = dict_keywords_id
+recall_wrap['dict_wrap']['ps-sims'] = dict_ps_sims_id
+recall_wrap['method'] = method
 recall_wrap['config'] = recall_config
 config_dict['recall_wrap'] = recall_wrap
 # recall_wrap['ub_index'] = ub_faiss_index
@@ -153,7 +176,8 @@ recall_batch_result = {}
 # print(config_dict)
 recall_batch_function = service_impl.ServiceImpl()
 for reviewerID, hist in tqdm(
-        df_filter_action[(df_filter_action['action'] == 1) & (df_filter_action['action_type'] == 1)].groupby('user_id')):
+        df_filter_action[(df_filter_action['action'] == 1) & (df_filter_action['action_type'] == 1)].groupby(
+            'user_id')):
     pos_list = hist['news_id'].tolist()
     config_dict['user_portrait'] = user_portrait[str(reviewerID)]
     # user_click_records[reviewerID] = pos_list

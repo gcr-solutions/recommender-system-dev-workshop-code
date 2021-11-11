@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ui
+  template:
+    metadata:
+      labels: 
+        app: ui
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: rs-ui
+        image:  rs/ui:latest
+        ports:
+          - name: http
+            containerPort: 80
+        resources:
+          requests: 
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 2048Mi
+        volumeMounts:
+          - name:  rs-movie-dev-config-volume
+            mountPath: /usr/share/nginx/html/aws-exports.json
+            subPath: aws-exports.json
+            readOnly: true
+      volumes:
+        - name: rs-movie-dev-config-volume
+          configMap:
+            name: rs-movie-dev-config

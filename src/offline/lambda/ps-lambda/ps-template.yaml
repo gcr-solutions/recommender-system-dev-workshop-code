@@ -1,0 +1,199 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys Lambda
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.8
+    MemorySize: 1024
+    Environment:
+      Variables:
+        botoConfig: '{"user_agent_extra": "AwsSolution/SO8010/0.1.0"}'
+        Stage: !Sub "${Stage}"
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,DELETE,PUT'"
+      AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+      AllowOrigin: "'*'"
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+
+  Bucket:
+    Description: S3 Bucket for RecSys
+    Type: String
+
+  S3Prefix:
+    Type: String
+    Default: sample-data-news
+
+  StepFunName:
+    Description: Step Func Name
+    Type: String
+    Default: "News-OverAllStepFunc"
+
+  NewsOnlineLoaderURL:
+    Type: String
+    Default: ""
+
+  MovieOnlineLoaderURL:
+    Type: String
+    Default: ""
+
+  StepFuncAndLambdaRoleName:
+    Type: String
+    Default: LambdaAndStepFuncsRole
+
+
+Mappings:
+  LoaderConfigMap:
+    NewsOnlineLoaderURL:
+      devworkshop: ''
+
+Resources:
+  RSOfflineSNS:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "rs-${Stage}-offline-sns"
+
+  PreCheckLabmda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-PreCheckLabmda
+      Handler: precheck-lambda.lambda_handler
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
+      CodeUri:
+        Bucket: !Ref Bucket
+        Key: !Sub "${S3Prefix}/code/lambda/precheck-lambda.zip"
+
+  S3UtilLabmda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-S3UtilLabmda
+      Handler: s3-util-lambda.lambda_handler
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
+      CodeUri:
+        Bucket: !Ref Bucket
+        Key: !Sub ${S3Prefix}/code/lambda/s3-util-lambda.zip
+      Timeout: 900
+
+  SNSMessageLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-SNSMessageLambda
+      Handler: sns-message-lambda.lambda_handler
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
+      CodeUri:
+        Bucket: !Ref Bucket
+        Key: !Sub "${S3Prefix}/code/lambda/sns-message-lambda.zip"
+      Timeout: 900
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN: !Ref RSOfflineSNS
+          NEWS_ONLINE_LOADER_URL: !FindInMap [ LoaderConfigMap, NewsOnlineLoaderURL, 'devworkshop' ]
+
+
+  CreateDatasetImportJobLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-CreateDatasetImportJobLambda
+      Handler: create-dataset-import-job-lambda.lambda_handler
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
+      CodeUri:
+        Bucket: !Ref Bucket
+        Key: !Sub "${S3Prefix}/code/lambda/create-dataset-import-job-lambda.zip"
+      Timeout: 900
+
+  CheckDatasetImportJobStatusLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-CheckDatasetImportJobStatusLambda
+      Handler: check-dataset-import-job-status-lambda.lambda_handler
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
+      CodeUri:
+        Bucket: !Ref Bucket
+        Key: !Sub "${S3Prefix}/code/lambda/check-dataset-import-job-status-lambda.zip"
+      Timeout: 900
+
+  UpdateSolutionVersionLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-UpdateSolutionVersionLambda
+      Handler: update-solution-version-lambda.lambda_handler
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
+      CodeUri:
+        Bucket: !Ref Bucket
+        Key: !Sub "${S3Prefix}/code/lambda/update-solution-version-lambda.zip"
+      Timeout: 900
+
+  CheckSolutionVersionStatusLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-CheckSolutionVersionStatusLambda
+      Handler: check-solution-version-status-lambda.lambda_handler
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
+      CodeUri:
+        Bucket: !Ref Bucket
+        Key: !Sub "${S3Prefix}/code/lambda/check-solution-version-status-lambda.zip"
+      Timeout: 900
+
+  UpdateCampaignLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-UpdateCampaignLambda
+      Handler: update-campaign-lambda.lambda_handler
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
+      CodeUri:
+        Bucket: !Ref Bucket
+        Key: !Sub "${S3Prefix}/code/lambda/update-campaign-lambda.zip"
+      Timeout: 900
+
+  CheckCampaignStatusLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-CheckCampaignStatusLambda
+      Handler: check-campaign-status-lambda.lambda_handler
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
+      CodeUri:
+        Bucket: !Ref Bucket
+        Key: !Sub "${S3Prefix}/code/lambda/check-campaign-status-lambda.zip"
+      Timeout: 900
+
+  CreateBatchInferenceJobLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-CreateBatchInferenceJobLambda
+      Handler: create-batch-inference-job-lambda.lambda_handler
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
+      CodeUri:
+        Bucket: !Ref Bucket
+        Key: !Sub "${S3Prefix}/code/lambda/create-batch-inference-job-lambda.zip"
+      Timeout: 900
+
+  CheckBatchInferenceJobStatusLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-CheckBatchInferenceJobStatusLambda
+      Handler: check-batch-inference-job-status-lambda.lambda_handler
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
+      CodeUri:
+        Bucket: !Ref Bucket
+        Key: !Sub "${S3Prefix}/code/lambda/check-batch-inference-job-status-lambda.zip"
+      Timeout: 900
+
+  SyncSolutionVersionLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub rs-${Stage}-SyncSolutionVersionLambda
+      Handler: sync-solution-version-lambda.lambda_handler
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}
+      CodeUri:
+        Bucket: !Ref Bucket
+        Key: !Sub "${S3Prefix}/code/lambda/sync-solution-version-lambda.zip"
+      Timeout: 900

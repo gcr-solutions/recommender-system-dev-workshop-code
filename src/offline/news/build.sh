@@ -12,6 +12,11 @@ if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
 
+METHOD=$2
+if [[ -z $METHOD ]];then
+  METHOD='customize'
+fi
+
 echo "Stage=$Stage"
 
 AWS_CMD="aws"
@@ -48,6 +53,7 @@ model-update-action
 dashboard
 action-preprocessing
 user-preprocessing
+batch-preprocessing
 add-user-batch
 portrait-batch
 recall-batch

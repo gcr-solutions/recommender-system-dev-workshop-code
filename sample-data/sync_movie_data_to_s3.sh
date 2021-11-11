@@ -37,10 +37,10 @@ echo "########################################################"
 echo "aws  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/"
 echo "########################################################"
 
-dataUrl=https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/data/sample-data-movie.zip
+dataUrl=https://aws-gcr-rs-sol-workshop-ap-northeast-1-common.s3.ap-northeast-1.amazonaws.com/develop-movie-data/sample-data-movie.zip
 
 if [[ $REGION =~ cn.* ]];then
-  dataUrl=https://aws-gcr-rs-sol-workshop-cn-north-1-common.s3.cn-north-1.amazonaws.com.cn/data/sample-data-movie.zip
+  dataUrl=https://aws-gcr-rs-sol-workshop-cn-north-1-common.s3.cn-north-1.amazonaws.com.cn/develop-movie-data/sample-data-movie.zip
 fi
 
 rm -rf movie-data >/dev/null 2>&1
@@ -54,10 +54,10 @@ if [[ $? -ne 0 ]];then
 fi
 
 unzip sample-data-movie.zip > /dev/null
-rm sample-data-movie.zip  sync_data_to_s3.sh
+rm sample-data-movie.zip
 
 echo "$AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/ ..."
-$AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/ > /dev/null
+$AWS_CMD  s3 sync . s3://${BUCKET_BUILD}/${PREFIX}/ --acl public-read > /dev/null
 
 if [[ $? -ne 0 ]];then
    echo  "error!!! s3 sync"

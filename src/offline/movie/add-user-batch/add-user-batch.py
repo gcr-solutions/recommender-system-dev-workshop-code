@@ -1,7 +1,9 @@
 import argparse
+import json
 import logging
 import os
 import pickle
+import time
 import re
 
 import boto3
@@ -95,11 +97,22 @@ bucket = args.bucket
 prefix = args.prefix
 if prefix.endswith("/"):
     prefix = prefix[:-1]
+region = args.region
+method = args.method
 
 print(f"bucket:{bucket}, prefix:{prefix}")
+print("region={}".format(region))
+print("method={}".format(method))
 
 s3 = boto3.client('s3')
 s3client = s3
+personalize = boto3.client('personalize', args.region)
+sts = boto3.client('sts')
+
+get_caller_identity_response = sts.get_caller_identity()
+aws_account_id = get_caller_identity_response["Account"]
+print("aws_account_id:{}".format(aws_account_id))
+
 
 local_folder = 'info'
 if not os.path.exists(local_folder):
@@ -109,6 +122,15 @@ if not os.path.exists(local_folder):
 file_name_list = ['user.csv']
 s3_folder = '{}/system/user-data/'.format(prefix)
 sync_s3(file_name_list, s3_folder, local_folder)
+
+#创建UserDatasetImportJob
+ps_user_file_name_list = ['ps_user.csv']
+ps_user_s3_folder = '{}/system/ps-ingest-data/user'.format(prefix)
+sync_s3(ps_user_file_name_list, ps_user_s3_folder, local_folder)
+
+ps_config_file_name = ['ps_config.json']
+ps_config_s3_folder = '{}/system/ps-config'.format(prefix)
+sync_s3(ps_config_file_name, ps_config_s3_folder, local_folder)
 
 # !!!应该用用户注册数据来生成encoding map
 user_df = pd.read_csv('info/user.csv', sep='_!_',
@@ -135,3 +157,67 @@ output_file = open(file_name, 'wb')
 pickle.dump(embed_raw_user_id_dict, output_file)
 output_file.close()
 write_to_s3(file_name, bucket, "{}/feature/action/{}".format(prefix, file_name.split('/')[-1]))
+
+
+def get_ps_config_from_s3():
+    infile = open('info/ps_config.json')
+    ps_config = json.load(infile)
+    infile.close()
+    return ps_config
+
+def get_dataset_group_arn(dataset_group_name):
+    response = personalize.list_dataset_groups()
+    for dataset_group in response["datasetGroups"]:
+        if dataset_group["name"] == dataset_group_name:
+            return dataset_group["datasetGroupArn"]
+
+def get_dataset_arn(dataset_group_arn, dataset_name):
+    response = personalize.list_datasets(
+        datasetGroupArn=dataset_group_arn
+    )
+    for dataset in response["datasets"]:
+        if dataset["name"] == dataset_name:
+            return dataset["datasetArn"]
+
+def create_user_dataset_import_job():
+    ps_config = get_ps_config_from_s3()
+    dataset_group_arn = get_dataset_group_arn(ps_config['DatasetGroupName'])
+    dataset_arn = get_dataset_arn(dataset_group_arn, ps_config['UserDatasetName'])
+    response = personalize.create_dataset_import_job(
+        jobName="user-dataset-import-job-{}".format(int(time.time())),
+        datasetArn=dataset_arn,
+        dataSource={
+            'dataLocation': "s3://{}/{}/system/ps-ingest-data/user/ps_user.csv".format(bucket, prefix)
+        },
+        roleArn="arn:aws:iam::{}:role/gcr-rs-personalize-role-{}".format(aws_account_id,region)
+    )
+
+    user_dataset_import_job_arn = response['datasetImportJobArn']
+    print("user_dataset_import_job_arn:{}".format(user_dataset_import_job_arn))
+
+    # check status
+    max_time = time.time() + 3 * 60 * 60
+    while time.time() < max_time:
+        describe_dataset_import_job_response = personalize.describe_dataset_import_job(
+            datasetImportJobArn=user_dataset_import_job_arn
+        )
+        status = describe_dataset_import_job_response["datasetImportJob"]['status']
+        print("DatasetImportJob: {}".format(status))
+
+        if status == "ACTIVE":
+            print("UserDatasetImportJob Create Successfully!")
+            break
+        elif status == "CREATE FAILED":
+            print("UserDatasetImportJob Create failed!")
+            break
+        else:
+            time.sleep(60)
+
+    print("UserDatasetImportJob Exceed Max Create Time!")
+
+
+if "ps" in method:
+    create_user_dataset_import_job()
+
+
+

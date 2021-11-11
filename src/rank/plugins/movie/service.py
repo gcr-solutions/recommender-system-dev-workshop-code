@@ -11,6 +11,7 @@ import pandas as pd
 from tqdm import tqdm
 import numpy as np
 import time
+import boto3
 
 import tarfile
 import glob
@@ -42,7 +43,11 @@ MANDATORY_ENV_VARS = {
     'REDIS_HOST': 'localhost',
     'REDIS_PORT': 6379,
 
-    'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300'
+    'PORTRAIT_SERVICE_ENDPOINT': 'http://portrait:5300',
+    'S3_BUCKET': 'aws-gcr-rs-sol-dev-workshop-ap-northeast-1-466154167985',
+    'S3_PREFIX': 'sample-data',
+    'METHOD': 'customize',
+    'PS_CONFIG': 'ps_config.json'
 }
 
 
@@ -54,7 +59,9 @@ fill_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 action_model_type = 'action-model'
 embedding_type = 'embedding'
 pickle_type = 'inverted-list'
+json_type = 'ps-result'
 
+personalize_runtime = boto3.client('personalize-runtime', MANDATORY_ENV_VARS['AWS_REGION'])
 
 class Rank(service_pb2_grpc.RankServicer):
 
@@ -78,6 +85,11 @@ class Rank(service_pb2_grpc.RankServicer):
         # global rCache
         # rCache = cache.RedisCache(host=MANDATORY_ENV_VARS['REDIS_HOST'], port=MANDATORY_ENV_VARS['REDIS_PORT'])
         # logging.info('rank plugin init end!')
+
+        json_file_list = [MANDATORY_ENV_VARS['PS_CONFIG']]
+        self.reload_json_type(local_data_folder, json_file_list)
+
+        self.personalize_runtime = boto3.client('personalize-runtime', MANDATORY_ENV_VARS['AWS_REGION'])
 
     def reload_action_model(self, file_path, file_list):
         logging.info('reload_model_files  start')
@@ -104,6 +116,18 @@ class Rank(service_pb2_grpc.RankServicer):
                     self.dict_id_feature_pddf['programId'] = self.dict_id_feature_pddf['programId'].astype(int)
                 else:
                     logging.info('reload movie_id_movie_feature, file is empty')                   
+
+    def reload_json_type(self, file_path, file_list):
+        logging.info('reload_json_type start')
+        for file_name in file_list:
+            json_path = file_path + file_name
+            logging.info('reload_json_type json_path {}'.format(json_path))
+            if MANDATORY_ENV_VARS['PS_CONFIG'] in json_path:
+                if os.path.isfile(json_path):
+                    logging.info('reload ps_config file {}'.format(json_path))
+                    self.ps_config = self.load_json_or_pickle(json_path)
+                else:
+                    logging.info('reload ps_config failed, file is empty')
 
     def reload_embedding_files(self, file_path, file_list):
         logging.info('reload_embedding_files  start')
@@ -157,7 +181,21 @@ class Rank(service_pb2_grpc.RankServicer):
             infile.close()
             return dict
         else:
-            return {}        
+            return {}
+
+    def load_json_or_pickle(self, file):
+        logging.info("load_json_or_pickle start load {}".format(file))
+        if os.path.isfile(file):
+            infile = open(file, 'rb')
+            if file.lower().endswith(".json"):
+                dict = json.load(infile)
+            else:
+                dict = pickle.load(infile)
+            infile.close()
+            logging.info("load_json_or_pickle completed, key len:{}".format(len(dict)))
+            return dict
+        else:
+            return {}
 
     def load_pickle_as_pddf(self, file):
         if os.path.isfile(file):
@@ -186,6 +224,8 @@ class Rank(service_pb2_grpc.RankServicer):
         #     self.reload_embedding_files(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
         elif file_type == pickle_type:
             self.reload_pickle_type(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
+        elif file_type == json_type:
+            self.reload_json_type(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
 
         logging.info('Re-initial rank service.')
         commonResponse = service_pb2.CommonResponse(code=0, description='Re-initialled with success')
@@ -271,43 +311,66 @@ class Rank(service_pb2_grpc.RankServicer):
         logging.info('user_id -> {}'.format(user_id))
         logging.info('recall_result -> {}'.format(recall_result))
 
-        #TODO need to call customer service to get real data
-        #TODO load portrait
-        # Get user portrait from portrait service
-        httpResp = requests.get(MANDATORY_ENV_VARS['PORTRAIT_SERVICE_ENDPOINT']+'/portrait/userid/'+user_id)
-        if httpResp.status_code != 200:
-            return service_pb2.MergeResultResponse(code=-1, description=('Failed to get portrait for -> {}').format(user_id))
-        user_portrait = httpResp.json()
-        # user_clicks_set = ['6553003847780925965','6553082318746026500','6522187689410691591']
-        # user_clicks_set_redis = rCache.get_data_from_hash(user_id_click_dict, user_id)
-        # if bool(user_clicks_set_redis):
-        #     logging.info('user_clicks_set_redis {}'.format(user_clicks_set_redis))
-        #     user_clicks_set = json.loads(user_clicks_set_redis, encoding='utf-8')
+        if MANDATORY_ENV_VARS['METHOD'] == 'ps-rank':
+            logging.info("ps-rank method: get rank result...")
+            rank_result = self.generate_rank_result_from_ps_rank(user_id, recall_result)
+        else:
+            #TODO need to call customer service to get real data
+            #TODO load portrait
+            # Get user portrait from portrait service
+            httpResp = requests.get(MANDATORY_ENV_VARS['PORTRAIT_SERVICE_ENDPOINT']+'/portrait/userid/'+user_id)
+            if httpResp.status_code != 200:
+                return service_pb2.MergeResultResponse(code=-1, description=('Failed to get portrait for -> {}').format(user_id))
+            user_portrait = httpResp.json()
+            # user_clicks_set = ['6553003847780925965','6553082318746026500','6522187689410691591']
+            # user_clicks_set_redis = rCache.get_data_from_hash(user_id_click_dict, user_id)
+            # if bool(user_clicks_set_redis):
+            #     logging.info('user_clicks_set_redis {}'.format(user_clicks_set_redis))
+            #     user_clicks_set = json.loads(user_clicks_set_redis, encoding='utf-8')
 
-        recall_result_dict = {}
-        recall_result_dict[user_id] = recall_result
+            recall_result_dict = {}
+            recall_result_dict[user_id] = recall_result
 
-        recall_result_with_item_feature = self.modify_recall_result(recall_result_dict)
+            recall_result_with_item_feature = self.modify_recall_result(recall_result_dict)
 
-        recall_result_with_user_item_feature = self.add_user_feature(recall_result_with_item_feature, user_portrait)
+            recall_result_with_user_item_feature = self.add_user_feature(recall_result_with_item_feature, user_portrait)
 
-        rank_result = self.generate_rank_result(recall_result_with_user_item_feature)
+            rank_result = self.generate_rank_result(recall_result_with_user_item_feature)
 
         logging.info("rank result {}".format(rank_result))
 
-        rankProcessResponseValue = {
-            'user_id': user_id,
-            'rank_result': rank_result,
-            'recall_result': recall_result
-        }
+        # rankProcessResponseValue = {
+        #     'user_id': user_id,
+        #     'rank_result': rank_result,
+        #     'recall_result': recall_result
+        # }
 
         rankProcessResponseAny = Any()
-        rankProcessResponseAny.value =  json.dumps(rankProcessResponseValue).encode('utf-8')
+        rankProcessResponseAny.value =  json.dumps(rank_result).encode('utf-8')
         rankProcessResponse = service_pb2.RankProcessResponse(code=0, description='rank process with success')
         rankProcessResponse.results.Pack(rankProcessResponseAny)        
 
         logging.info("rank process complete") 
         return rankProcessResponse
+
+    def generate_rank_result_from_ps_rank(self, user_id, recall_result):
+        logging.info('generate_rank_result using personalize rank model start')
+        response = self.personalize_runtime.get_personalized_ranking(
+            campaignArn=self.ps_config['CampaignArn'],
+            inputList=list(recall_result.keys()),
+            userId=user_id
+        )
+        rank_list = response['personalizedRanking']
+        logging.info("ps rank list:{}".format(rank_list))
+        rank_result = {}
+        for rank_item in rank_list:
+            if rank_item.__contains__('score'):
+                rank_result[rank_item['itemId']] = rank_item["score"]
+            else:
+                rank_result[rank_item['itemId']] = 0
+
+        rank_summary = {'model': 'ps-rank', 'data': {str(user_id): rank_result}}
+        return rank_summary
 
     def generate_rank_result(self, mk_test_data):
         logging.info('generate_rank_result start')
@@ -355,7 +418,8 @@ class Rank(service_pb2_grpc.RankServicer):
             sort_id_score_dict = {k: v for k, v in sorted(id_score_dict.items(), key=lambda item: item[1], reverse=True)}
             rank_result[reviewerID] = sort_id_score_dict
 
-        return rank_result
+        rank_summary = {'model': 'deepfm', 'data': rank_result}
+        return rank_summary
 
 def init():
     # Check out environments

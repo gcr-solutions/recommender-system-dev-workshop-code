@@ -1,7 +1,7 @@
 # Requirements without Version Specifiers
 
 # Requirements with Version Specifiers
-# redis== 3.5.3
+redis== 3.5.3
 # faiss-cpu==1.6.5
 # numpy==1.19.5
 # grpcio==1.36.1

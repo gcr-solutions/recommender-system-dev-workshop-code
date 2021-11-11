@@ -170,6 +170,11 @@
         "xray:BatchGetTraces"
       ],
       "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "personalize:*",
+      "Resource": "*"
     }
   ]
 }

@@ -227,7 +227,7 @@ mk_train, mk_test = train_test_split(mk_data, test_size=0.2)
 continous_features = range(1, dense_feature_size + 1)
 categorial_features = range(1, sparse_feature_size + 1)
 
-output_dir = './'
+output_dir = '/'
 with open(output_dir + 'tr.libsvm', 'w') as out_train:
     with open(output_dir + 'va.libsvm', 'w') as out_valid:
         for row in mk_train.iterrows():

@@ -252,16 +252,16 @@ for user_id, recall_result in dict_recall_result.items():
         # 构建rank_type
         try:
             rank_pos = str(get_dict_pos(
-                recall_id, dict_rank_result[str(user_id)]))
+                recall_id, dict_rank_result[str(user_id)]['data']))
         except ValueError as e:
             logging.warning(repr(e))
             rank_pos = 0
 
-        rank_type = mt_construct(run_timing, 'dkn', rank_pos)
+        rank_type = mt_construct(run_timing, dict_rank_result[str(user_id)]['model'], rank_pos)
         # 构建rank_score
-        if dict_rank_result.get(str(user_id)).get(str(recall_id)):
+        if dict_rank_result.get(str(user_id))['data'].get(str(recall_id)):
             rank_score = round(
-                float(dict_rank_result[str(user_id)][str(recall_id)]), 2)
+                float(dict_rank_result[str(user_id)]['data'][str(recall_id)]), 2)
         else:
             logging.warning("cannot find recall_id: {} in dict_rank_result[{}]".format(recall_id, user_id))
             logging.warning("dict_rank_result[{}] = {}".format(user_id, dict_rank_result.get(str(user_id))))

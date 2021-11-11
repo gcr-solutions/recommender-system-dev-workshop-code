@@ -66,6 +66,10 @@ spec:
             value: "http://portrait:5300"
           - name: AWS_REGION
             value: $(AWS_REGION)
+          - name: METHOD
+            value: $(METHOD)
+          - name: PS_CONFIG
+            value: "ps_config.json"
         volumeMounts:
           - name: persistent-storage
             mountPath: /rs-data

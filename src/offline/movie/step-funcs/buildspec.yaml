@@ -3,7 +3,11 @@ version: 0.2
 env:
   variables:
     APP_NAME: "step-funcs"
-    IMAGE_TAG: $Stage
+    METHOD: "customize"
+#  secrets-manager:
+#    GITHUB_USER: gcr-rs-dev-workshop-secret:githubUser
+#    ACCESS_TOKEN: gcr-rs-dev-workshop-secret:accessToken
+#    APP_CONF_REPO: gcr-rs-dev-workshop-secret:appConfRepo
 
 phases:
     install:
@@ -22,9 +26,9 @@ phases:
         commands:
           - echo Build started on `date`
           - pwd
-          - cd $CODEBUILD_SRC_DIR/src/offline/movie/step-funcs/
+          - cd $CODEBUILD_SRC_DIR/src/offline/movie/step-funcs/$METHOD
           - echo $Stage
-          - ./build.sh $Stage
+          - ./build.sh $Stage $METHOD
 
     post_build:
         commands:

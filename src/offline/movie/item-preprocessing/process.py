@@ -34,6 +34,8 @@ parser.add_argument("--bucket", type=str, help="s3 bucket")
 parser.add_argument("--prefix", type=str,
                     help="s3 input key prefix")
 parser.add_argument("--region", type=str, help="aws region")
+parser.add_argument("--method", type=str, default='customize', help="method name")
+
 args, _ = parser.parse_known_args()
 print("args:", args)
 
@@ -45,6 +47,7 @@ bucket = args.bucket
 prefix = args.prefix
 if prefix.endswith("/"):
     prefix = prefix[:-1]
+method = args.method
 
 
 
@@ -57,7 +60,11 @@ input_file = "s3://{}/{}/system/ingest-data/item/".format(bucket, prefix)
 emr_output_key_prefix = "{}/system/emr/item-preprocessing/output/".format(prefix)
 emr_output_bucket_key_prefix = "s3://{}/{}".format(bucket, emr_output_key_prefix)
 
+emr_ps_output_key_prefix = "{}/system/emr/item-preprocessing/ps-output/".format(prefix)
+emr_ps_output_bucket_key_prefix = "s3://{}/{}".format(bucket, emr_ps_output_key_prefix)
+
 output_file_key = "{}/system/item-data/item.csv".format(prefix)
+output_ps_file_key = "{}/system/ps-ingest-data/item/ps_item.csv".format(prefix)
 
 with SparkSession.builder.appName("Spark App - item preprocessing").getOrCreate() as spark:
     # This is needed to save RDDs which is the only way to write nested Dataframes into CSV format
@@ -69,9 +76,9 @@ with SparkSession.builder.appName("Spark App - item preprocessing").getOrCreate(
     # process item file
     #
 
-    df_input = spark.read.text(input_file)
+    df_input_raw = spark.read.text(input_file)
     # program_id|program_type|program_name|release_year|director|actor|category_property|language|ticket_num|popularity|score|level|new_series
-    df_input = df_input.selectExpr("split(value, '_!_') as row").where(
+    df_input = df_input_raw.selectExpr("split(value, '_!_') as row").where(
         size(col("row")) > 12).selectExpr("row[0] as program_id",
                                           "row[1] as program_type",
                                           "row[2] as program_name",
@@ -106,6 +113,37 @@ with SparkSession.builder.appName("Spark App - item preprocessing").getOrCreate(
     df_final.coalesce(1).write.mode("overwrite").option(
         "header", "false").option("sep", "_!_").csv(emr_output_bucket_key_prefix)
 
+    if "ps" in method:
+        df_ps_input = df_input_raw.selectExpr("split(value, '_!_') as row").where(
+            size(col("row")) > 6).selectExpr("row[0] as ITEM_ID",
+                                             "row[1] as ITEM_TYPE",
+                                             "row[2] as program_name",
+                                             "row[3] as RELEASE_YEAR",
+                                             "row[4] as DIRECTOR",
+                                             "row[5] as actor",
+                                             "row[6] as category_property",
+                                             "row[7] as LANGUAGE",
+                                             "row[8] as TICKET_NUM",
+                                             "row[9] as popularity",
+                                             "row[10] as SCORE",
+                                             "row[11] as LEVEL",
+                                             "row[12] as is_new"
+                                             )
+        df_ps_input = df_ps_input.select(col("ITEM_ID"),
+                                         col("ITEM_TYPE"),
+                                         col("RELEASE_YEAR"),
+                                         col("DIRECTOR"),
+                                         regexp_replace(col("category_property"), ',', '|').alias('CATEGORY_PROPERTY'),
+                                         col("LANGUAGE"),
+                                         col("TICKET_NUM"),
+                                         col("SCORE"),
+                                         col("LEVEL")
+                                         )
+        df_ps_final = df_ps_input.dropDuplicates(['ITEM_ID'])
+        df_ps_final.coalesce(1).write.mode("overwrite").option(
+            "header", "true").option("sep", ",").csv(emr_ps_output_bucket_key_prefix)
+
+
     print("It take {:.2f} minutes to finish".format(
         (time.time() - Timer1) / 60))
 
@@ -120,3 +158,14 @@ emr_output_file_key = list_s3_by_prefix(
 print("emr_output_file_key:", emr_output_file_key)
 s3_copy(bucket, emr_output_file_key, output_file_key)
 print("output file:", output_file_key)
+
+if "ps" in method:
+    emr_ps_output_file_key = list_s3_by_prefix(
+        bucket,
+        emr_ps_output_key_prefix,
+        lambda key: key.endswith(".csv"))[0]
+
+    print("emr_ps_output_file_key:", emr_ps_output_file_key)
+    s3_copy(bucket, emr_ps_output_file_key, output_ps_file_key)
+    print("output file:", output_ps_file_key)
+

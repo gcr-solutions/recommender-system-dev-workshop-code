@@ -47,7 +47,24 @@ spec:
             value: $(S3_BUCKET)
           - name: S3_PREFIX
             value: $(S3_PREFIX)
+          - name: LOCAL_DATA_FOLDER
+            value: $(LOCAL_DATA_FOLDER)
+          - name: METHOD
+            value: $(METHOD)
+          - name: PS_CONFIG
+            value: "ps_config.json"
+          - name: SCENARIO
+            value: $(SCENARIO)
+          - name: Stage
+            value: $(Stage)
           - name: POD_NAMESPACE
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+        volumeMounts:
+          - name: persistent-storage
+            mountPath: /rs-data
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: efs-claim

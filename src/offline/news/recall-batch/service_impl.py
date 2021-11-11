@@ -2,6 +2,7 @@ import logging
 import numpy as np
 import json
 import itertools
+import boto3
 
 logging.basicConfig(level=logging.INFO)
 
@@ -135,6 +136,30 @@ class ServiceImpl:
                     mt, len(current_list_with_score)))
                 recall_items.append(single_recall_result)
 
+
+    def recall_by_personalize(self, news_ids, recall_wrap, recall_items, multiple_shot_record):
+        dict_wrap = recall_wrap['dict_wrap']
+        topn_wrap = recall_wrap['config']['mt_topn']
+        weights = recall_wrap['config']['pos_weights']
+        mt = recall_wrap['config']['ps_mt']
+        dict_ps_sims_id = dict_wrap[mt]
+        for news_id in news_ids:
+            logging.info("top n {} method for news id: {}".format(mt, news_id))
+            if news_id not in dict_ps_sims_id:
+                logging.warning("Cannot find {} in dict_ps_sims_id".format(news_id))
+                continue
+            single_recall_result = {}
+            current_list_with_score = []
+            current_list_with_score = current_list_with_score + \
+                                      self.recall_pos_score(news_id, dict_ps_sims_id[news_id][0:topn_wrap[mt]],
+                                                            weights[mt], multiple_shot_record)
+            single_recall_result['method'] = mt
+            single_recall_result['list'] = current_list_with_score
+            logging.info("ps-sims method find {} candidates".format(len(current_list_with_score)))
+            logging.info("single_recall_result:{}".format(single_recall_result))
+            recall_items.append(single_recall_result)
+
+
     def merge_recall_result(self, news_ids, **config_dict):
         ########################################
         # 召回融合排序逻辑
@@ -148,6 +173,9 @@ class ServiceImpl:
         self.recall_by_popularity(news_ids, recall_wrap, recall_items, multiple_shot_record)
         # 根据用户画像做召回
         self.recall_by_portrait(user_portrait, recall_wrap, recall_items, multiple_shot_record)
+        # 根据ps-sims做召回
+        if recall_wrap['method'] == 'ps-sims':
+            self.recall_by_personalize(news_ids, recall_wrap, recall_items, multiple_shot_record)
 
         # recall_merge_cnt = 100
         n_last_len = recall_wrap['config']['merge_cnt']

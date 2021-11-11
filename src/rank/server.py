@@ -27,23 +27,26 @@ MANDATORY_ENV_VARS = {
     'REDIS_HOST': 'localhost',
     'REDIS_PORT': 6379,
     'RANK_PORT': 5400
-    }
+}
 
 # Notice channel
-recall_notice_to_rank='recall_notice_to_rank'
-rank_notice_to_filter='rank_notice_to_filter'
-sleep_interval = 10 #second
+recall_notice_to_rank = 'recall_notice_to_rank'
+rank_notice_to_filter = 'rank_notice_to_filter'
+sleep_interval = 10  # second
 
 action_model_type = 'action-model'
 embedding_type = 'embedding'
 pickle_type = 'inverted-list'
+json_type = 'ps-result'
 
 
 def xasync(f):
     def wrapper(*args, **kwargs):
-        thr = Thread(target = f, args = args, kwargs = kwargs)
+        thr = Thread(target=f, args=args, kwargs=kwargs)
         thr.start()
+
     return wrapper
+
 
 @app.get('/rank/status', tags=["monitoring"])
 def status():
@@ -51,21 +54,23 @@ def status():
     channel = grpc.insecure_channel('localhost:50051')
     stub = service_pb2_grpc.RankStub(channel)
     response = stub.Status(service_pb2.google_dot_protobuf_dot_empty__pb2.Empty())
-    
+
     statusAny = any_pb2.Any()
     response.status.Unpack(statusAny)
-    
+
     pStatus = json.loads(statusAny.value.decode('utf-8'))
     return {
         'env': MANDATORY_ENV_VARS,
         'redis': rCache.connection_status(),
         'plugin_status': pStatus
-    }   
+    }
+
 
 @app.get('/ping', tags=["monitoring"])
-def ping(): 
+def ping():
     logging.info('Processing default request...')
-    return { 'result': 'ping' }
+    return {'result': 'ping'}
+
 
 def check_plugin_status():
     logging.info('check plugin status')
@@ -78,6 +83,7 @@ def check_plugin_status():
     else:
         logging.info('plugin startup failed')
         return False
+
 
 @xasync
 def poll_recall_notice_to_rank():
@@ -118,17 +124,20 @@ def poll_recall_notice_to_rank():
                         'recall_result': recall_result,
                         'rank_result': presults
                     }).encode('utf-8'))
-            else:    
-                time.sleep( sleep_interval )
+            else:
+                time.sleep(sleep_interval)
         except Exception:
-            localtime = time.asctime( time.localtime(time.time()))
-            logging.info('Rank process error, time: {}'.format(localtime))                  
+            localtime = time.asctime(time.localtime(time.time()))
+            logging.info('Rank process error, time: {}'.format(localtime))
+
 
 def read_stream_messages():
     logging.info('read_stream_messages start')
     read_action_model_message()
     read_embedding_message()
     read_pickle_message()
+    read_json_message()
+
 
 @xasync
 def read_action_model_message():
@@ -145,9 +154,10 @@ def read_action_model_message():
             if stream_message:
                 handle_stream_message(stream_message)
         except redis.ConnectionError:
-            localtime = time.asctime( time.localtime(time.time()))
-            logging.info('get ConnectionError, time: {}'.format(localtime))                 
-        time.sleep( sleep_interval )
+            localtime = time.asctime(time.localtime(time.time()))
+            logging.info('get ConnectionError, time: {}'.format(localtime))
+        time.sleep(sleep_interval)
+
 
 @xasync
 def read_embedding_message():
@@ -164,9 +174,10 @@ def read_embedding_message():
             if stream_message:
                 handle_stream_message(stream_message)
         except redis.ConnectionError:
-            localtime = time.asctime( time.localtime(time.time()))
-            logging.info('get ConnectionError, time: {}'.format(localtime))                 
-        time.sleep( sleep_interval )        
+            localtime = time.asctime(time.localtime(time.time()))
+            logging.info('get ConnectionError, time: {}'.format(localtime))
+        time.sleep(sleep_interval)
+
 
 @xasync
 def read_pickle_message():
@@ -183,9 +194,30 @@ def read_pickle_message():
             if stream_message:
                 handle_stream_message(stream_message)
         except redis.ConnectionError:
-            localtime = time.asctime( time.localtime(time.time()))
-            logging.info('get ConnectionError, time: {}'.format(localtime))                 
-        time.sleep( sleep_interval )                
+            localtime = time.asctime(time.localtime(time.time()))
+            logging.info('get ConnectionError, time: {}'.format(localtime))
+        time.sleep(sleep_interval)
+
+
+@xasync
+def read_json_message():
+    logging.info('read_json_message start')
+    # Read existed stream message
+    stream_message = rCache.read_stream_message(json_type)
+    if stream_message:
+        logging.info("Handle existed stream json_type message")
+        handle_stream_message(stream_message)
+    while True:
+        logging.info('wait for reading json_type message')
+        try:
+            stream_message = rCache.read_stream_message_block(json_type)
+            if stream_message:
+                handle_stream_message(stream_message)
+        except redis.ConnectionError:
+            localtime = time.asctime(time.localtime(time.time()))
+            logging.info('get ConnectionError, time: {}'.format(localtime))
+        time.sleep(sleep_interval)
+
 
 def handle_stream_message(stream_message):
     logging.info('get stream message from {}'.format(stream_message))
@@ -211,6 +243,7 @@ def handle_stream_message(stream_message):
     else:
         logging.info('reload plugin failed, description: {}'.format(response.description))
 
+
 def parse_stream_message(stream_message):
     for stream_name, message in stream_message:
         for message_id, value in message:
@@ -219,6 +252,7 @@ def parse_stream_message(stream_message):
             file_path = decode_value['file_path']
             file_list = decode_value['file_list']
             return file_type, file_path, file_list
+
 
 # convert stream data to str
 def convert(data):
@@ -231,13 +265,15 @@ def convert(data):
     else:
         return data
 
+
 def wait_for_plugin_service():
     while True:
         if check_plugin_status():
             return
         else:
             logging.info('wait for plugin startup')
-            time.sleep( sleep_interval )
+            time.sleep(sleep_interval)
+
 
 def init():
     # Check out environments
@@ -245,7 +281,7 @@ def init():
         if var not in os.environ:
             logging.error("Mandatory variable {%s} is not set, using default value {%s}.", var, MANDATORY_ENV_VARS[var])
         else:
-            MANDATORY_ENV_VARS[var]=os.environ.get(var)
+            MANDATORY_ENV_VARS[var] = os.environ.get(var)
 
     aws_region = MANDATORY_ENV_VARS['AWS_REGION']
     logging.info("aws_region={}".format(aws_region))

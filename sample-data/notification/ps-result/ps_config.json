@@ -1,0 +1,22 @@
+{
+  "DatasetGroupName": "GCR-RS-News-Dataset-Group",
+  "DatasetGroupArn": "arn:aws:personalize:ap-southeast-1:522244679887:dataset-group/GCR-RS-News-Dataset-Group",
+  "UserDatasetName": "NewsUserDataset",
+  "UserDatasetArn": "arn:aws:personalize:ap-southeast-1:522244679887:dataset/GCR-RS-News-Dataset-Group/USERS",
+  "ItemDatasetName": "NewsItemDataset",
+  "ItemDatasetArn": "arn:aws:personalize:ap-southeast-1:522244679887:dataset/GCR-RS-News-Dataset-Group/ITEMS",
+  "InteractionDatasetName": "NewsInteractionDataset",
+  "InteractionDatasetArn": "arn:aws:personalize:ap-southeast-1:522244679887:dataset/GCR-RS-News-Dataset-Group/INTERACTIONS",
+  "UserFileName": "ps_user.csv",
+  "ItemFileName": "ps_item.csv",
+  "InteractionFileName": "ps_action.csv",
+  "EventTrackerName": "NewsEventTracker",
+  "EventTrackerArn": "arn:aws:personalize:ap-southeast-1:522244679887:event-tracker/40f59e1e",
+  "EventTrackerId": "5f2da64f-74ea-4bdf-81fb-cd21692a1a32",
+  "EventType": "CLICK",
+  "SolutionName": "UserPersonalizeSolution",
+  "SolutionVersionArn": "arn:aws:personalize:ap-southeast-1:522244679887:solution/UserPersonalizeSolution/f68ab0bd",
+  "CampaignName": "gcr-rs-dev-workshop-news-UserPersonalize-campaign",
+  "CampaignArn": "arn:aws:personalize:ap-southeast-1:522244679887:campaign/gcr-rs-dev-workshop-news-UserPersonalize-campaign",
+  "TrainingMode": "UPDATE"
+}

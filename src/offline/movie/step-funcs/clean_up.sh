@@ -2,7 +2,7 @@
 set -e
 
 echo "run $0 ..."
-pwd
+cur_dir=$(pwd)
 
 echo "------------------------------------------------ "
 Stage=$1
@@ -12,6 +12,12 @@ fi
 
 echo "Stage=$Stage"
 
+METHOD=$2
+if [[ -z $METHOD ]];then
+  METHOD='customize'
+fi
+
+echo "METHOD=$METHOD"
 
 AWS_CMD="aws"
 if [[ -n $PROFILE ]]; then
@@ -23,7 +29,7 @@ if [[ -n $AWS_DEFAULT_REGION ]];then
 fi
 
 if [[ -z $REGION ]];then
-    REGION='ap-southeast-1'
+    REGION='ap-northeast-1'
 fi
 
 echo "AWS_CMD: $AWS_CMD"
@@ -33,21 +39,17 @@ echo "REGION: $REGION"
 AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity  --o text | awk '{print $1}')
 echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 
-all_stepfuncs=(
-steps
-batch-update
-item-new
-user-new
-train-model
-dashboard
-overall
+method_list=(
+    "customize"
+    "ps-complete"
+    "ps-rank"
+    "ps-sims"
 )
-
-for name in ${all_stepfuncs[@]};
+for method in ${method_list[@]};
 do
-    STACK_NAME=rs-$Stage-movie-${name}-stack
-    echo "----"
-    echo "Clean STACK_NAME: ${STACK_NAME}"
-    $AWS_CMD cloudformation delete-stack --region ${REGION} --stack-name ${STACK_NAME}
+  cd ${cur_dir}/${method}
+  ./clean_up.sh
 done
+
+cd ${cur_dir}
 
