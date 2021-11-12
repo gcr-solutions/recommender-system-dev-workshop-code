@@ -16,5 +16,5 @@ fi
 if [[ $Stage == 'demo' ]]; then
   ../dev2demo.sh $repoName
 else
-../spark_build.sh $repoName $Stage
+  ../spark_build.sh $repoName $Stage
 fi

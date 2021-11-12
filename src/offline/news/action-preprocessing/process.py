@@ -4,7 +4,7 @@ import pickle
 
 import boto3
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, size, row_number, expr, array_join
+from pyspark.sql.functions import col, size, row_number, expr, array_join, lit
 from pyspark.sql.types import StructType, StructField, StringType
 from pyspark.sql.window import Window
 
@@ -39,6 +39,7 @@ parser.add_argument("--prefix", type=str,
                     help="s3 input key prefix")
 parser.add_argument("--only4popularity", type=str, default='0',
                     help="only4popularity")
+parser.add_argument("--method", type=str, default='customize', help="method name")
 
 parser.add_argument("--region", type=str, help="aws region")
 args, _ = parser.parse_known_args()
@@ -51,6 +52,7 @@ if args.region:
 bucket = args.bucket
 prefix = args.prefix
 only4popularity = False
+method = args.method
 
 if int(args.only4popularity) > 0:
     print("only4popularity is True")
@@ -67,7 +69,13 @@ emr_action_output_key_prefix = "{}/system/emr/action-preprocessing/output/action
     prefix)
 emr_action_output_bucket_key_prefix = "s3://{}/{}".format(
     bucket, emr_action_output_key_prefix)
+emr_ps_action_output_key_prefix = "{}/system/emr/action-preprocessing/output/ps-action".format(
+    prefix)
+emr_ps_action_output_bucket_key_prefix = "s3://{}/{}".format(
+    bucket, emr_ps_action_output_key_prefix)
 output_action_file_key = "{}/system/action-data/action.csv".format(prefix)
+output_ps_action_file_key = "{}/system/ps-ingest-data/action/ps_action.csv".format(prefix)
+
 
 item_file = "s3://{}/{}/system/item-data/item.csv".format(bucket, prefix)
 user_file = "s3://{}/{}/system/user-data/user.csv".format(bucket, prefix)
@@ -101,8 +109,8 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     #
     print("start processing action file: {}".format(input_action_file))
     # 52a23654-9dc3-11eb-a364-acde48001122_!_6552302645908865543_!_1618455260_!_1_!_0
-    df_action_input = spark.read.text(input_action_file)
-    df_action_input = df_action_input.selectExpr("split(value, '_!_') as row").where(
+    df_action_input_raw = spark.read.text(input_action_file)
+    df_action_input = df_action_input_raw.selectExpr("split(value, '_!_') as row").where(
         size(col("row")) > 4).selectExpr("row[0] as user_id",
                                          "row[1] as item_id",
                                          "row[2] as timestamp",
@@ -110,6 +118,16 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
                                          "cast(row[4] as string) as action_value",
                                          )
     df_action_input.cache()
+
+    if method != "customize":
+        ps_df_action_input = df_action_input_raw.selectExpr("split(value, '_!_') as row").where(
+            size(col("row")) > 4).selectExpr("row[0] as USER_ID",
+                                             "row[1] as ITEM_ID",
+                                             "row[2] as TIMESTAMP",
+                                             "row[3] as EVENT_TYPE",
+                                             "cast(row[4] as string) as EVENT_VALUE",
+                                             ).withColumn("EVENT_TYPE", lit("CLICK"))
+        ps_df_action_input.cache()
 
     if only4popularity:
         df_action_input \
@@ -133,6 +151,18 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
             .coalesce(1).write.mode("overwrite") \
             .option("header", "false").option("sep", "_!_").csv(emr_action_output_bucket_key_prefix)
 
+        if method != "customize":
+            ps_df_item_id = df_item.selectExpr("split(value, '_!_') as row").where(
+                size(col("row")) > 6).selectExpr("row[0] as ITEM_ID")
+            ps_df_user_id = df_user.selectExpr("split(value, '_!_') as row").where(
+                size(col("row")) > 4).selectExpr("row[0] as USER_ID")
+            df_ps_action_output = ps_df_action_input.join(ps_df_item_id, ['ITEM_ID']).join(ps_df_user_id, ['USER_ID'])
+            df_ps_action_output \
+                .select("USER_ID", "ITEM_ID", "TIMESTAMP", "EVENT_TYPE") \
+                .coalesce(1).write.mode("overwrite") \
+                .option("header", "true").option("sep", ",").csv(emr_ps_action_output_bucket_key_prefix)
+
+
 if only4popularity:
     emr_action_popularity_output_file_key = list_s3_by_prefix(
         bucket,
@@ -149,5 +179,14 @@ else:
     print("emr_action_output_file_key:", emr_action_output_file_key)
     s3_copy(bucket, emr_action_output_file_key, output_action_file_key)
     print("output_action_file_key:", output_action_file_key)
+
+    if method != "customize":
+        emr_ps_action_output_file_key = list_s3_by_prefix(
+            bucket,
+            emr_ps_action_output_key_prefix,
+            lambda key: key.endswith(".csv"))[0]
+        print("emr_ps_action_output_file_key:", emr_ps_action_output_file_key)
+        s3_copy(bucket, emr_ps_action_output_file_key, output_ps_action_file_key)
+        print("output_ps_action_file_key:", output_ps_action_file_key)
 
 print("All done")

@@ -3,14 +3,9 @@ set -e
 
 export SECRET_NAME=gcr-rs-dev-workshop-secret
 export APP_CONF_REPO=recommender-system-dev-workshop-code
+export METHOD=customize
+export SCENARIO=news
 echo "APP_CONF_REPO: $APP_CONF_REPO"
-
-if [[ -z $RS_SCENARIO  ]];then
-    RS_SCENARIO=news
-fi
-
-export RS_SCENARIO=$RS_SCENARIO
-echo "RS_SCENARIO: $RS_SCENARIO"
 
 input=$1
 
@@ -38,6 +33,34 @@ elif [ $input = "application" ]
 then
     echo "start create application!"
     ./create-argocd-application.sh
+elif [ $input = "load-data" ]
+then
+    echo "start load data!"
+    ./load-$SCENARIO-seed-data.sh
+elif [ $input = "sync-method" ]
+then
+    echo "start synchronize data!"
+    ./sync-method.sh
+elif [ $input = "get-endpoint" ];
+then
+    echo "start get endpoint"
+    ./get-ingressgateway-elb-endpoint.sh
+elif [ $input = "deploy-method" ];
+then
+    echo "start deploy method $2"
+    ./deploy-method.sh $2
+elif [ $input = "change-method" ];
+then
+    echo "start change method $2"
+    ./change-method.sh $2
+elif [ $input = "clean-offline" ];
+then
+    echo "start clean offline"
+    ./clean-offline.sh
+elif [ $input = "clean-online" ];
+then
+    echo "start get endpoint"
+    ./clean-online.sh
 elif [ $input = "ALL" ]
 then
     echo "export SECRET_NAME=gcr-rs-dev-workshop-secret"
@@ -96,4 +119,4 @@ then
     echo "=== ALL Complete ==="
 else
     echo "Please enter correct parameter"
-fi  
+fi

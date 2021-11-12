@@ -200,7 +200,7 @@ class Filter(service_pb2_grpc.FilterServicer):
         requestMessageJson = json.loads(requestMessage.value, encoding='utf-8')
         # Retrieve request data        
         user_id = requestMessageJson['user_id']
-        rank_result = requestMessageJson['rank_result']['rank_result']
+        rank_result = requestMessageJson['rank_result']
         recall_result = requestMessageJson['recall_result']
         logging.info('user_id -> {}'.format(user_id))
         logging.info('rank_result -> {}'.format(rank_result))
@@ -618,6 +618,9 @@ class Filter(service_pb2_grpc.FilterServicer):
         logging.info('filter_process completed')
 
     def get_dict_pos(self, key, dict_var):
+        logging.info('key: {}'.format(key))
+        logging.info('dict_var: {}'.format(dict_var))
+        logging.info('dict_var_keys'.format(dict_var.keys()))
         return list(dict_var.keys()).index(key)
 
     def calc_filter_score(self, recall_score, rank_score, recall_mt=None, rank_mt=None, recall_pos=None, rank_pos=None):
@@ -719,10 +722,10 @@ class Filter(service_pb2_grpc.FilterServicer):
                 # 构建recall_score
                 recall_score = round(recall_property[3], 2)
                 # 构建rank_type
-                rank_pos = str(self.get_dict_pos(str(recall_id), dict_rank_result[str(user_id)]))
-                rank_type = self.mt_construct(run_timing, 'deepfm', rank_pos)
+                rank_pos = str(self.get_dict_pos(str(recall_id), dict_rank_result['data'][str(user_id)]))
+                rank_type = self.mt_construct(run_timing, dict_rank_result['model'], rank_pos)
                 # 构建rank_score
-                rank_score = round(dict_rank_result[str(user_id)][str(recall_id)], 2)
+                rank_score = round(float(dict_rank_result['data'][str(user_id)][str(recall_id)]), 2)
                 # 构建filter_type
                 filter_type = self.mt_construct(run_timing, tRecommend, 'TBD')
                 # 构建filter_score

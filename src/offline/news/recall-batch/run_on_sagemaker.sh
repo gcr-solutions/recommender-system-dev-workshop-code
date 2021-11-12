@@ -9,6 +9,7 @@ if [[ -z $REGION ]]; then
   REGION='ap-northeast-1'
 fi
 
+
 echo "PROFILE: $PROFILE"
 echo "REGION: $REGION"
 
@@ -22,6 +23,7 @@ repo_name=rs/news-recall-batch
 
 JOB_NAME=${repo_name}-${TIMESTAMP}-${RANDOM}
 JOB_NAME=$(echo $JOB_NAME | sed 's/\//-/g')
+
 
 IMAGEURI=${account_id}.dkr.ecr.${AWS_REGION}.amazonaws.com/${repo_name}:dev-workshop
 if [[ AWS_REGION =~ cn.* ]];then

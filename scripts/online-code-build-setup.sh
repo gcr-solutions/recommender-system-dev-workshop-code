@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
 cd codebuild
 
 # 1 Create secret manager, store github user, access token and repo name
@@ -12,7 +16,7 @@ cd codebuild
 # ./create-iam-role.sh
 sleep 20
 # 4 create code build project for each service
-./register-to-codebuild.sh
+./register-to-codebuild.sh $SCENARIO
 
 cd ../
 

@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys StepFuncs
+
+
+Parameters:
+  NamePrefix:
+    Type: String
+    Default: rs-movie-ps-complete-dev
+
+  Stage:
+    Type: String
+    Default: dev
+
+  StepFuncAndLambdaRoleName:
+    Type: String
+    Default: LambdaAndStepFuncsRole
+
+  PreCheckLabmda:
+    Type: String
+    Default: PreCheckLabmda
+
+  CreateDatasetImportJobLambda:
+    Type: String
+    Default: CreateDatasetImportJobLambda
+
+  CheckDatasetImportJobStatusLambda:
+    Type: String
+    Default: CheckDatasetImportJobStatusLambda
+
+Resources:
+  UserNewStepFuncPersonalize:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub ${NamePrefix}-UserNewStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Prepare User data",
+          "TimeoutSeconds": 72000,
+          "States": {
+            "Prepare User data": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-PrepareUserData",
+                "Name.$": "States.Format('{}', $$.Execution.Name)"
+              },
+              "ResultPath": "$.PrepareTrainingData",
+              "Next": "Succeed"
+            },
+            "Succeed": {
+              "Type": "Succeed"
+            }
+          }
+        }

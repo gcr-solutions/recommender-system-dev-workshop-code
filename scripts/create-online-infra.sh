@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
 export EKS_CLUSTER=gcr-rs-dev-application-cluster
 
 echo "REGION:$REGION"
@@ -33,7 +37,7 @@ eksctl create cluster -f ./eks/nodes-config.yaml
 
 # # 1.2 Create EKS cluster namespace
 echo "Create EKS cluster namespace ..."
-kubectl apply -f ../manifests/envs/news-dev/ns.yaml
+kubectl apply -f ../manifests/envs/${SCENARIO}-dev/ns.yaml
 
 # 2. Install Istio with default profile
 echo "Install Istio with default profile ..."
@@ -48,14 +52,14 @@ kubectl create ns istio-system
 cd ../..
 rm -rf tmp_istio
 
-kubectl apply -f ../manifests/istio-ingress-gateway.yaml
+kubectl apply -f ../manifests/${SCENARIO}-istio-ingress-gateway.yaml
 
 #Open istio elb 22 port for China regions
 if [[ $REGION =~ ^cn.* ]];then
   echo "open 22 port for china regions [$REGION]"
   while true; do
        sleep 30
-       ELB_NAME=$(aws resourcegroupstaggingapi get-resources --tag-filters Key=kubernetes.io/service-name,Values=istio-system/istio-ingressgateway-news-dev |
+       ELB_NAME=$(aws resourcegroupstaggingapi get-resources --tag-filters Key=kubernetes.io/service-name,Values=istio-system/istio-ingressgateway-${SCENARIO}-dev |
 jq -r '.ResourceTagMappingList[].ResourceARN' | cut -d'/' -f 2)
        if [[ -n $ELB_NAME ]];then
           echo "load balance name: $ELB_NAME"
@@ -66,7 +70,7 @@ jq -r '.ResourceTagMappingList[].ResourceARN' | cut -d'/' -f 2)
   done
 
 
-  INSTANCE_PORT=$(kubectl get svc istio-ingressgateway-news-dev -n istio-system -o=jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
+  INSTANCE_PORT=$(kubectl get svc istio-ingressgateway-${SCENARIO}-dev -n istio-system -o=jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
   echo instance port: $INSTANCE_PORT
 
   aws elb create-load-balancer-listeners --load-balancer-name $ELB_NAME --listeners "Protocol=TCP,LoadBalancerPort=22,InstanceProtocol=TCP,InstancePort=$INSTANCE_PORT"
@@ -158,7 +162,7 @@ for subnet_id in $(echo $SUBNET_IDS); do
 done
 
 # 3.7 Apply & create PV/StorageClass
-cd ../manifests/envs/news-dev/efs
+cd ../manifests/envs/${SCENARIO}-dev/efs
 cp csi-env-template.yaml csi-env.yaml
 sed -i 's/FILE_SYSTEM_ID/'"$EFS_ID"'/g' csi-env.yaml
 cat csi-env.yaml

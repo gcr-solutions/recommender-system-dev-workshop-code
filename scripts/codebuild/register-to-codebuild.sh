@@ -7,6 +7,11 @@ if [[ -z $REGION ]]; then
   exit 1
 fi
 
+SCENARIO=$1
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text)
 if [[ $? -ne 0 ]]; then
   echo "error!!! can not get your AWS_ACCOUNT_ID"
@@ -41,10 +46,10 @@ for project in ${projects[@]}; do
     if [ $REGION = "cn-north-1" ] || [ $REGION = "cn-northwest-1" ]
     then
         echo "Create template for China regions!"
-        sed -e "s|__app_name__|$project|g;s|__REGION__|$REGION|g;s|__REPO_NAME__|$APP_CONF_REPO|g" ./codebuild-template-cn.json >./${project}-codebuild.json        
+        sed -e "s|__app_name__|$project|g;s|__REGION__|$REGION|g;s|__REPO_NAME__|$APP_CONF_REPO|g;s|__SCENARIOS__|$SCENARIO|g" ./codebuild-template-cn.json >./${project}-codebuild.json
     else
         echo "Create template for Global regions!"
-        sed -e "s|__app_name__|$project|g;s|__REGION__|$REGION|g;s|__REPO_NAME__|$APP_CONF_REPO|g" ./codebuild-template.json >./${project}-codebuild.json
+        sed -e "s|__app_name__|$project|g;s|__REGION__|$REGION|g;s|__REPO_NAME__|$APP_CONF_REPO|g;s|__SCENARIOS__|$SCENARIO|g" ./codebuild-template.json >./${project}-codebuild.json
     fi 
     
     aws codebuild create-project \

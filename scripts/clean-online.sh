@@ -1,10 +1,29 @@
 #!/usr/bin/env bash
 #set -e
 
+curr_dir=$(pwd)
+
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
+existed_personalize=$(aws personalize list-dataset-groups | jq '.[][] | select(.name=="GCR-RS-'${SCENARIO}'-Dataset-Group")')
+if [[ "${existed_personalize}" != "" ]]; then
+  echo "################ start clean personalize resources ################ "
+  echo "you can run the following command to check the personalize deleting status"
+  echo "tail -f ~/personalize-log/clean-personalize.log "
+  cd ${curr_dir}/personalize
+  nohup ./clean-personalize.sh ${SCENARIO} >> ~/personalize-log/clean-personalize.log 2>&1 &
+  cd ${curr_dir}
+  echo ""
+fi
+
 ##############################delete resource for application##############################
 export EKS_CLUSTER=gcr-rs-dev-application-cluster
 
 EKS_VPC_ID=$(aws eks describe-cluster --name $EKS_CLUSTER --query "cluster.resourcesVpcConfig.vpcId" --output text)
+
+
 
 echo "################ start clean online resources ################ "
 
@@ -88,7 +107,7 @@ fi
 ##############################delete resource for application##############################
 
 #clean argocd and istio resources
-./cleanup-argocd-istio.sh
+./cleanup-argocd-istio.sh $SCENARIO
 
 #detach eks cluster roles
 echo "################ Detach eks cluster roles for workshop ################ "
@@ -125,6 +144,30 @@ do
     aws codebuild delete-project --name gcr-rs-dev-workshop-${project}-build || true
     echo "Done."
     sleep 5
+done
+
+repo_name=(
+  "rs/demo"
+  "rs/ui"
+  "rs/loader"
+  "rs/event"
+  "rs/filter"
+  "rs/filter-plugin"
+  "rs/portrait"
+  "rs/portrait-plugin"
+  "rs/rank"
+  "rs/rank-plugin"
+  "rs/recall"
+  "rs/recall-plugin"
+  "rs/retrieve"
+  "rs/retrieve-plugin"
+  "rs/ui"
+)
+
+for repo in ${repo_name[@]}
+do
+  echo "Delete repo: '$repo ...'"
+  aws ecr delete-repository  --repository-name $repo --force > /dev/null 2>&1 || true
 done
 
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --region ${REGION} --query Account --output text)

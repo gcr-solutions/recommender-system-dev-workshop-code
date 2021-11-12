@@ -51,6 +51,8 @@ spec:
             value: $(CLICK_RECORD_FILE_PATH)
           - name: USER_RECORD_FILE_PATH
             value: $(USER_RECORD_FILE_PATH)
+          - name: METHOD
+            value: $(METHOD)
         volumeMounts:
           - name: persistent-storage
             mountPath: /rs-data

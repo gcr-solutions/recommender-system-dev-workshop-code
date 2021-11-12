@@ -1,0 +1,164 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys StepFuncs
+
+
+Parameters:
+  NamePrefix:
+    Type: String
+    Default: rs-news-ps-sims-dev
+
+  Stage:
+    Type: String
+    Default: dev
+
+  StepFuncAndLambdaRoleName:
+    Type: String
+    Default: LambdaAndStepFuncsRole
+
+  SagemakerRoleName:
+    Type: String
+    Default: SMRole
+
+  S3UtilLabmda:
+    Type: String
+    Default: S3UtilLabmda
+
+  PreCheckLabmda:
+    Type: String
+    Default: PreCheckLabmda
+
+  SNSMessageLambda:
+    Type: String
+    Default: SNSMessageLambda
+
+  CreateBatchInferenceJobLambda:
+    Type: String
+    Default: CreateBatchInferenceJobLambda
+
+  CheckBatchInferenceJobStatusLambda:
+    Type: String
+    Default: CheckBatchInferenceJobStatusLambda
+
+Resources:
+  ItemSimsUpdateStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub ${NamePrefix}-ItemSimsUpdateStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Item Raw Data Pre Check",
+          "TimeoutSeconds": 72000,
+          "States": {
+            "Item Raw Data Pre Check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "system/ingest-data/item/"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "PS-SIMS Batch Input Data Preprocessing"
+            },
+            "PS-SIMS Batch Input Data Preprocessing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-BatchPreprocessingStepFunc",
+                "Name.$": "States.Format('{}', $$.Execution.Name)"
+              },
+              "ResultPath": "$.BatchPreprocessing",
+              "Next": "Create PS-SIMS Batch Inference Job"
+            },
+            "Create PS-SIMS Batch Inference Job": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${CreateBatchInferenceJobLambda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix"
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.CreateBatchInferenceJob",
+              "Next": "Wait 5 Minutes For Batch Inference Job"
+            },
+            "Wait 5 Minutes For Batch Inference Job": {
+              "Type": "Wait",
+              "Seconds": 300,
+              "Next": "Check Batch Inference Job Status"
+            },
+            "Check Batch Inference Job Status": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${CheckBatchInferenceJobStatusLambda}",
+                "Payload": {
+                  "createBatchInferenceJob.$": "$.CreateBatchInferenceJob"
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.CheckBatchInferenceJobStatus",
+              "Next": "Batch Inference Job Status Choice"
+            },
+            "Batch Inference Job Status Choice": {
+              "Type": "Choice",
+              "Choices": [
+                {
+                  "Or": [
+                    {
+                      "Variable": "$.CheckBatchInferenceJobStatus.Payload.batch_inference_job_status",
+                      "StringEquals": "CREATE PENDING"
+                    },
+                    {
+                      "Variable": "$.CheckBatchInferenceJobStatus.Payload.batch_inference_job_status",
+                      "StringEquals": "CREATE IN_PROGRESS"
+                    }
+                  ],
+                  "Next": "Wait 5 Minutes For Batch Inference Job"
+                },
+                {
+                  "Variable": "$.CheckBatchInferenceJobStatus.Payload.batch_inference_job_status",
+                  "StringEquals": "ACTIVE",
+                  "Next": "Succeed"
+                },
+                {
+                  "Variable": "$.CheckBatchInferenceJobStatus.Payload.batch_inference_job_status",
+                  "StringEquals": "CREATE FAILED",
+                  "Next": "Fail"
+                }
+              ],
+              "Default": "Fail"
+            },
+            "Fail": {
+              "Type": "Fail",
+              "Error": "Personalize Batch Inference Job Failed"
+            },
+            "Succeed": {
+              "Type": "Succeed"
+            }
+          }
+        }

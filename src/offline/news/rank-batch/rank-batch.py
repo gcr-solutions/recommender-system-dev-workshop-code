@@ -1,4 +1,6 @@
 from __future__ import print_function
+
+import json
 import os
 import sys
 import math
@@ -59,6 +61,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--bucket', type=str)
 parser.add_argument('--prefix', type=str)
 parser.add_argument("--region", type=str, help="aws region")
+parser.add_argument("--method", type=str, default='customize', help="method name")
+
 args, _ = parser.parse_known_args()
 print("args:", args)
 
@@ -68,7 +72,8 @@ if args.region:
 
 bucket = args.bucket
 prefix = args.prefix
-
+method = args.method
+region = args.region
 if prefix.endswith("/"):
     prefix = prefix[:-1]
 
@@ -114,6 +119,16 @@ recall_batch_result = pickle.load(file_to_load)
 file_to_load = open("info/portrait.pickle", "rb")
 user_portrait = pickle.load(file_to_load)
 
+#personalize 行为数据与配置文件加载
+ps_config_file_name = ['ps_config.json']
+ps_config_s3_folder = '{}/system/ps-config'.format(prefix)
+sync_s3(ps_config_file_name, ps_config_s3_folder, local_folder)
+
+#加载json配置文件
+file_to_load = open("info/ps_config.json", "rb")
+ps_config = json.load(file_to_load)
+file_to_load.close()
+
 # file_to_load = open("info/news_id_news_property_dict.pickle", "rb")
 file_to_load = open("info/news_id_news_feature_dict.pickle", "rb")
 dict_id_property_pddf = pickle.load(file_to_load)
@@ -141,6 +156,7 @@ class Rank():
             model_path = '/'.join(name.split('/')[0:-1])
         self.model = predictor.from_saved_model(model_path)
         self.fill_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.personalize_runtime = boto3.client('personalize-runtime', region)
 
     def RankProcess(self, request, context):
         logging.info('rank_process start')
@@ -221,6 +237,7 @@ class Rank():
                 click_index = user_clicks_set[click_length - 1]
                 if str(click_index) not in self.news_id_news_property:
                     logging.warning('cannot find click_index: {} in news_id_news_property'.format(click_index))
+                    click_length = click_length - 1
                     continue
                 logging.info('clicked_item_id {}'.format(click_index))
                 logging.info('news_id_word_ids_dict {}'.format(
@@ -296,6 +313,33 @@ class Rank():
 
         return rank_result
 
+    def generate_rank_result_from_ps_rank(self, recall_result_pddf):
+        recall_result = recall_result_pddf['news_id'].split('[')[1].split(']')[
+            0].split(',')
+        user_id = recall_result_pddf['user_id']
+        print(recall_result)
+        print('generate_rank_result using personalize rank model start')
+        input_list = []
+        for recall_item_raw in recall_result:
+            recall_item = recall_item_raw.split("'")[1]
+            recall_item = recall_item.split("'")[0]
+            input_list.append(str(recall_item))
+        response = self.personalize_runtime.get_personalized_ranking(
+            campaignArn=ps_config['CampaignArn'],
+            inputList=input_list,
+            userId=user_id
+        )
+        rank_list = response['personalizedRanking']
+        rank_result = []
+        for rank_item in rank_list:
+            if rank_item.__contains__('score'):
+                rank_result.append({rank_item['itemId']: str(rank_item["score"])})
+            else:
+                rank_result.append({rank_item['itemId']: '0'})
+
+        print(rank_result)
+        return rank_result
+
 
 batch_rank = Rank(user_portrait, dict_id_property_pddf)
 
@@ -308,8 +352,12 @@ for user_k, result_v in recall_batch_result.items():
     data_input_pddf_dict['news_id'].append(str(list(result_v.keys())))
 data_input_pddf = pd.DataFrame.from_dict(data_input_pddf_dict)
 
-data_input_pddf['rank_score'] = data_input_pddf.apply(
-    batch_rank.generate_rank_result, axis=1)
+if method == "ps-rank":
+    data_input_pddf['rank_score'] = data_input_pddf.apply(
+        batch_rank.generate_rank_result_from_ps_rank, axis=1)
+else:
+    data_input_pddf['rank_score'] = data_input_pddf.apply(
+        batch_rank.generate_rank_result, axis=1)
 
 rank_result = {}
 for reviewerID, hist in tqdm(data_input_pddf.groupby('user_id')):
@@ -319,9 +367,10 @@ for reviewerID, hist in tqdm(data_input_pddf.groupby('user_id')):
         id_score_dict.items(), key=lambda item: item[1], reverse=True)}
     rank_result[reviewerID] = sort_id_score_dict
 
+summary_result = {'model': 'ps-rank', 'data': rank_result}
 file_name = 'info/rank_batch_result.pickle'
 output_file = open(file_name, 'wb')
-pickle.dump(rank_result, output_file)
+pickle.dump(summary_result, output_file)
 output_file.close()
 
 write_to_s3(file_name,

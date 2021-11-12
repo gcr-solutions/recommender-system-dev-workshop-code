@@ -3,6 +3,14 @@ set -e
 
 # 1 update redis config
 
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
+if [[ -z $METHOD ]]; then
+  METHOD='customize'
+fi
+
 while true; do
   REDIS_ENDPOINT=$(aws elasticache describe-cache-clusters --cache-cluster-id gcr-rs-dev-workshop-redis-cluster --show-cache-node-info \
   --query "CacheClusters[].CacheNodes[].Endpoint.Address" --output text)
@@ -16,16 +24,14 @@ while true; do
   sleep 10
 done
 
-cd ../manifests/envs/news-dev
-cat config-template.yaml | sed 's/REDIS_HOST_PLACEHOLDER/'"$REDIS_ENDPOINT"'/g' > config_1.yaml
+cd ../manifests/envs/${SCENARIO}-dev
 
 echo "REGION: $REGION"
 echo "ACCOUNT_ID: $ACCOUNT_ID"
 
-cat config_1.yaml | sed 's/__AWS_REGION__/'"$REGION"'/g' > config_2.yaml
-cat config_2.yaml | sed 's/__AWS_ACCOUNT_ID__/'"$ACCOUNT_ID"'/g' >  config.yaml
-rm config_1.yaml
-rm config_2.yaml
+sed -e "s|REDIS_HOST_PLACEHOLDER|$REDIS_ENDPOINT|g;s|__AWS_REGION__|$REGION|g;s|__AWS_ACCOUNT_ID__|$ACCOUNT_ID|g;s|__METHOD__|$METHOD|g"  \
+            ./config-template.yaml > config.yaml
+
 
 cat config.yaml
 sleep 10

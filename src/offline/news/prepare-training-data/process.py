@@ -37,6 +37,8 @@ parser.add_argument("--bucket", type=str, help="s3 bucket")
 parser.add_argument("--prefix", type=str,
                     help="s3 input key prefix")
 parser.add_argument("--region", type=str, help="aws region")
+parser.add_argument("--method", type=str, default='customize', help="method name")
+
 args, _ = parser.parse_known_args()
 print("args:", args)
 
@@ -48,6 +50,7 @@ bucket = args.bucket
 prefix = args.prefix
 if prefix.endswith("/"):
     prefix = prefix[:-1]
+method = args.method
 
 print(f"bucket:{bucket}, prefix:{prefix}")
 
@@ -63,10 +66,16 @@ emr_s3_train_output = "s3://{}/{}".format(bucket, emr_train_action_key_prefix)
 output_action_train_key = "{}/system/action-data/action_train.csv".format(
     prefix)
 
+emr_ps_action_output_key_prefix = "{}/system/emr/action-preprocessing/output/ps-action".format(
+    prefix)
+emr_ps_action_output_bucket_key_prefix = "s3://{}/{}".format(
+    bucket, emr_ps_action_output_key_prefix)
+
 emr_val_action_key_prefix = "{}/system/emr/action-preprocessing/output/val_action".format(
     prefix)
 emr_s3_val_output = "s3://{}/{}".format(bucket, emr_val_action_key_prefix)
 output_action_val_key = "{}/system/action-data/action_val.csv".format(prefix)
+output_ps_action_file_key = "{}/system/ps-ingest-data/action/ps_action.csv".format(prefix)
 
 print("input_action_file:", input_action_file)
 
@@ -87,7 +96,7 @@ class UdfFunction:
             pairs.append((m, t))
         # sort by time
         pairs = sorted(pairs, key=lambda x: x[1])
-        return [x[0] for x in pairs]
+        return [x[0] for x in pairs[0:-1]]
 
 
 def sync_s3(file_name_list, s3_folder, local_folder):
@@ -174,8 +183,8 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     #
     print("start processing action file: {}".format(input_action_file))
     # 52a23654-9dc3-11eb-a364-acde48001122_!_6552302645908865543_!_1618455260_!_1_!_0
-    df_action_input = spark.read.text(input_action_file)
-    df_action_input = df_action_input.selectExpr("split(value, '_!_') as row").where(
+    df_action_input_raw = spark.read.text(input_action_file)
+    df_action_input = df_action_input_raw.selectExpr("split(value, '_!_') as row").where(
         size(col("row")) > 4).selectExpr("row[0] as user_id",
                                          "row[1] as item_id",
                                          "cast(row[2] as int) as timestamp",
@@ -236,6 +245,20 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     val_dataset_final.coalesce(1).write.mode("overwrite").option(
         "header", "false").option("sep", "\t").csv(emr_s3_val_output)
 
+    if method != "customize":
+        df_ps_action_input = df_action_input_raw.selectExpr("split(value, '_!_') as row").where(
+            size(col("row")) > 4).selectExpr("row[0] as USER_ID",
+                                             "row[1] as ITEM_ID",
+                                             "row[2] as TIMESTAMP",
+                                             "row[3] as EVENT_TYPE",
+                                             "cast(row[4] as string) as EVENT_VALUE",
+                                             )
+        df_ps_action_input.cache()
+        df_ps_action_input \
+            .select("USER_ID", "ITEM_ID", "TIMESTAMP", "EVENT_TYPE") \
+            .coalesce(1).write.mode("overwrite") \
+            .option("header", "true").option("sep", ",").csv(emr_ps_action_output_bucket_key_prefix)
+
 train_action_key = list_s3_by_prefix(
     bucket,
     emr_train_action_key_prefix,
@@ -251,5 +274,14 @@ val_action_key = list_s3_by_prefix(
 print("val_action_key:", val_action_key)
 s3_copy(bucket, val_action_key, output_action_val_key)
 print("output_action_val_key:", output_action_val_key)
+
+if method != "customize":
+    emr_ps_action_output_file_key = list_s3_by_prefix(
+        bucket,
+        emr_ps_action_output_key_prefix,
+        lambda key: key.endswith(".csv"))[0]
+    print("emr_ps_action_output_file_key:", emr_ps_action_output_file_key)
+    s3_copy(bucket, emr_ps_action_output_file_key, output_ps_action_file_key)
+    print("output_ps_action_file_key:", output_ps_action_file_key)
 
 print("All done")

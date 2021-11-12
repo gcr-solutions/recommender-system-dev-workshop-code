@@ -3,6 +3,10 @@ set -e
 
 curr_dir=$(pwd)
 
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
 Stage=$1
 if [[ -z $Stage ]];then
   Stage='dev-workshop'
@@ -14,6 +18,10 @@ fi
 
 echo "Stage=$Stage"
 echo "REGION=$REGION"
+
+if [[ -z $METHOD ]]; then
+  METHOD='customize'
+fi
 
 #if [[ -z $GITHUB_USER ]]; then
 #     echo "error!!! can not get your GITHUB_USER, please set it use 'export GITHUB_USER=<your github username>'"
@@ -36,22 +44,13 @@ AWS_ACCOUNT_ID=$($AWS_CMD sts get-caller-identity --region ${REGION} --query Acc
 
 echo "AWS_ACCOUNT_ID: ${AWS_ACCOUNT_ID}"
 
-
-if [[ -z $RS_SCENARIO  ]];then
-    RS_SCENARIO=news
-fi
-
-echo "RS_SCENARIO: $RS_SCENARIO"
-
-
 echo "========= Create S3 Bucket =============="
 BUCKET_BUILD=aws-gcr-rs-sol-${Stage}-${REGION}-${AWS_ACCOUNT_ID}
-PREFIX=sample-data-$RS_SCENARIO
-
+PREFIX=sample-data-${SCENARIO}
 
 echo "BUCKET_BUILD=${BUCKET_BUILD}"
 
-$AWS_CMD s3api --region $REGION create-bucket --bucket ${BUCKET_BUILD}  \
+$AWS_CMD s3api --region $REGION create-bucket --bucket ${BUCKET_BUILD} \
 --create-bucket-configuration LocationConstraint=$REGION >/dev/null 2>&1 || true
 
 $AWS_CMD  s3 mb s3://${BUCKET_BUILD}  >/dev/null 2>&1 || true
@@ -63,14 +62,14 @@ cd ${curr_dir}/codebuild
 
 echo "1. ========= Create codebuild =============="
 cd ${curr_dir}/codebuild
-./register-to-codebuild-offline-codecommit.sh $Stage
+./register-to-codebuild-offline-codecommit.sh $Stage "no" ${METHOD} ${SCENARIO}
 
-echo "2. ========= sync sample data to S3 ($RS_SCENARIO) =============="
+echo "2. ========= sync sample data to S3 ($SCENARIO) =============="
 cd ${curr_dir}/../sample-data
 
-if [[ $RS_SCENARIO == 'news' ]];then
+if [[ $SCENARIO == 'news' ]];then
    ./sync_data_to_s3.sh $Stage
-elif [[ $RS_SCENARIO == 'movie' ]];then
+elif [[ $SCENARIO == 'movie' ]];then
    ./sync_movie_data_to_s3.sh $Stage
 fi
 
@@ -82,6 +81,19 @@ fi
 #echo "4. ========= Build stepfuncs =============="
 #cd ${curr_dir}/../src/offline/news/step-funcs
 #./build.sh $Stage
+
+sleep 10
+
+if [[ "${METHOD}" != "customize" ]];then
+  echo "========= Create Personalize Service =============="
+  echo "you can run the following command to check the status:"
+  echo "tail -f ~/personalize-log/create-personalize.log"
+  cd ${curr_dir}/personalize
+  mkdir ~/personalize-log > /dev/null 2>&1 || true
+  nohup ./create-personalize.sh ${METHOD} ${Stage} >> ~/personalize-log/create-personalize.log 2>&1 &
+  cd ${curr_dir}
+fi
+echo "==================================================="
 
 echo "You can run your step-funcs with below input"
 echo '{

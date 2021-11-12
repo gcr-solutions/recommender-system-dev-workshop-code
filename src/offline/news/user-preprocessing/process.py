@@ -37,6 +37,7 @@ parser = argparse.ArgumentParser(description="app inputs and outputs")
 parser.add_argument("--bucket", type=str, help="s3 bucket")
 parser.add_argument("--prefix", type=str,
                     help="s3 input key prefix")
+parser.add_argument("--method", type=str, default='customize', help="method name")
 
 parser.add_argument("--region", type=str, help="aws region")
 args, _ = parser.parse_known_args()
@@ -50,6 +51,8 @@ bucket = args.bucket
 prefix = args.prefix
 if prefix.endswith("/"):
     prefix = prefix[:-1]
+method = args.method
+region = args.region
 
 print(f"bucket:{bucket}, prefix:{prefix}")
 
@@ -58,8 +61,14 @@ emr_user_output_key_prefix = "{}/system/emr/action-preprocessing/output/user".fo
     prefix)
 emr_user_output_bucket_key_prefix = "s3://{}/{}".format(
     bucket, emr_user_output_key_prefix)
-output_user_file_key = "{}/system/user-data/user.csv".format(prefix)
 
+emr_ps_user_output_key_prefix= "{}/system/emr/action-preprocessing/output/ps-user".format(
+    prefix)
+emr_ps_user_output_bucket_key_prefix = "s3://{}/{}".format(
+    bucket, emr_ps_user_output_key_prefix)
+
+output_user_file_key = "{}/system/user-data/user.csv".format(prefix)
+output_ps_user_file_key = "{}/system/ps-ingest-data/user/ps_user.csv".format(prefix)
 
 def sync_s3(file_name_list, s3_folder, local_folder):
     for f in file_name_list:
@@ -74,9 +83,9 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     # process user file
     #
     print("start processing user file: {}".format(input_user_file))
-    df_user_input = spark.read.text(input_user_file)
+    df_user_input_raw = spark.read.text(input_user_file)
     # 52a23654-9dc3-11eb-a364-acde48001122_!_M_!_47_!_1615956929_!_lyingDove7
-    df_user_input = df_user_input.selectExpr("split(value, '_!_') as row").where(
+    df_user_input = df_user_input_raw.selectExpr("split(value, '_!_') as row").where(
         size(col("row")) > 4).selectExpr("row[0] as user_id",
                                          "row[1] as sex",
                                          "row[2] as age",
@@ -87,6 +96,19 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     df_user_input.coalesce(1).write.mode("overwrite").option(
         "header", "false").option("sep", "_!_").csv(emr_user_output_bucket_key_prefix)
 
+    if 'ps' in method:
+        df_ps_user_input = df_user_input_raw.selectExpr("split(value, '_!_') as row").where(
+            size(col("row")) > 4).selectExpr("row[0] as USER_ID",
+                                             "row[1] as GENDER",
+                                             "row[2] as age",
+                                             "row[3] as timestamp",
+                                             "row[4] as name",
+                                             ).select(col("USER_ID"),
+                                                      col("GENDER"))
+        df_ps_user_input = df_ps_user_input.dropDuplicates(['USER_ID'])
+        df_ps_user_input.coalesce(1).write.mode("overwrite").option(
+            "header", "true").option("sep", ",").csv(emr_ps_user_output_bucket_key_prefix)
+
 emr_user_output_file_key = list_s3_by_prefix(
     bucket,
     emr_user_output_key_prefix,
@@ -95,5 +117,15 @@ print("emr_user_output_file_key:", emr_user_output_file_key)
 s3_copy(bucket, emr_user_output_file_key, output_user_file_key)
 
 print("output_user_file_key:", output_user_file_key)
+
+if 'ps' in method:
+    emr_ps_user_output_file_key = list_s3_by_prefix(
+        bucket,
+        emr_ps_user_output_key_prefix,
+        lambda key: key.endswith(".csv"))[0]
+    print("emr_ps_user_output_file_key:", emr_ps_user_output_file_key)
+    s3_copy(bucket, emr_ps_user_output_file_key, output_ps_user_file_key)
+
+    print("output_ps_user_file_key:", output_ps_user_file_key)
 
 print("All done")

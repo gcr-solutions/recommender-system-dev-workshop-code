@@ -7,6 +7,11 @@ if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
 
+SCENARIO=$2
+if [[ -z $SCENARIO ]]; then
+  SCENARIO='news'
+fi
+
 echo "Stage=$Stage"
 AWS_CMD="aws"
 
@@ -39,7 +44,7 @@ account_id=$($AWS_CMD  sts get-caller-identity --query Account --output text)
 
 echo "account_id: $account_id"
 
-dns_name=$(kubectl get svc istio-ingressgateway-news-dev -n istio-system -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+dns_name=$(kubectl get svc istio-ingressgateway-${SCENARIO}-dev -n istio-system -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 if [[ $? != 0 ]];then
     echo "Error"
     exit 1
@@ -59,8 +64,13 @@ fi
 echo "dns_name: $dns_name"
 echo "SNS_TOPIC_ARN: $SNS_TOPIC_ARN"
 
-$AWS_CMD lambda update-function-configuration  --function-name rs-$Stage-SNSMessageLambda \
-   --environment "Variables={NEWS_ONLINE_LOADER_URL=${dns_name},botoConfig='${botoConfig}',SNS_TOPIC_ARN='${SNS_TOPIC_ARN}'}"
+if [ $SCENARIO = news ];then
+  $AWS_CMD lambda update-function-configuration  --function-name rs-$Stage-SNSMessageLambda \
+     --environment "Variables={NEWS_ONLINE_LOADER_URL=${dns_name},botoConfig='${botoConfig}',SNS_TOPIC_ARN='${SNS_TOPIC_ARN}'}"
+elif [ $SCENARIO = movie ]; then
+  $AWS_CMD lambda update-function-configuration  --function-name rs-$Stage-SNSMessageLambda \
+      --environment "Variables={MOVIE_ONLINE_LOADER_URL=${dns_name},botoConfig='${botoConfig}',SNS_TOPIC_ARN='${SNS_TOPIC_ARN}'}"
+fi
 
 if [[ $? != 0 ]];then
     echo "Error"

@@ -27,6 +27,10 @@
       {
         "name": "Stage",
         "value": "__Stage__"
+      },
+      {
+        "name": "METHOD",
+        "value": "__METHOD__"
       }
     ]
   },

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 #set -e
 # export PROFILE=rsops
+
+cur_dir=$(pwd)
+
 echo "------------------------------------------------ "
 Stage=$1
 if [[ -z $Stage ]];then
@@ -12,7 +15,19 @@ if [[ -z $DELETE_FLAG ]];then
   DELETE_FLAG='no'
 fi
 
+METHOD=$3
+if [[ -z $METHOD ]];then
+  METHOD="customize"
+fi
 
+SCENARIO=$4
+
+if [[ -z $SCENARIO ]];then
+  SCENARIO="news"
+fi
+
+echo "Scenario: $SCENARIO"
+echo "Method: $METHOD"
 echo "Stage:$Stage"
 
 AWS_CMD="aws"
@@ -72,10 +87,8 @@ create_codebuild_project () {
   sleep 1
 
   echo "Re-creating $build_proj_name into CodeBuild ..."
-  sed -e 's/__app_name__/'${build_proj_name}'/g' ./codebuild-template-offline-codecommit.json >./tmp-codebuild.json
-  sed -e 's#__app_path__#'${app_path}'#g' ./tmp-codebuild.json > tmp-codebuild_2.json
-  sed -e 's#__Stage__#'${Stage}'#g' ./tmp-codebuild_2.json > ./tmp-codebuild_3.json
-  sed -e 's#__AWS_REGION__#'${REGION}'#g' ./tmp-codebuild_3.json > ./codebuild.json
+  sed -e "s|__app_name__|${build_proj_name}|g;s|__app_path__|${app_path}|g;s|__Stage__|${Stage}|g;s|__METHOD__|${METHOD}|g;s|__AWS_REGION__|${REGION}|g;" \
+            ./codebuild-template-offline-codecommit.json > ./codebuild.json
 
   if [[ $REGION =~ cn.* ]];then
      sed -i -e 's#amazonaws.com#amazonaws.com.cn#g' ./codebuild.json
@@ -99,7 +112,6 @@ create_codebuild_project () {
   sleep 1
 
   rm -f codebuild.json
-  rm -f tmp-codebuild*.json
 
   echo "Start build: ${build_proj_name}"
   $AWS_CMD codebuild start-build --region $REGION --project-name ${build_proj_name} > /dev/null
@@ -109,94 +121,56 @@ create_codebuild_project () {
   fi
 }
 
+sleep 10
+
 echo "----------------projects-------------------------"
 
-if [[ -z $RS_SCENARIO  ]];then
-    RS_SCENARIO=news
+lambda_project="lambda"
+build_name=${lambda_project}
+build_proj_name="rs-$Stage-offline-${build_name}-build"
+app_path=${lambda_project}
+if [[ $DELETE_FLAG == 'DELETE' ]];then
+    delete_codebuild_project $build_proj_name $app_path
+else
+    create_codebuild_project $build_proj_name $app_path
 fi
 
-echo "RS_SCENARIO:$RS_SCENARIO"
-
-news_projects_dir=(
-  "lambda"
-  "news/item-preprocessing"
-  "news/add-item-batch"
-  "news/item-feature-update-batch"
-  "news/model-update-embedding"
-  "news/prepare-training-data"
-  "news/model-update-action"
-  "news/dashboard"
-  "news/action-preprocessing"
-  "news/user-preprocessing"
-  "news/add-user-batch"
-  "news/portrait-batch"
-  "news/recall-batch"
-  "news/rank-batch"
-  "news/filter-batch"
-  "news/inverted-list"
-  "news/step-funcs"
+projects_dir=(
+  "item-preprocessing"
+  "add-item-batch"
+  "item-feature-update-batch"
+  "model-update-embedding"
+  "prepare-training-data"
+  "model-update-action"
+  "dashboard"
+  "action-preprocessing"
+  "user-preprocessing"
+  "batch-preprocessing"
+  "add-user-batch"
+  "portrait-batch"
+  "recall-batch"
+  "rank-batch"
+  "filter-batch"
+  "inverted-list"
+  "step-funcs"
+  "model-update-deepfm"
+  "model-update-ub"
 )
 
-movie_projects_dir=(
-  "lambda"
-  "movie/action-preprocessing"
-  "movie/add-item-batch"
-  "movie/add-user-batch"
-  "movie/dashboard"
-  "movie/filter-batch"
-  "movie/inverted-list"
-  "movie/item-feature-update-batch"
-  "movie/item-preprocessing"
-  "movie/model-update-deepfm"
-  "movie/model-update-ub"
-  "movie/portrait-batch"
-  "movie/rank-batch"
-  "movie/recall-batch"
-  "movie/user-preprocessing"
-  "movie/step-funcs"
-)
-
-if [[ $RS_SCENARIO == 'news' ]];then
-  projects_dir=${news_projects_dir[@]}
-elif [[ $RS_SCENARIO == 'movie' ]];then
-  projects_dir=${movie_projects_dir[@]}
-fi
 
 for project in ${projects_dir[@]}; do
-  build_name=$(echo ${project} | sed 's#/#-#g')
+  build_name="${SCENARIO}-${project}"
   build_proj_name="rs-$Stage-offline-${build_name}-build"
   if [[ -n $CN_REGION ]];then
     build_proj_name="rs-$Stage-offline-${build_name}-$CN_REGION-build"
   fi
-
-  app_path=${project}
-  if [[ $DELETE_FLAG == 'DELETE' ]];then
+  app_path="${SCENARIO}/${project}"
+  if [[ -d "${cur_dir}/../../src/offline/${app_path}" ]];then
+    if [[ $DELETE_FLAG == 'DELETE' ]];then
       delete_codebuild_project $build_proj_name $app_path
-  else
+    else
       create_codebuild_project $build_proj_name $app_path
+    fi
   fi
-  if [[ $project == 'lambda' ]]; then
-     sleep 10
-  else
-     sleep 5
-  fi
-
 done
-
-build_proj_name="rs-$Stage-offline-build"
-if [[ $DELETE_FLAG == 'DELETE' ]];then
-    echo ""
-else
-   echo ""
-   echo "Please check result in codebuild:"
-   echo "search 'rs-$Stage-offline-'"
-   echo "https://$REGION.console.aws.amazon.com/codesuite/codebuild/projects?region=$REGION"
-   echo ""
-fi
-
-echo "Create offline codebuild projects done"
-sleep 5
-
-
-
 

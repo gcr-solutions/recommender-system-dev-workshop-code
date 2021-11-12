@@ -14,6 +14,11 @@ if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
 
+SCENARIO=$2
+if [[ -z $SCENARIO ]];then
+  SCENARIO='news'
+fi
+
 echo "Stage=$Stage"
 
 AWS_CMD="aws"
@@ -42,5 +47,5 @@ curr_dir=$(pwd)
 cd ${curr_dir}/lambda/
 ./build.sh $Stage
 
-cd ${curr_dir}/news/
+cd ${curr_dir}/${SCENARIO}/
 ./build.sh $Stage

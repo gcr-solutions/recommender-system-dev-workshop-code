@@ -40,6 +40,8 @@ sleep_interval = 10 #second
 embedding_type = 'embedding'
 pickle_type = 'inverted-list'
 vector_index_type = 'vector-index'
+json_type = 'ps-result'
+out_type = 'ps-sims-dict'
 
 def xasync(f):
     def wrapper(*args, **kwargs):
@@ -53,10 +55,10 @@ def status():
     channel = grpc.insecure_channel('localhost:50051')
     stub = service_pb2_grpc.RecallStub(channel)
     response = stub.Status(service_pb2.google_dot_protobuf_dot_empty__pb2.Empty())
-    
+
     statusAny = any_pb2.Any()
     response.status.Unpack(statusAny)
-    
+
     pStatus = json.loads(statusAny.value.decode('utf-8'))
     return {
         'env': MANDATORY_ENV_VARS,
@@ -66,13 +68,13 @@ def status():
 
 
 @app.get('/ping', tags=["monitoring"])
-def ping(): 
+def ping():
     logging.info('Processing default request...')
     return { 'result': 'ping' }
 
 
 @app.post('/recall/process', tags=["recall_to_plugin"])
-def process(processItem: ProcessItem): 
+def process(processItem: ProcessItem):
     logging.info('Start recall->process()...')
     user_id = processItem.user_id
     clicked_item_ids = processItem.clicked_item_ids
@@ -120,6 +122,8 @@ def read_stream_messages():
     read_vector_index_type_message()
     read_embedding_message()
     read_pickle_message()
+    read_json_message()
+    read_ps_sims_message()
 
 @xasync
 def read_vector_index_type_message():
@@ -137,7 +141,7 @@ def read_vector_index_type_message():
                 handle_stream_message(stream_message)
         except redis.ConnectionError:
             localtime = time.asctime( time.localtime(time.time()))
-            logging.info('get ConnectionError, time: {}'.format(localtime))                 
+            logging.info('get ConnectionError, time: {}'.format(localtime))
         time.sleep( sleep_interval )
 
 @xasync
@@ -156,7 +160,7 @@ def read_embedding_message():
                 handle_stream_message(stream_message)
         except redis.ConnectionError:
             localtime = time.asctime( time.localtime(time.time()))
-            logging.info('get ConnectionError, time: {}'.format(localtime))                 
+            logging.info('get ConnectionError, time: {}'.format(localtime))
         time.sleep( sleep_interval )
 
 @xasync
@@ -170,13 +174,53 @@ def read_pickle_message():
     while True:
         logging.info('wait for reading pickle_type message')
         try:
-            stream_message = rCache.read_stream_message_block(pickle_type)        
+            stream_message = rCache.read_stream_message_block(pickle_type)
             if stream_message:
                 handle_stream_message(stream_message)
         except redis.ConnectionError:
             localtime = time.asctime( time.localtime(time.time()))
-            logging.info('get ConnectionError, time: {}'.format(localtime))                 
+            logging.info('get ConnectionError, time: {}'.format(localtime))
         time.sleep( sleep_interval )
+
+
+@xasync
+def read_json_message():
+    logging.info('read_json_type_message start')
+    # Read existed stream message
+    stream_message = rCache.read_stream_message(json_type)
+    if stream_message:
+        logging.info("Handle existed stream json_type message")
+        handle_stream_message(stream_message)
+    while True:
+        logging.info('wait for reading json_type message')
+        try:
+            stream_message = rCache.read_stream_message_block(json_type)
+            if stream_message:
+                handle_stream_message(stream_message)
+        except redis.ConnectionError:
+            localtime = time.asctime( time.localtime(time.time()))
+            logging.info('get ConnectionError, time: {}'.format(localtime))
+        time.sleep( sleep_interval )
+
+@xasync
+def read_ps_sims_message():
+    logging.info('read_ps_sims_message start')
+    # Read existed stream message
+    stream_message = rCache.read_stream_message(out_type)
+    if stream_message:
+        logging.info("Handle existed stream out_type message")
+        handle_stream_message(stream_message)
+    while True:
+        logging.info('wait for reading out_type message')
+        try:
+            stream_message = rCache.read_stream_message_block(out_type)
+            if stream_message:
+                handle_stream_message(stream_message)
+        except redis.ConnectionError:
+            localtime = time.asctime( time.localtime(time.time()))
+            logging.info('get ConnectionError, time: {}'.format(localtime))
+        time.sleep( sleep_interval )
+
 
 def handle_stream_message(stream_message):
     logging.info('get stream message from {}'.format(stream_message))
@@ -275,5 +319,5 @@ if __name__ == "__main__":
     logging.info('recall service start!')
     init()
     uvicorn.run(app, host="0.0.0.0", port=MANDATORY_ENV_VARS['RECALL_PORT'])
-    
-   
+
+

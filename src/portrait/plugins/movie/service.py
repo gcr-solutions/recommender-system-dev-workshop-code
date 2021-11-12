@@ -14,6 +14,7 @@ from grpc_reflection.v1alpha import reflection
 from deepmatch.layers import custom_objects
 import tensorflow as tf
 from tensorflow.python.keras.backend import set_session
+from tensorflow.python.keras.backend import clear_session
 from tensorflow.python.keras.models import load_model
 
 import cache
@@ -40,20 +41,21 @@ MANDATORY_ENV_VARS = {
 }
 
 pickle_type = 'inverted-list'
-
+model_type = 'action-model'
 # lastUpdate
 getLastCall = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 updateLastCall = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+
 
 class Portrait(service_pb2_grpc.PortraitServicer):
 
     def __init__(self):
         logging.info('__init__(self)...')
 
-        global sess
-        global graph
-        sess = tf.Session()
-        graph = tf.get_default_graph()
+        # global sess
+        # global graph
+        # sess = tf.Session()
+        # graph = tf.get_default_graph()
 
         # Load index model for similarity searching
         local_data_folder = MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER']
@@ -80,20 +82,20 @@ class Portrait(service_pb2_grpc.PortraitServicer):
             if MANDATORY_ENV_VARS['MOVIE_ID_MOVIE_PROPERTY'] in pickle_path:
                 logging.info('reload movie_id_movie_property file {}'.format(pickle_path))
                 self.movie_id_movie_property_dict = self.load_pickle(pickle_path)
-            if MANDATORY_ENV_VARS['RAW_EMBED_ITEM_MAPPING']in pickle_path:
+            if MANDATORY_ENV_VARS['RAW_EMBED_ITEM_MAPPING'] in pickle_path:
                 logging.info('reload raw_embed_item_mapping file {}'.format(pickle_path))
                 self.raw_embed_item_mapping_dict = self.load_pickle(pickle_path)
-                logging.info('raw_embed_item_mapping {}'.format(self.raw_embed_item_mapping_dict)) 
+                logging.info('raw_embed_item_mapping {}'.format(self.raw_embed_item_mapping_dict))
             if MANDATORY_ENV_VARS['RAW_EMBED_USER_MAPPING'] in pickle_path:
                 logging.info('reload file {}'.format(pickle_path))
-                self.raw_embed_user_mapping_dict = self.load_pickle(pickle_path)                     
-                logging.info('raw_embed_user_mapping {}'.format(self.raw_embed_user_mapping_dict)) 
+                self.raw_embed_user_mapping_dict = self.load_pickle(pickle_path)
+                logging.info('raw_embed_user_mapping {}'.format(self.raw_embed_user_mapping_dict))
             if MANDATORY_ENV_VARS['PORTRAIT_BATCH'] in pickle_path:
                 logging.info('batch reload portrait file {}'.format(pickle_path))
                 self.batch_reload_pickle_files(pickle_path)
-                # self.raw_embed_user_mapping_dict = self.load_pickle(pickle_path)                     
+                # self.raw_embed_user_mapping_dict = self.load_pickle(pickle_path)
                 logging.info('successful batch reload portrait file')
-                # logging.info('raw_embed_user_mapping {}'.format(self.raw_embed_user_mapping_dict)) 
+                # logging.info('raw_embed_user_mapping {}'.format(self.raw_embed_user_mapping_dict))
 
     def load_pickle(self, file):
         if os.path.isfile(file):
@@ -110,6 +112,7 @@ class Portrait(service_pb2_grpc.PortraitServicer):
                 if isinstance(obj, np.ndarray):
                     return obj.tolist()
                 return json.JSONEncoder.default(self, obj)
+
         if os.path.isfile(file):
             infile = open(file, 'rb')
             dict = pickle.load(infile)
@@ -132,11 +135,23 @@ class Portrait(service_pb2_grpc.PortraitServicer):
             if MANDATORY_ENV_VARS['USER_EMBEDDINGS_H5'] in model_path:
                 if os.path.isfile(model_path):
                     logging.info('reload_action_model model_path {}'.format(model_path))
-                    set_session(sess)
-                    self.user_embedding_model = load_model(model_path, custom_objects)
-                    # self.reload_model(model_path)
+                    # set_session(sess)
+                    # clear_session()
+                    reload_time = 0
+                    while True:
+                        if reload_time == 5:
+                            logging.info("load_model failed!")
+                            break
+                        try:
+                            self.user_embedding_model = load_model(model_path, custom_objects)
+                            logging.info("load_model success. reload {} times".format(reload_time))
+                            break
+                        except:
+                            logging.info("load_model failed, reload again. reload {} times".format(reload_time))
+                            reload_time += 1
+                        time.sleep(100)
                 else:
-                    logging.info('model file is empty')     
+                    logging.info('model file is empty')
 
     def Reload(self, request, context):
         logging.info('Reload(self, request, context)...')
@@ -148,21 +163,23 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         file_type = requestMessageJson['file_type']
         file_list = eval(requestMessageJson['file_list'])
         logging.info('file_type -> {}'.format(file_type))
-        logging.info('file_list -> {}'.format(file_list)) 
+        logging.info('file_list -> {}'.format(file_list))
 
         self.check_files_ready(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list, 0)
         if file_type == pickle_type:
             self.reload_pickle_file(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
+        if file_type == model_type:
+            self.reload_action_model(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'], file_list)
         logging.info('Re-initial filter service.')
         commonResponse = service_pb2.CommonResponse(code=0, description='Re-initialled with success')
-        return commonResponse 
+        return commonResponse
 
     def check_files_ready(self, file_path, file_list, loop_count):
         logging.info('start check files are ready: path {}, file_list {}'.format(file_path, file_list))
         check_again_flag = False
         check_file_list = []
         for file_name in file_list:
-            pickle_path = file_path + file_name 
+            pickle_path = file_path + file_name
             if not os.path.isfile(pickle_path):
                 check_again_flag = True
                 check_file_list.append(file_name)
@@ -173,12 +190,12 @@ class Portrait(service_pb2_grpc.PortraitServicer):
             if loop_count > 3:
                 logging.error('the files {} load failed'.format(check_file_list))
                 return
-            self.check_files_ready(file_path, check_file_list, loop_count)        
+            self.check_files_ready(file_path, check_file_list, loop_count)
 
     def Status(self, request, context):
         logging.info('Status(self, request, context)...')
         status = any_pb2.Any()
-        status.value =  json.dumps({
+        status.value = json.dumps({
             "redis_status": rCache.connection_status(),
             "last_get_portrait": getLastCall,
             "last_update_portrait": updateLastCall
@@ -197,18 +214,17 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         logging.info('GetPortrait(self, request, context)...')
         user_id = request.userId
         logging.info('user_id -> %s', user_id)
-        # Read cached data from Redis & return 
+        # Read cached data from Redis & return
         user_portrait_data = rCache.get_user_portrait(user_id)
         user_portrait = {}
-        if  user_portrait_data != None and not bool(user_portrait):
+        if user_portrait_data != None and not bool(user_portrait):
             user_portrait = json.loads(user_portrait_data.decode('utf-8'))
-        
+
         portraitResponseAny = any_pb2.Any()
-        portraitResponseAny.value =  json.dumps(user_portrait).encode('utf-8')
+        portraitResponseAny.value = json.dumps(user_portrait).encode('utf-8')
         portraitResponse = service_pb2.PortraitResponse(code=0, description='Got portrait with success')
         portraitResponse.results.Pack(portraitResponseAny)
         return portraitResponse
-
 
     def get_keywords(self, news_ids):
         keywords = []
@@ -218,7 +234,7 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         return keywords
 
     def get_news_id_keywords_tfidf_dict(self, news_id):
-            return self.news_id_keywords_tfidf_dict[news_id]
+        return self.news_id_keywords_tfidf_dict[news_id]
 
     def update_portrait_under_a_property(self, mt_content, mt_up, ratio):
         # decay logic
@@ -259,9 +275,9 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         decay_ratio = 0.8
 
         popularity_method_list = ['category', 'director',
-                                'actor', 'language']
+                                  'actor', 'language']
 
-        logging.info('update logic -> current_user_portrait %s', current_user_portrait)       
+        logging.info('update logic -> current_user_portrait %s', current_user_portrait)
 
         for mt in popularity_method_list:
             self.update_portrait_under_a_property(
@@ -280,9 +296,11 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         watch_len = len(input_item_list)
 
         ### TODO 需要获取当前最大用户编号，自动增加编号
-        map_user_id = 6000
+        map_user_id = 0
+        logging.info("raw_embed_user_mapping_dict length: {}".format(len(self.raw_embed_user_mapping_dict)))
         if str(user_id) in self.raw_embed_user_mapping_dict:
             map_user_id = self.raw_embed_user_mapping_dict[str(user_id)]
+        logging.info("the map id is {}".format(map_user_id))
         for cnt, item in enumerate(input_item_list):
             if cnt < 50:
                 map_input_item_list[0][cnt] = self.raw_embed_item_mapping_dict[str(item)]
@@ -294,10 +312,10 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         # 更新用户的embeddings
         #     print("model input {}".format(model_input))
         updatad_user_embs = None
-        with graph.as_default():
-            set_session(sess)
-            updated_user_embs = self.user_embedding_model.predict(
-                model_input, batch_size=2 ** 12)
+        # with graph.as_default():
+        # set_session(sess)
+        # clear_session()
+        updated_user_embs = self.user_embedding_model.predict(model_input, batch_size=2 ** 12)
 
         #     current_user_portrait['ub_embed'] = updated_user_embs
 
@@ -308,7 +326,7 @@ class Portrait(service_pb2_grpc.PortraitServicer):
     def UpdatePortrait(self, request, context):
         logging.info('UpdatePortrait(self, request, context)...')
         user_portrait = {}
-    
+
         # Update portrait & save latest data into Redis & return latest data
         # Read data from request
         reqDicts = any_pb2.Any()
@@ -319,15 +337,15 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         user_id = reqDictsJson['user_id']
         clicked_news_ids = reqDictsJson['clicked_item_ids']
         logging.info('user_id -> %s', user_id)
-        logging.info('clicked_news_ids -> %s', clicked_news_ids)       
+        logging.info('clicked_news_ids -> %s', clicked_news_ids)
 
         # Get original portrait
         user_portrait_data = rCache.get_user_portrait(user_id)
         user_portrait = {}
-        if  user_portrait_data != None and not bool(user_portrait):
+        if user_portrait_data != None and not bool(user_portrait):
             user_portrait = json.loads(user_portrait_data.decode('utf-8'))
         else:
-            #initial user portrait
+            # initial user portrait
             popularity_method_list = ['category', 'director', 'actor', 'language']
             for mt in popularity_method_list:
                 user_portrait[mt] = {}
@@ -346,15 +364,17 @@ class Portrait(service_pb2_grpc.PortraitServicer):
             for ci in input_item_list:
                 self.update_user_portrait_with_one_click(dict_user_portrait[str(user_id)], str(ci))
             dict_user_portrait[str(user_id)]['ub_embeddding'] = self.update_user_embedding(user_id, input_item_list)
-            
+
         user_portrait = dict_user_portrait[str(user_id)]
         # Save into Redis
         logging.info('user_portrait -> %s', user_portrait)
+
         class NumpyEncoder(json.JSONEncoder):
             def default(self, obj):
                 if isinstance(obj, np.ndarray):
                     return obj.tolist()
                 return json.JSONEncoder.default(self, obj)
+
         if bool(user_portrait):
             logging.info('Save user_portrait into Redis.')
             rCache.save_user_portrait(user_id, json.dumps(user_portrait, cls=NumpyEncoder).encode('utf-8'))
@@ -363,10 +383,11 @@ class Portrait(service_pb2_grpc.PortraitServicer):
         ###
         logging.info('update_portrait() has done.')
         portraitResponseAny = any_pb2.Any()
-        portraitResponseAny.value =  json.dumps(user_portrait, cls=NumpyEncoder).encode('utf-8')
+        portraitResponseAny.value = json.dumps(user_portrait, cls=NumpyEncoder).encode('utf-8')
         portraitResponse = service_pb2.PortraitResponse(code=0, description='Update portrait with success')
         portraitResponse.results.Pack(portraitResponseAny)
         return portraitResponse
+
 
 def init():
     # Check out environments

@@ -33,6 +33,7 @@ parser = argparse.ArgumentParser(description="app inputs and outputs")
 parser.add_argument("--bucket", type=str, help="s3 bucket")
 parser.add_argument("--prefix", type=str,
                     help="s3 input key prefix")
+parser.add_argument("--method", type=str, default='customize', help="method name")
 
 parser.add_argument("--region", type=str, help="aws region")
 args, _ = parser.parse_known_args()
@@ -46,6 +47,7 @@ bucket = args.bucket
 prefix = args.prefix
 if prefix.endswith("/"):
     prefix = prefix[:-1]
+method = args.method
 
 print(f"bucket:{bucket}, prefix:{prefix}")
 
@@ -56,7 +58,12 @@ input_file = "s3://{}/{}/system/ingest-data/item/".format(bucket, prefix)
 emr_output_key_prefix = "{}/system/emr/item-preprocessing/output/".format(prefix)
 emr_output_bucket_key_prefix = "s3://{}/{}".format(bucket, emr_output_key_prefix)
 
+emr_ps_output_key_prefix = "{}/system/emr/item-preprocessing/ps-output/".format(prefix)
+emr_ps_output_bucket_key_prefix = "s3://{}/{}".format(bucket, emr_ps_output_key_prefix)
+
 output_file_key = "{}/system/item-data/item.csv".format(prefix)
+output_ps_file_key = "{}/system/ps-ingest-data/item/ps_item.csv".format(prefix)
+
 
 print("input_file:", input_file)
 print("debug sig")
@@ -77,9 +84,9 @@ with SparkSession.builder.appName("Spark App - item preprocessing").getOrCreate(
     # process item file
     #
 
-    df_input = spark.read.text(input_file)
+    df_input_raw = spark.read.text(input_file)
     # 6552418723179790856_!_102_!_news_entertainment_!_谢娜三喜临门何炅送祝福吴昕送祝福只有沈梦辰不一样_!_杜海涛,谢娜,何炅,沈梦辰,吴昕,快本_!_3_!_0
-    df_input = df_input.selectExpr("split(value, '_!_') as row").where(
+    df_input = df_input_raw.selectExpr("split(value, '_!_') as row").where(
         size(col("row")) > 6).selectExpr("row[0] as id",
                                          "row[1] as item_type_code",
                                          "row[2] as item_type",
@@ -108,6 +115,25 @@ with SparkSession.builder.appName("Spark App - item preprocessing").getOrCreate(
     df_final = df_title.dropDuplicates(['title'])
     df_final.coalesce(1).write.mode("overwrite").option(
         "header", "false").option("sep", "_!_").csv(emr_output_bucket_key_prefix)
+
+    if method != "customize":
+        df_ps_input = df_input_raw.selectExpr("split(value, '_!_') as row").where(
+            size(col("row")) > 6).selectExpr("row[0] as ITEM_ID",
+                                             "row[1] as item_type_code",
+                                             "row[2] as CATEGORY",
+                                             "row[3] as title_raw",
+                                             "row[4] as keywords",
+                                             "row[5] as popularity",
+                                             "row[6] as is_new"
+                                             )
+        df_ps_input = df_ps_input.where("keywords != ''")
+        df_ps_input = df_ps_input.select(col("ITEM_ID"),
+                                         col("CATEGORY"),
+                                         regexp_replace(col("keywords"), ',', '|').alias('KEYWORD'),
+                                         )
+        df_ps_final = df_ps_input.dropDuplicates(['ITEM_ID'])
+        df_ps_final.coalesce(1).write.mode("overwrite").option(
+            "header", "true").option("sep", ",").csv(emr_ps_output_bucket_key_prefix)
 
     #
     # process user file
@@ -140,6 +166,16 @@ emr_output_file_key = list_s3_by_prefix(
 print("emr_output_file_key:", emr_output_file_key)
 s3_copy(bucket, emr_output_file_key, output_file_key)
 print("output file:", output_file_key)
+
+if method != "customize":
+    emr_ps_output_file_key = list_s3_by_prefix(
+        bucket,
+        emr_ps_output_key_prefix,
+        lambda key: key.endswith(".csv"))[0]
+
+    print("emr_ps_output_file_key:", emr_ps_output_file_key)
+    s3_copy(bucket, emr_ps_output_file_key, output_ps_file_key)
+    print("output file:", output_ps_file_key)
 
 #
 # user file

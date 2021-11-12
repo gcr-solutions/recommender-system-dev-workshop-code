@@ -44,6 +44,7 @@ projects=(
   "model-update-ub"
   "portrait-batch"
   "item-feature-update-batch"
+  "batch-preprocessing"
   "add-item-batch"
   "add-user-batch"
   "step-funcs"

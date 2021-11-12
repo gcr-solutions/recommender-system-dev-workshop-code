@@ -1,0 +1,161 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  (SO8010)
+
+  CloudFormation for RecSys StepFuncs
+
+
+Parameters:
+  NamePrefix:
+    Type: String
+    Default: rs-news-ps-rank-dev
+
+  Stage:
+    Type: String
+    Default: dev
+
+  StepFuncAndLambdaRoleName:
+    Type: String
+    Default: LambdaAndStepFuncsRole
+
+  SagemakerRoleName:
+    Type: String
+    Default: SMRole
+
+  S3UtilLabmda:
+    Type: String
+    Default: S3UtilLabmda
+
+  PreCheckLabmda:
+    Type: String
+    Default: PreCheckLabmda
+
+  SNSMessageLambda:
+    Type: String
+    Default: SNSMessageLambda
+
+
+Resources:
+  ItemNewStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub ${NamePrefix}-ItemNewStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Item data processing",
+          "TimeoutSeconds": 72000,
+          "States": {
+            "Item data processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-ItemPreprocessingStepFunc",
+                "Name.$": "States.Format('{}', $$.Execution.Name)"
+              },
+              "Next": "Add Item batch",
+              "ResultPath": "$.ItemPreprocessing"
+            },
+            "Add Item batch": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-AddItemBatchStepFunc",
+                "Name.$": "States.Format('{}', $$.Execution.Name)"
+              },
+              "ResultPath": "$.AddItemBatch",
+              "Next": "Item feature update batch"
+            },
+            "Item feature update batch": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-ItemFeatureUpdateBatchStepFunc",
+                "Name.$": "States.Format('{}', $$.Execution.Name)"
+              },
+              "Next": "Add Item data to Personalize",
+              "ResultPath": "$.ItemFeatureUpdateBatch"
+            },
+            "Add Item data to Personalize": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-PrepareItemData",
+                "Name.$": "States.Format('{}', $$.Execution.Name)"
+              },
+              "ResultPath": "$.PrepareTrainingData",
+              "Next": "Model update (embedding)"
+            },
+            "Model update (embedding)": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-ModelUpdateEmbeddingStepFunc",
+                "Name.$": "States.Format('{}', $$.Execution.Name)"
+              },
+              "ResultPath": "$.ModelUpdateEmbedding",
+              "Next": "Model update (ps-rank)"
+            },
+            "Model update (ps-rank)": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-TrainModelPersonalizeStepFunc",
+                "Name.$": "States.Format('{}', $$.Execution.Name)"
+              },
+              "Next": "Send notification",
+              "ResultPath": "$.ModelUpdateAction"
+            },
+            "Send notification": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "Bucket.$": "$.Bucket",
+                  "S3Prefix.$": "$.S3Prefix",
+                  "file_type": "item-new,ps-result"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-NotificationStepFunc",
+                "Name.$": "States.Format('{}', $$.Execution.Name)"
+              },
+              "Next": "Succeed",
+              "ResultPath": "$.Notification"
+            },
+            "Succeed": {
+              "Type": "Succeed"
+            }
+          }
+        }
+

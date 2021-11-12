@@ -12,6 +12,7 @@ from multiprocessing import Process, Pool
 from threading import Thread
 import boto3
 import botocore
+from botocore.config import Config
 
 import requests
 import uvicorn as uvicorn
@@ -72,16 +73,24 @@ MANDATORY_ENV_VARS = {
     'CLICK_RECORD_BUCKET': 'gcr-rs-ops-ap-southeast-1-522244679887',
     'CLICK_RECORD_FILE_PATH': 'system/ingest-data/action/',
     'USER_RECORD_FILE_PATH': 'system/ingest-data/user/',
-    'TEST': ''
+    'DUPLICATE_INTERVAL': 10, #min
+    'RECOMMEND_ITEM_COUNT': 20,
+    'RECOMMENDED_HISTORY_COUNT': 60,
+    'TEST': '',
+    'METHOD': 'customize'
 }
 
 REDIS_KEY_USER_ID_CLICK_DICT = 'user_id_click_dict'
 REDIS_KEY_USER_LOGIN_DICT = 'user_login_dict'
 TRIGGER_RECALL_WINDOW = 3
 
+
 news_records_dict = 'news_records_dict'
 movie_records_dict = 'movie_records_dict'
 user_id_action_dict = 'user_id_action_dict'
+
+user_id_recommended_dict='user_id_recommended_dict'
+user_dict_key = ['user_id', 'gender', 'age', 'timestamp', 'name']
 
 lNewsCfgCompleteType = ['news_story', 'news_culture', 'news_entertainment', 'news_sports', 'news_finance', 'news_house',
                         'news_car', 'news_edu', 'news_tech', 'news_military', 'news_travel', 'news_world', 'news_agriculture', 'news_game']
@@ -101,7 +110,10 @@ def get_dashboard_data():
     s3_prefix = MANDATORY_ENV_VARS['S3_PREFIX']
     file_name = 'system/dashboard/dashboard.json'
     file_key = os.path.join(s3_prefix, file_name)
-    s3 = boto3.resource('s3')
+    s3_boto_config = Config(
+        region_name = MANDATORY_ENV_VARS['AWS_REGION']
+    )
+    s3 = boto3.resource('s3', config=s3_boto_config)
     object_str = s3.Object(s3_bucket, file_key).get()[
         'Body'].read().decode('utf-8')
     json_data = json.loads(object_str)
@@ -122,13 +134,13 @@ def notice(loadRequest: LoadRequest):
         file_type, file_path, file_list))
     if not os.path.exists(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER']):
         logging.info("the local path {} is not existed".format(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER']))
-        os.mkdir(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'])        
+        os.mkdir(MANDATORY_ENV_VARS['LOCAL_DATA_FOLDER'])
     if file_type == 'news_records':
         for file in file_list:
             init_news_records_data(file_type, file_path, file, news_records_dict)
     elif file_type == 'movie_records':
         for file in file_list:
-            init_movie_records_data(file_type, file_path, file, movie_records_dict)    
+            init_movie_records_data(file_type, file_path, file, movie_records_dict)
 
     return json.dumps({'result': 'success'}), 200, {'ContentType': 'application/json'}
 
@@ -138,66 +150,149 @@ def login(loginRequest: LoginRequest):
     logging.info('Start demo->login()...')
     user_id = loginRequest.userId
     user_name = loginRequest.userName
-    if user_name == None:
+    temp_array = []
+    if not user_name or not get_user_id_by_name(user_name):
         s3_body = ''
         current_timestamp = str(calendar.timegm(time.gmtime()))
-        temp_array = []
         temp_array.append(user_id)
         temp_array.append(get_random_sex())
         temp_array.append(get_random_age())
         temp_array.append(current_timestamp)
-        temp_array.append('anonymous')
+        temp_array.append(user_name if user_name else 'anonymous')
         connector = '_!_'
         s3_body = connector.join(temp_array)
-        logging.info("store anonymous user data{} ".format(s3_body))
+        logging.info("store user data{} ".format(s3_body))
 
-        s3client = boto3.resource('s3', )
+        s3_boto_config = Config(
+            region_name=MANDATORY_ENV_VARS['AWS_REGION']
+        )
+        s3client = boto3.resource('s3', config=s3_boto_config)
         if s3_body != '':
             s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
-                Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body)
+                Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv',
+                Body=s3_body)
+        if not user_name:
+            return response_success({
+                "message": "Login as anonymous user!",
+                "data": {
+                    "userId": user_id,
+                    "visitCount": 1
+                }
+            })
 
-        return response_success({
-            "message": "Login as anonymous user!",
-            "data": {
-                "userId": user_id,
-                "visitCount": 1
-            }
-        })
+    user_id_in_server = get_user_id_by_name(user_name)
+    logging.info('login_post() - user_id_in_server: {}'.format(user_id_in_server))
 
-    user_id_in_sever = get_user_id_by_name(user_name)
-    logging.info(
-        'login_post() - user_id_in_sever: {}'.format(user_id_in_sever))
-
-    if not user_id_in_sever:
-        s3_body = ''
-        current_timestamp = str(calendar.timegm(time.gmtime()))
-        temp_array = []
-        temp_array.append(user_id)
-        temp_array.append(get_random_sex())
-        temp_array.append(get_random_age())
-        temp_array.append(current_timestamp)
-        temp_array.append(user_name)
-        connector = '_!_'
-        s3_body = connector.join(temp_array)
-        logging.info("store anonymous user data{} ".format(s3_body))
-
-        s3client = boto3.resource('s3')
-        if s3_body != '':
-            s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
-                Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body)
-
+    if not user_id_in_server:
         login_new_user(user_name, user_id)
-        user_id_in_sever = user_id
+        user_id_in_server = user_id
+        if MANDATORY_ENV_VARS['METHOD'] != 'customize':
+            # AddUser to AWS Personalize
+            call_personalize_add_user(user_id, dict(zip(user_dict_key, temp_array)))
 
     visit_count = increase_visit_count(user_name)
     response = {
         "message": "Login success",
         "data": {
-            "userId": user_id_in_sever,
+            "userId": user_id_in_server,
             "visitCount": visit_count
         }
     }
     return response_success(response)
+
+    # if user_name == None:
+    #     s3_body = ''
+    #     current_timestamp = str(calendar.timegm(time.gmtime()))
+    #     temp_array = []
+    #     temp_array.append(user_id)
+    #     temp_array.append(get_random_sex())
+    #     temp_array.append(get_random_age())
+    #     temp_array.append(current_timestamp)
+    #     temp_array.append('anonymous')
+    #     connector = '_!_'
+    #     s3_body = connector.join(temp_array)
+    #     logging.info("store anonymous user data{} ".format(s3_body))
+    #
+    #     s3_boto_config = Config(
+    #         region_name = MANDATORY_ENV_VARS['AWS_REGION']
+    #     )
+    #     s3client = boto3.resource('s3', config=s3_boto_config)
+    #     if s3_body != '':
+    #         # s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
+    #         #     Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
+    #         s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
+    #             Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv',
+    #             Body=s3_body)
+    #
+    #     if MANDATORY_ENV_VARS['METHOD'] != 'customize':
+    #         # AddUser to AWS Personalize
+    #         call_personalize_add_user(user_id, temp_array[1])
+    #
+    #     return response_success({
+    #         "message": "Login as anonymous user!",
+    #         "data": {
+    #             "userId": user_id,
+    #             "visitCount": 1
+    #         }
+    #     })
+    #
+    # user_id_in_sever = get_user_id_by_name(user_name)
+    # logging.info(
+    #     'login_post() - user_id_in_sever: {}'.format(user_id_in_sever))
+    #
+    # if not user_id_in_sever:
+    #     s3_body = ''
+    #     current_timestamp = str(calendar.timegm(time.gmtime()))
+    #     temp_array = []
+    #     temp_array.append(user_id)
+    #     temp_array.append(get_random_sex())
+    #     temp_array.append(get_random_age())
+    #     temp_array.append(current_timestamp)
+    #     temp_array.append(user_name)
+    #     connector = '_!_'
+    #     s3_body = connector.join(temp_array)
+    #     logging.info("store anonymous user data{} ".format(s3_body))
+    #
+    #     s3_boto_config = Config(
+    #         region_name = MANDATORY_ENV_VARS['AWS_REGION']
+    #     )
+    #     s3client = boto3.resource('s3', config=s3_boto_config)
+    #     if s3_body != '':
+    #         logging.info("CLICK_RECORD_BUCKET: {} ".format(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']))
+    #         logging.info("USER_RECORD_FILE_PATH: {} ".format(MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH']))
+    #         # s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
+    #         #     Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
+    #         s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
+    #             Key=MANDATORY_ENV_VARS['USER_RECORD_FILE_PATH'] + 'user_' + user_id + '_' + current_timestamp + '.csv',
+    #             Body=s3_body)
+    #
+    #     login_new_user(user_name, user_id)
+    #     user_id_in_sever = user_id
+    #
+    #     if MANDATORY_ENV_VARS['METHOD'] != 'customize':
+    #         # AddUser to AWS Personalize
+    #         call_personalize_add_user(user_id, temp_array[1])
+    #
+    # visit_count = increase_visit_count(user_name)
+    # response = {
+    #     "message": "Login success",
+    #     "data": {
+    #         "userId": user_id_in_sever,
+    #         "visitCount": visit_count
+    #     }
+    # }
+    # return response_success(response)
+
+
+def call_personalize_add_user(user_id, user_dict):
+    logging.info("Start add new user: {}".format(user_dict))
+    url = MANDATORY_ENV_VARS['EVENT_SERVICE_ENDPOINT'] + \
+          '/api/v1/event/add_user/' + user_id
+
+    return send_post_request(url, {
+        "user_id": user_id,
+        "user_properties": user_dict
+    })
 
 
 def get_random_sex():
@@ -228,15 +323,82 @@ def get_recommend_news(userId: str, type: str, curPage: str, pageSize: str):
             "message": "Not support news type"
         }, 400)
     news_recommend_list = httpResp.json()['content']
-    logging.info('new_recommend_list {}'.format(news_recommend_list))
+    logging.info('new_recommend_list from retrieve: size:{}, {}'.format(len(news_recommend_list), news_recommend_list))
 
-    refresh_user_click_data(user_id, news_recommend_list, '1', recommend_type, 'news')
+    recommended_history_data, recommend_history_list = get_recommend_history(userId)
 
-    retrieve_response = generate_news_retrieve_response(news_recommend_list)
+    logging.info('recommended_history_data size:{}'.format(len(recommended_history_data)))
+
+    if MANDATORY_ENV_VARS['METHOD'] != 'ps-complete':
+        item_recommend_list, present_recommend_item_id_list = remove_duplicate_items(news_recommend_list, recommend_history_list, user_id)
+        logging.info('item_recommend_list after remove_duplicate: size:{}'.format(len(item_recommend_list)))
+
+        refresh_recommend_history_data(recommended_history_data, present_recommend_item_id_list, user_id)
+    else:
+        item_recommend_list = news_recommend_list
+
+    refresh_user_click_data(user_id, item_recommend_list, '1', recommend_type, 'news')
+
+    logging.info('item_recommend_list return size: {}'.format(len(item_recommend_list)))
+    retrieve_response = generate_news_retrieve_response(item_recommend_list)
 
     return retrieve_response
 
-# get user history of click
+def get_recommend_history(user_id: str):
+    logging.info("get_recommend_history start, user_id: {}".format(user_id))
+    recommended_data_redis = rCache.get_data_from_hash(user_id_recommended_dict, user_id)
+    recommended_data = []
+    recommend_history_list = []
+    if recommended_data_redis:
+        recommended_data = json.loads(recommended_data_redis, encoding='utf-8')
+        # remove the expired recommended data
+        expire_timestamp = calendar.timegm(time.gmtime())/60 - int(MANDATORY_ENV_VARS['DUPLICATE_INTERVAL'])
+        for element in recommended_data[::-1]:
+            for k, v in element.items():
+                recommended_time_min = int(k)
+                if expire_timestamp > recommended_time_min/60:
+                    recommended_data.remove(element)
+                else:
+                    for news_id in v:
+                        recommend_history_list.append(news_id)
+                    if len(recommend_history_list) >= int(MANDATORY_ENV_VARS['RECOMMENDED_HISTORY_COUNT']):
+                        recommended_data.remove(element)
+
+    logging.info('recommend_history_list {} for user {}'.format(recommend_history_list, user_id))
+    logging.info('recommend_history_data {} for user {}'.format(recommended_data, user_id))
+    return recommended_data, recommend_history_list
+
+def remove_duplicate_items(item_recommend_list_input, recommend_history_list, user_id):
+    logging.info("remove_duplicate_items start")
+    logging.info("item_recommend_list_input: {}".format(item_recommend_list_input))
+    logging.info("recommend_history_list: {}".format(recommend_history_list))
+    item_list_count = int(MANDATORY_ENV_VARS['RECOMMEND_ITEM_COUNT'])
+    item_lacking_count = item_list_count
+    present_recommend_item_id_list = [] #['news_id1','news_id2']
+    item_recommend_list = []
+    remain_count = len(item_recommend_list_input)
+    for element in item_recommend_list_input:
+        item_lacking_count = item_list_count - len(present_recommend_item_id_list)
+        if item_lacking_count == 0:
+            return item_recommend_list, present_recommend_item_id_list
+        elif item_lacking_count >= remain_count:
+            item_recommend_list.append(element)
+            present_recommend_item_id_list.append(element['id'])
+        else:
+            if element['id'] not in recommend_history_list and element['id'] not in present_recommend_item_id_list:
+                item_recommend_list.append(element)
+                present_recommend_item_id_list.append(element['id'])
+
+    logging.info('item_recommend_list {} for user {}'.format(item_recommend_list, user_id))
+    logging.info('present_recommend_item_id_list {} for user {}'.format(present_recommend_item_id_list, user_id))
+    return item_recommend_list, present_recommend_item_id_list
+
+def refresh_recommend_history_data(recommended_history_data, present_recommend_item_id_list, user_id):
+    logging.info('refresh_recommend_history_data start, {}'.format(present_recommend_item_id_list))
+    recommended_history_data.append({str(calendar.timegm(time.gmtime())): present_recommend_item_id_list})
+
+    if rCache.load_data_into_hash(user_id_recommended_dict, user_id, json.dumps(recommended_history_data).encode('utf-8')):
+        logging.info('Save user_id_recommended_dict with key : %s ', user_id)
 
 
 @app.get('/api/v1/demo/click/{user_id}', tags=["demo"])
@@ -267,7 +429,7 @@ def click_get(user_id: str, pageSize: str, curPage: str):
         "curPage": cur_page,
         "totalPage": click_list_info['total_page'],
         "data": click_list_info['click_list']
-    })    
+    })
 
 
 @app.post('/api/v1/demo/click', tags=["demo"])
@@ -477,7 +639,9 @@ def load_news_records_to_redis(type, key, file):
     except IOError as error:
         raise error
 
+    count = 0
     for line in file_to_load:
+        count += count
         array = line.strip().split('_!_')
         if array[-1] != '':
             rCache.load_data_into_hash(key, array[0], json.dumps({
@@ -489,7 +653,7 @@ def load_news_records_to_redis(type, key, file):
             }).encode('utf-8'))
 
     file_to_load.close()
-    logging.info('Load news record... was success.')
+    logging.info('Load news record... was success. count: {}'.format(count))
 
 def load_movie_records_to_redis(type, key, file):
     try:
@@ -497,7 +661,9 @@ def load_movie_records_to_redis(type, key, file):
     except IOError as error:
         raise error
 
+    count = 0
     for line in file_to_load:
+        count += count
         array = line.strip().split('_!_')
         if array[-1] != '':
             rCache.load_data_into_hash(key, array[0], json.dumps({
@@ -515,14 +681,17 @@ def load_movie_records_to_redis(type, key, file):
             }).encode('utf-8'))
 
     file_to_load.close()
-    logging.info('Load news record... was success.')    
+    logging.info('Load movie record... was success. count: {}'.format(count))
 
 
 def download_file_from_s3(bucket, path, file, dest_folder):
     logging.info('Download file - %s from s3://%s/%s ... ', file, bucket, path)
 
     # Using default session
-    s3client = boto3.client('s3')
+    s3_boto_config = Config(
+        region_name = MANDATORY_ENV_VARS['AWS_REGION']
+    )
+    s3client = boto3.client('s3', config=s3_boto_config)
     try:
         s3client.download_file(bucket, path+file, dest_folder+file)
     except botocore.exceptions.ClientError as error:
@@ -699,7 +868,7 @@ def get_movie_by_id(item_id):
     aws_region = MANDATORY_ENV_VARS['AWS_REGION']
     return {
         'id': item_id,
-        'image': 'https://{}.s3-{}.amazonaws.com/{}/movielens-posters/img/{}.jpg'.format(s3_bucket, aws_region, s3_prefix, item_id),
+        'image': 'https://{}.s3.{}.amazonaws.com/{}/movielens-posters/img/{}.jpg'.format(s3_bucket, aws_region, s3_prefix, item_id),
         'title': movie_detail_record['program_name'],
         'release_year': movie_detail_record['release_year'],
         'director': movie_detail_record['director'],
@@ -769,7 +938,7 @@ def generate_movie_retrieve_response(movie_recommend_list):
 
         data = {
             'id': element['id'],
-            'image': 'https://{}.s3-{}.amazonaws.com/{}/movielens-posters/img/{}.jpg'.format(s3_bucket, aws_region, s3_prefix, element['id']),
+            'image': 'https://{}.s3.{}.amazonaws.com/{}/movielens-posters/img/{}.jpg'.format(s3_bucket, aws_region, s3_prefix, element['id']),
             'title': movie_detail_record['program_name'],
             'release_year': movie_detail_record['release_year'],
             'director': movie_detail_record['director'],
@@ -883,10 +1052,16 @@ def store_previous_click_data(user_id, action_type, scenario):
         s3_body = s3_body + connector.join(temp_array) + '\n'
     logging.info("store_previous_click_data data{} ".format(s3_body))
 
-    s3client = boto3.resource('s3')
+    s3_boto_config = Config(
+        region_name = MANDATORY_ENV_VARS['AWS_REGION']
+    )
+    s3client = boto3.resource('s3', config=s3_boto_config)
     if s3_body != '':
+        # s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
+        #     Key=MANDATORY_ENV_VARS['CLICK_RECORD_FILE_PATH'] + 'action_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body, ACL='public-read')
         s3client.Bucket(MANDATORY_ENV_VARS['CLICK_RECORD_BUCKET']).put_object(
-            Key=MANDATORY_ENV_VARS['CLICK_RECORD_FILE_PATH'] + 'action_' + user_id + '_' + current_timestamp + '.csv', Body=s3_body)
+            Key=MANDATORY_ENV_VARS['CLICK_RECORD_FILE_PATH'] + 'action_' + user_id + '_' + current_timestamp + '.csv',
+            Body=s3_body)
     logging.info('store_previous_click_data completed')
 
 
@@ -974,9 +1149,19 @@ def get_recommend_movie(userId: str, type: str, curPage: str, pageSize: str):
     movie_recommend_list = httpResp.json()['content']
     logging.info('movie_recommend_list {}'.format(movie_recommend_list))
 
-    refresh_user_click_data(user_id, movie_recommend_list, '1', recommend_type, 'movie')
+    recommended_history_data, recommend_history_list = get_recommend_history(userId)
 
-    retrieve_response = generate_movie_retrieve_response(movie_recommend_list)
+    if MANDATORY_ENV_VARS['METHOD'] != 'ps-complete':
+        item_recommend_list, present_recommend_item_id_list = remove_duplicate_items(movie_recommend_list, recommend_history_list, user_id)
+        logging.info('item_recommend_list after remove_duplicate: size:{}'.format(len(item_recommend_list)))
+
+        refresh_recommend_history_data(recommended_history_data, present_recommend_item_id_list, user_id)
+    else:
+        item_recommend_list = movie_recommend_list
+
+    refresh_user_click_data(user_id, item_recommend_list, '1', recommend_type, 'movie')
+
+    retrieve_response = generate_movie_retrieve_response(item_recommend_list)
 
     return retrieve_response
 
@@ -1023,13 +1208,6 @@ def init():
         else:
             MANDATORY_ENV_VARS[var] = os.environ.get(var)
 
-    aws_region = MANDATORY_ENV_VARS['AWS_REGION']
-    logging.info("aws_region={}".format(aws_region))
-    boto3.setup_default_session(region_name=MANDATORY_ENV_VARS['AWS_REGION'])
-    global s3client
-    s3client = boto3.client('s3')
-    logging.info(json.dumps(s3client.list_buckets(), default=str))
-
     # Initial redis connection
     global rCache
     rCache = cache.RedisCache(
@@ -1037,10 +1215,20 @@ def init():
 
     logging.info('redis status is {}'.format(rCache.connection_status()))
 
+    logging.info("try to list s3 buckets")
+    s3_boto_config = Config(
+        region_name = MANDATORY_ENV_VARS['AWS_REGION']
+    )
+    s3client = boto3.client('s3', config=s3_boto_config)
+    logging.info(json.dumps(s3client.list_buckets(), default=str))
+
     logging.info('demo service start')
 
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    #logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+                        datefmt='%Y-%m-%d:%H:%M:%S',
+                        level=logging.INFO)
     init()
     uvicorn.run(app, host="0.0.0.0", port=MANDATORY_ENV_VARS['DEMO_PORT'])

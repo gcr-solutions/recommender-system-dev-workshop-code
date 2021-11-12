@@ -24,6 +24,7 @@ fi
 if [[ -z $REGION ]]; then
   REGION='ap-northeast-1'
 fi
+AWS_REGION=$REGION
 
 AWS_ACCOUNT_ID=$($AWS_CMD  sts get-caller-identity --region ${REGION} --query Account --output text)
 if [[ $? -ne 0 ]]; then
@@ -33,11 +34,12 @@ fi
 
 echo "AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID"
 
-if [[ -z $RS_SCENARIO  ]];then
-    RS_SCENARIO=news
+SCENARIO=$2
+if [[ -z $SCENARIO  ]];then
+    SCENARIO=news
 fi
 
-echo "RS_SCENARIO: $RS_SCENARIO"
+echo "SCENARIO: $SCENARIO"
 
 curr_dir=$(pwd)
 
@@ -48,5 +50,5 @@ else
    ./clean_up.sh $Stage
 fi
 
-cd ${curr_dir}/$RS_SCENARIO/
+cd ${curr_dir}/$SCENARIO/
 ./clean_up.sh $Stage

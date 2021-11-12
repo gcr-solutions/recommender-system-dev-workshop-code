@@ -17,5 +17,5 @@ fi
 if [[ $Stage == 'demo' ]]; then
   ../dev2demo.sh $repoName
 else
-../norm_build.sh $repoName $Stage
+  ../norm_build.sh $repoName $Stage
 fi

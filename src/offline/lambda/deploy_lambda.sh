@@ -9,7 +9,13 @@ if [[ -z $Stage ]];then
   Stage='dev-workshop'
 fi
 
+METHOD=$2
+if [[ -z $METHOD ]];then
+  METHOD='customize'
+fi
+
 echo "Stage=$Stage"
+echo "METHOD=$METHOD"
 
 AWS_CMD="aws"
 if [[ -n $PROFILE ]]; then
@@ -54,16 +60,31 @@ fi
 
 STACK_NAME=rs-$Stage-lambda-stack
 echo "STACK_NAME: ${STACK_NAME}"
-echo "$AWS_CMD cloudformation deploy --region ${REGION} \
---template-file ./template.yaml --stack-name ${STACK_NAME} \
---parameter-overrides ${PARAMETER_OVERRIDES} \
---capabilities CAPABILITY_NAMED_IAM"
 
-$AWS_CMD  cloudformation deploy --region ${REGION} \
---template-file ./template.yaml --stack-name ${STACK_NAME} \
---parameter-overrides ${PARAMETER_OVERRIDES} \
---capabilities CAPABILITY_NAMED_IAM \
---no-fail-on-empty-changeset
+if [[ "$METHOD" == "customize" ]]
+then
+  echo "$AWS_CMD cloudformation deploy --region ${REGION} \
+  --template-file ./template.yaml --stack-name ${STACK_NAME} \
+  --parameter-overrides ${PARAMETER_OVERRIDES} \
+  --capabilities CAPABILITY_NAMED_IAM"
+
+  $AWS_CMD  cloudformation deploy --region ${REGION} \
+  --template-file ./template.yaml --stack-name ${STACK_NAME} \
+  --parameter-overrides ${PARAMETER_OVERRIDES} \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --no-fail-on-empty-changeset
+else
+  echo "$AWS_CMD cloudformation deploy --region ${REGION} \
+  --template-file ./ps-lambda/ps-template.yaml --stack-name ${STACK_NAME} \
+  --parameter-overrides ${PARAMETER_OVERRIDES} \
+  --capabilities CAPABILITY_NAMED_IAM"
+
+  $AWS_CMD  cloudformation deploy --region ${REGION} \
+  --template-file ./ps-lambda/ps-template.yaml --stack-name ${STACK_NAME} \
+  --parameter-overrides ${PARAMETER_OVERRIDES} \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --no-fail-on-empty-changeset
+fi
 
 StackStatus=$($AWS_CMD cloudformation  describe-stacks --region ${REGION} --stack-name ${STACK_NAME} --output table | grep StackStatus)
 echo ${StackStatus} |  egrep "(CREATE_COMPLETE)|(UPDATE_COMPLETE)" > /dev/null
