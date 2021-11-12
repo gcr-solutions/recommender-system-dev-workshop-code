@@ -1,4 +1,4 @@
-# Recommender System v1
+# Recommender System v2.0
 
 ## Description
 This is refactored Recommender System with plugin design, which means each moving pecieces are highly customizable.
