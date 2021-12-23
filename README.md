@@ -3,6 +3,16 @@
 ## Description
 This is refactored Recommender System with plugin design, which means each moving pecieces are highly customizable.
 
+## How to use it
+
+### Deploy by yourself
+
+Follow the step-by-step instruction in the [workshop](https://gcr-solutions.github.io/recommender-system-dev-workshop/)
+
+### Ask for professional support
+
+Please go to the [aws gcr solution page](https://www.amazonaws.cn/en/solutions/recommender-system-solution/) for professional support.
+
 ## Architecture
 ![architecture](/images/architecture.png)
 
