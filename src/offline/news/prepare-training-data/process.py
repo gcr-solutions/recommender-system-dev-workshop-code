@@ -1,11 +1,11 @@
 import argparse
 import os
 import pickle
-
+import json
 import boto3
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, size, row_number, expr, array_join
-from pyspark.sql.types import StructType, StructField, StringType, ArrayType
+from pyspark.sql.functions import col, size, row_number, expr, array_join, from_json
+from pyspark.sql.types import StructType, StructField, StringType, ArrayType, IntegerType
 import pyspark.sql.functions as F
 
 
@@ -80,7 +80,7 @@ output_ps_action_file_key = "{}/system/ps-ingest-data/action/ps_action.csv".form
 print("input_action_file:", input_action_file)
 
 K_STEPS = 100
-
+N = 8
 class UdfFunction:
     @staticmethod
     def sortF(item_list, timestamp_list):
@@ -96,7 +96,22 @@ class UdfFunction:
             pairs.append((m, t))
         # sort by time
         pairs = sorted(pairs, key=lambda x: x[1])
-        return [x[0] for x in pairs[0:-1]]
+        return [x[0] for x in pairs ]
+
+    @staticmethod
+    def buildAndSortClicksArr(entities_list, words_list, timestamp_list):
+        pairs = []
+        for e, w,t in zip(entities_list, words_list, timestamp_list):
+            pairs.append((e, w, t))
+        pairs = sorted(pairs, key=lambda x: x[-1])
+        result_arr = []
+        for i in range(len(pairs) - N):
+            result_arr.append(json.dumps({
+                "clicked_entities_arr": [ x[0] for x in pairs[i: i+N]],
+                "clicked_words_arr": [x[1] for x in pairs[i: i+N]],
+                "clicked_timestamp": max([ x[2] for x in pairs[i: i+N]])
+            }))
+        return result_arr
 
 
 def sync_s3(file_name_list, s3_folder, local_folder):
@@ -108,29 +123,39 @@ def sync_s3(file_name_list, s3_folder, local_folder):
 
 
 def gen_train_dataset(train_dataset_join):
-    sortUdf = F.udf(UdfFunction.sortF, ArrayType(StringType()))
+    buildAndSortClicksArr = F.udf(UdfFunction.buildAndSortClicksArr, ArrayType(StringType()))
+    clicked_schema = StructType([
+            StructField('clicked_entities_arr', ArrayType(StringType()), False),
+            StructField('clicked_words_arr', ArrayType(StringType()), False),
+            StructField('clicked_timestamp', IntegerType(), False)
+            ])
     train_clicked_entities_words_arr_df = train_dataset_join.where(col("action_value") == "1") \
         .groupby('user_id') \
-        .agg(sortUdf(F.collect_list("entities"),
-                     F.collect_list("timestamp")).alias('entities_arr'),
-             sortUdf(F.collect_list("words"),
-                     F.collect_list("timestamp")).alias('words_arr'),
-             F.max(F.col("timestamp")).alias("timestamp")
-             )
+        .agg(buildAndSortClicksArr(F.collect_list("entities"),
+                            F.collect_list("words"),
+                     F.collect_list("timestamp")).alias('clicked_hist_arr'),
+             ) \
+       .select('user_id', F.explode(col('clicked_hist_arr')).alias('clicked_hist')) \
+       .withColumn('json_col', from_json('clicked_hist', clicked_schema)) \
+       .select('user_id', "json_col.*")
+
     train_entities_words_df = train_clicked_entities_words_arr_df \
         .withColumn("clicked_entities",
-                    array_join(col('entities_arr'), "-")) \
+                    array_join(col('clicked_entities_arr'), "-")) \
         .withColumn("clicked_words",
-                    array_join(col('words_arr'), "-")) \
-        .drop("entities_arr") \
-        .drop("words_arr")
+                    array_join(col('clicked_words_arr'), "-")) \
+        .drop("clicked_entities_arr") \
+        .drop("clicked_words_arr")
+
     train_dataset_final = train_dataset_join \
-        .join(train_entities_words_df, on=["user_id", "timestamp"]) \
+        .join(train_entities_words_df, on=["user_id"]) \
+        .filter(col('timestamp') < col('clicked_timestamp')) \
         .select(
         "user_id", "words", "entities",
         "action_value", "clicked_words",
         "clicked_entities", "item_id", "timestamp")
     return train_dataset_final
+
 
 
 def load_feature_dict(feat_dict_file):
