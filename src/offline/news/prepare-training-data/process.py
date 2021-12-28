@@ -141,7 +141,7 @@ def gen_train_dataset(train_dataset_input):
         .drop("clicked_entities_arr") \
         .drop("clicked_words_arr")
 
-    dataset_final = train_dataset_join \
+    dataset_final = train_dataset_input \
         .join(train_entities_words_df, on=["user_id", "timestamp"]) \
         .select(
         "user_id", "words", "entities",
