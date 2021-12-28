@@ -80,6 +80,7 @@ print("input_action_file:", input_action_file)
 
 N = 8
 
+
 class UdfFunction:
     @staticmethod
     def build_sort_click_hist(entities_list, words_list, action_value_list, timestamp_list):
@@ -230,10 +231,25 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     # df_action_rank = df_action_input.withColumn("timestamp_num", timestamp_num)
     max_timestamp, min_timestamp = df_action_input.selectExpr("max(timestamp)", "min(timestamp)").collect()[0]
 
-    max_train_num = int((max_timestamp - min_timestamp) * 0.8) + min_timestamp
+    total_count = df_action_input.count()
+    split_timestamp = int((max_timestamp - min_timestamp) * 0.8) + min_timestamp
+    if total_count > 10000:
+        val_dataset = df_action_input.where(col('timestamp') > split_timestamp)
+        val_count = val_dataset.count()
+        print(f"val_count:{val_count}, split_timestamp:{split_timestamp}")
+        last_split_timestamp = split_timestamp
+        if val_count > 2000:
+            while val_count > 2000:
+                last_split_timestamp = split_timestamp
+                split_timestamp = split_timestamp + 3600 * 24  # move one day
+                val_dataset = df_action_input.where(col('timestamp') > split_timestamp)
+                val_count = val_dataset.count()
+                print(f"val_count:{val_count}, split_timestamp:{split_timestamp}")
+            if val_count < 500:
+                split_timestamp = last_split_timestamp
 
-    train_dataset = df_action_input.where(col('timestamp') <= max_train_num)
-    val_dataset = df_action_input.where(col('timestamp') > max_train_num)
+    train_dataset = df_action_input.where(col('timestamp') <= split_timestamp)
+    val_dataset = df_action_input.where(col('timestamp') > split_timestamp)
 
     #
     # gen train dataset
