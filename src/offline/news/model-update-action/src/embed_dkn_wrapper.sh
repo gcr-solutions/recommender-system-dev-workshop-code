@@ -8,7 +8,7 @@ python3 embed_dkn.py \
 --learning_rate 0.0001 \
 --loss_weight 1.0 \
 --max_click_history 8 \
---num_epochs 1 \
+--num_epochs 10 \
 --use_entity True \
 --use_context 0 \
 --max_title_length 16 \
