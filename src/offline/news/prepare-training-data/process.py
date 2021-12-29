@@ -7,6 +7,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, size, row_number, expr, array_join, from_json
 from pyspark.sql.types import StructType, StructField, StringType, ArrayType, IntegerType
 import pyspark.sql.functions as F
+from pyspark.sql.window import Window
 
 
 def list_s3_by_prefix(bucket, prefix, filter_func=None):
@@ -226,30 +227,22 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     df_feat = spark.createDataFrame(feat_list, schema).dropDuplicates(['item_id'])
     df_user_id_map = spark.createDataFrame(user_list, user_map_schema).dropDuplicates(['user_id'])
 
-    # window_spec = Window.orderBy('timestamp')
-    # timestamp_num = row_number().over(window_spec)
-    # df_action_rank = df_action_input.withColumn("timestamp_num", timestamp_num)
-    max_timestamp, min_timestamp = df_action_input.selectExpr("max(timestamp)", "min(timestamp)").collect()[0]
+    window_spec = Window.orderBy('timestamp')
+    timestamp_num = row_number().over(window_spec)
 
-    total_count = df_action_input.count()
-    split_timestamp = int((max_timestamp - min_timestamp) * 0.8) + min_timestamp
-    if total_count > 10000:
-        val_dataset = df_action_input.where(col('timestamp') > split_timestamp)
-        val_count = val_dataset.count()
-        print(f"val_count:{val_count}, split_timestamp:{split_timestamp}")
-        last_split_timestamp = split_timestamp
-        if val_count > 2000:
-            while val_count > 2000:
-                last_split_timestamp = split_timestamp
-                split_timestamp = split_timestamp + 3600 * 24  # move one day
-                val_dataset = df_action_input.where(col('timestamp') > split_timestamp)
-                val_count = val_dataset.count()
-                print(f"val_count:{val_count}, split_timestamp:{split_timestamp}")
-            if val_count < 500:
-                split_timestamp = last_split_timestamp
+    timestamp_ordered_df = df_action_input.select('timestamp').distinct().withColumn("timestamp_num", timestamp_num)
+    timestamp_ordered_df.cache()
 
-    train_dataset = df_action_input.where(col('timestamp') <= split_timestamp)
-    val_dataset = df_action_input.where(col('timestamp') > split_timestamp)
+    max_timestamp_num = timestamp_ordered_df.selectExpr("max(timestamp_num)").collect()[0]['max(timestamp_num)']
+
+    df_action_input_ordered = df_action_input.join(timestamp_ordered_df, on=['timestamp'])
+
+    split_timestamp_num = int(max_timestamp_num * 0.7)
+    if max_timestamp_num > 10000:
+        split_timestamp_num = max_timestamp_num - 1500
+
+    train_dataset = df_action_input_ordered.where(col('timestamp_num') <= split_timestamp_num).drop('timestamp_num')
+    val_dataset = df_action_input_ordered.where(col('timestamp_num') > split_timestamp_num).drop('timestamp_num')
 
     #
     # gen train dataset
