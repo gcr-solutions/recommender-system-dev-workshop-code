@@ -133,16 +133,14 @@ def gen_train_dataset(train_dataset_input):
         .select('user_id', F.explode(col('clicked_hist_arr')).alias('clicked_hist')) \
         .withColumn('json_col', from_json('clicked_hist', clicked_schema)) \
         .select('user_id', "json_col.*")
-
     train_entities_words_df = train_clicked_entities_words_arr_df \
         .withColumn("clicked_entities",
                     array_join(col('clicked_entities_arr'), "-")) \
         .withColumn("clicked_words",
                     array_join(col('clicked_words_arr'), "-")) \
         .drop("clicked_entities_arr") \
-        .drop("clicked_words_arr")\
+        .drop("clicked_words_arr") \
         .distinct()
-
     dataset_final = train_dataset_input \
         .join(train_entities_words_df, on=["user_id", "timestamp"]) \
         .select(
