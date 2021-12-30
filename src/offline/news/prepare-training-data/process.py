@@ -229,7 +229,7 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
 
     max_timestamp, min_timestamp = df_action_input.selectExpr("max(timestamp)", "min(timestamp)").collect()[0]
     N_days = 30
-    df_action_input_latest = df_action_input.where(col('timestamp_num') > max_timestamp - 24 * 3600 * N_days)
+    df_action_input_latest = df_action_input.where(col('timestamp') > max_timestamp - 24 * 3600 * N_days)
 
     window_spec = Window.orderBy('timestamp')
     timestamp_num = row_number().over(window_spec)
