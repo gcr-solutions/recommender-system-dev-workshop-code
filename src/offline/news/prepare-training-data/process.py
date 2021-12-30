@@ -140,7 +140,8 @@ def gen_train_dataset(train_dataset_input):
         .withColumn("clicked_words",
                     array_join(col('clicked_words_arr'), "-")) \
         .drop("clicked_entities_arr") \
-        .drop("clicked_words_arr")
+        .drop("clicked_words_arr")\
+        .distinct()
 
     dataset_final = train_dataset_input \
         .join(train_entities_words_df, on=["user_id", "timestamp"]) \
@@ -273,6 +274,7 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
         "action_value", "clicked_words",
         "clicked_entities", "item_id", "timestamp"
     )
+
     train_dataset_final.coalesce(1).write.mode("overwrite").option(
         "header", "false").option("sep", "\t").csv(emr_s3_train_output)
 
@@ -284,6 +286,7 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
         "action_value", "clicked_words",
         "clicked_entities", "item_id", "timestamp"
     )
+
     val_dataset_final.coalesce(1).write.mode("overwrite").option(
         "header", "false").option("sep", "\t").csv(emr_s3_val_output)
 
