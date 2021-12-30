@@ -95,8 +95,8 @@ class UdfFunction:
         for i in range(len(pairs)):
             click_words_hist_len = len(clicked_words_hist)
             if pairs[i][2] == '1':
-                clicked_entities_hist.append(pairs[i][0])
-                clicked_words_hist.append(pairs[i][1])
+                clicked_entities_hist.append(str(pairs[i][0]))
+                clicked_words_hist.append(str(pairs[i][1]))
             if click_words_hist_len > 0:
                 timestamp = pairs[i][3]
                 result_arr.append(json.dumps({
@@ -249,7 +249,7 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
 
     if val_dataset < 200 or val_dataset > train_count:
         print("train_count {}, val_dataset: {}, use randomSplit".format(train_count, val_dataset))
-        train_dataset, val_dataset = df_action_with_clicked_hist.randomSplit([0.7, 0.3])
+        train_dataset, val_dataset = df_action_with_clicked_hist.randomSplit([0.7, 0.3], seed=42)
 
     # window_spec = Window.orderBy('timestamp')
     # timestamp_num = row_number().over(window_spec)
