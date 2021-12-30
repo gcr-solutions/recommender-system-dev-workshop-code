@@ -925,7 +925,7 @@ Resources:
                 "ResourceConfig": {
                   "InstanceCount": 1,
                   "InstanceType": "ml.p2.xlarge",
-                  "VolumeSizeInGB": 2048
+                  "VolumeSizeInGB": 1024
                 },
                 "RoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/service-role/rs-${Stage}-${SagemakerRoleName}-${AWS::Region}",
                 "HyperParameters": {
