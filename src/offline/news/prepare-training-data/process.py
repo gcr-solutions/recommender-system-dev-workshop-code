@@ -229,7 +229,7 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
 
     max_timestamp, min_timestamp = df_action_input.selectExpr("max(timestamp)", "min(timestamp)").collect()[0]
     print("min_timestamp {}, max_timestamp: {}".format(min_timestamp, max_timestamp))
-    N_days = 100
+    N_days = 35
     df_action_input_latest = df_action_input.where(col('timestamp') > max_timestamp - 24 * 3600 * N_days)
     df_action_with_feat = df_action_input_latest.join(df_feat, on=['item_id'])
     df_action_with_clicked_hist = gen_train_dataset(df_action_with_feat)
