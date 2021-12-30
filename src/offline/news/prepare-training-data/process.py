@@ -228,30 +228,38 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     df_user_id_map = spark.createDataFrame(user_list, user_map_schema).dropDuplicates(['user_id'])
 
     max_timestamp, min_timestamp = df_action_input.selectExpr("max(timestamp)", "min(timestamp)").collect()[0]
-    N_days = 30
+    N_days = 100
     df_action_input_latest = df_action_input.where(col('timestamp') > max_timestamp - 24 * 3600 * N_days)
+    df_action_with_feat = df_action_input_latest.join(df_feat, on=['item_id'])
+    df_action_with_clicked_hist = gen_train_dataset(df_action_with_feat)
 
-    window_spec = Window.orderBy('timestamp')
-    timestamp_num = row_number().over(window_spec)
-    timestamp_ordered_df = df_action_input_latest.select('timestamp').distinct().withColumn("timestamp_num", timestamp_num)
-    timestamp_ordered_df.cache()
-    max_timestamp_num = timestamp_ordered_df.selectExpr("max(timestamp_num)").collect()[0]['max(timestamp_num)']
+    if max_timestamp - min_timestamp > 24 * 3600 * 10:
+        split_timestamp = max_timestamp - 24 * 3600 * 3
+    else:
+        split_timestamp = (max_timestamp - min_timestamp) * 0.8 + min_timestamp
 
-    df_action_input_ordered = df_action_input_latest.join(timestamp_ordered_df, on=['timestamp'])
+    train_dataset = df_action_with_clicked_hist.where(col('timestamp') <= split_timestamp)
+    val_dataset = df_action_with_clicked_hist.where(col('timestamp') > split_timestamp)
 
-    split_timestamp_num = int(max_timestamp_num * 0.7)
-    if max_timestamp_num > 10000:
-        split_timestamp_num = max_timestamp_num - 1500
-
-    train_dataset = df_action_input_ordered.where(col('timestamp_num') <= split_timestamp_num).drop('timestamp_num')
-    val_dataset = df_action_input_ordered.where(col('timestamp_num') > split_timestamp_num).drop('timestamp_num')
+    # window_spec = Window.orderBy('timestamp')
+    # timestamp_num = row_number().over(window_spec)
+    # timestamp_ordered_df = df_action_input_latest.select('timestamp').distinct().withColumn("timestamp_num", timestamp_num)
+    # timestamp_ordered_df.cache()
+    # max_timestamp_num = timestamp_ordered_df.selectExpr("max(timestamp_num)").collect()[0]['max(timestamp_num)']
+    #
+    # df_action_input_ordered = df_action_input_latest.join(timestamp_ordered_df, on=['timestamp'])
+    #
+    # split_timestamp_num = int(max_timestamp_num * 0.7)
+    # if max_timestamp_num > 10000:
+    #     split_timestamp_num = max_timestamp_num - 1500
+    #
+    # train_dataset = df_action_input_ordered.where(col('timestamp_num') <= split_timestamp_num).drop('timestamp_num')
+    # val_dataset = df_action_input_ordered.where(col('timestamp_num') > split_timestamp_num).drop('timestamp_num')
 
     #
     # gen train dataset
     #
-    train_dataset_join = train_dataset.join(df_feat, on=['item_id'])
-    train_dataset_final = gen_train_dataset(train_dataset_join)
-    train_dataset_final = train_dataset_final.join(df_user_id_map, on=["user_id"]).select(
+    train_dataset_final = train_dataset.join(df_user_id_map, on=["user_id"]).select(
         "ml_user_id", "words", "entities",
         "action_value", "clicked_words",
         "clicked_entities", "item_id", "timestamp"
@@ -262,9 +270,7 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     #
     # gen val dataset
     #
-    val_dataset_join = val_dataset.join(df_feat, on=['item_id'])
-    val_dataset_final = gen_train_dataset(val_dataset_join)
-    val_dataset_final = val_dataset_final.join(df_user_id_map, on=["user_id"]).select(
+    val_dataset_final = val_dataset.join(df_user_id_map, on=["user_id"]).select(
         "ml_user_id", "words", "entities",
         "action_value", "clicked_words",
         "clicked_entities", "item_id", "timestamp"
