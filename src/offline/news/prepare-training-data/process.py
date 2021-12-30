@@ -227,15 +227,17 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     df_feat = spark.createDataFrame(feat_list, schema).dropDuplicates(['item_id'])
     df_user_id_map = spark.createDataFrame(user_list, user_map_schema).dropDuplicates(['user_id'])
 
+    max_timestamp, min_timestamp = df_action_input.selectExpr("max(timestamp)", "min(timestamp)").collect()[0]
+    N_days = 30
+    df_action_input_latest = df_action_input.where(col('timestamp_num') > max_timestamp - 24 * 3600 * N_days)
+
     window_spec = Window.orderBy('timestamp')
     timestamp_num = row_number().over(window_spec)
-
-    timestamp_ordered_df = df_action_input.select('timestamp').distinct().withColumn("timestamp_num", timestamp_num)
+    timestamp_ordered_df = df_action_input_latest.select('timestamp').distinct().withColumn("timestamp_num", timestamp_num)
     timestamp_ordered_df.cache()
-
     max_timestamp_num = timestamp_ordered_df.selectExpr("max(timestamp_num)").collect()[0]['max(timestamp_num)']
 
-    df_action_input_ordered = df_action_input.join(timestamp_ordered_df, on=['timestamp'])
+    df_action_input_ordered = df_action_input_latest.join(timestamp_ordered_df, on=['timestamp'])
 
     split_timestamp_num = int(max_timestamp_num * 0.7)
     if max_timestamp_num > 10000:
