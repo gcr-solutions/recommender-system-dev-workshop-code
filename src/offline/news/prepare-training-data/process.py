@@ -38,6 +38,7 @@ parser.add_argument("--bucket", type=str, help="s3 bucket")
 parser.add_argument("--prefix", type=str,
                     help="s3 input key prefix")
 parser.add_argument("--region", type=str, help="aws region")
+parser.add_argument("--n_days", type=int, default=35, help="history data used to train model")
 parser.add_argument("--method", type=str, default='customize', help="method name")
 
 args, _ = parser.parse_known_args()
@@ -52,6 +53,7 @@ prefix = args.prefix
 if prefix.endswith("/"):
     prefix = prefix[:-1]
 method = args.method
+n_days = args.n_days
 
 print(f"bucket:{bucket}, prefix:{prefix}")
 
@@ -80,7 +82,6 @@ output_ps_action_file_key = "{}/system/ps-ingest-data/action/ps_action.csv".form
 print("input_action_file:", input_action_file)
 
 N = 8
-
 
 class UdfFunction:
     @staticmethod
@@ -233,8 +234,7 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
 
     max_timestamp, min_timestamp = df_action_input.selectExpr("max(timestamp)", "min(timestamp)").collect()[0]
     print("min_timestamp {}, max_timestamp: {}".format(min_timestamp, max_timestamp))
-    N_days = 35
-    df_action_input_latest = df_action_input.where(col('timestamp') > max_timestamp - 24 * 3600 * N_days)
+    df_action_input_latest = df_action_input.where(col('timestamp') > max_timestamp - 24 * 3600 * n_days)
     df_action_with_feat = df_action_input_latest.join(df_feat, on=['item_id'])
     df_action_with_clicked_hist = gen_train_dataset(df_action_with_feat)
 
