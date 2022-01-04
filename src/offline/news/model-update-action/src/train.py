@@ -145,17 +145,17 @@ file_name_list = ['dkn_entity_embedding.npy',
 s3_folder = '{}/model/rank/content/dkn_embedding_latest/'.format(prefix)
 sync_s3(file_name_list, s3_folder, local_folder)
 shutil.move("info/dkn_entity_embedding.npy",
-            "model-update-dkn/train/entity_embeddings_TransE_128.npy")
+            "/opt/ml/input/data/model-update-dkn/train/entity_embeddings_TransE_128.npy")
 shutil.move("info/dkn_context_embedding.npy",
-            "model-update-dkn/train/context_embeddings_TransE_128.npy")
+            "/opt/ml/input/data/model-update-dkn/train/context_embeddings_TransE_128.npy")
 shutil.move("info/dkn_word_embedding.npy",
-            "model-update-dkn/train/word_embeddings_300.npy")
+            "/opt/ml/input/data/model-update-dkn/train/word_embeddings_300.npy")
 
 train_file_local = os.path.join(training_dir, train_file_name)
 val_file_local = os.path.join(validation_dir, val_file_name)
 
 if os.path.exists(train_file_local) and os.path.exists(val_file_local):
-    print("copy training/val files to ./model-update-dkn/")
+    print("copy training/val files to /opt/ml/input/data/model-update-dkn/")
     shutil.move(train_file_local, train_local_folder)
     shutil.move(val_file_local, val_local_folder)
 else:
