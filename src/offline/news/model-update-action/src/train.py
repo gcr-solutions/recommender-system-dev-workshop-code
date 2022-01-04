@@ -169,7 +169,7 @@ else:
 cwd_path = os.getcwd()
 print("cwd_path:", cwd_path)
 run_script("./embed_dkn_wrapper.sh")
-model_file = "./model-update-dkn/model_latest/model.tar.gz"
+model_file = "/opt/ml/input/data/model-update-dkn/model_latest/model.tar.gz"
 
 if not os.path.exists(model_file):
     raise Exception("Cannot find file model.tar.gz")
