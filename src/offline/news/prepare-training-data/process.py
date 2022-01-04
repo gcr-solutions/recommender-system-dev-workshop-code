@@ -99,11 +99,14 @@ class UdfFunction:
                 clicked_words_hist.append(str(pairs[i][1]))
             if click_words_hist_len > 0:
                 timestamp = pairs[i][3]
-                result_arr.append(json.dumps({
+                el = json.dumps({
                     "clicked_entities_arr": clicked_entities_hist[click_words_hist_len - N: click_words_hist_len],
                     "clicked_words_arr": clicked_words_hist[click_words_hist_len - N: click_words_hist_len],
                     "timestamp": timestamp
-                }))
+                })
+                if el not in result_arr:
+                    result_arr.append(el)
+
         return result_arr
 
 
@@ -139,14 +142,16 @@ def gen_train_dataset(train_dataset_input):
         .withColumn("clicked_words",
                     array_join(col('clicked_words_arr'), "-")) \
         .drop("clicked_entities_arr") \
-        .drop("clicked_words_arr") \
-        .distinct()
+        .drop("clicked_words_arr")
+
     dataset_final = train_dataset_input \
         .join(train_entities_words_df, on=["user_id", "timestamp"]) \
         .select(
         "user_id", "words", "entities",
         "action_value", "clicked_words",
-        "clicked_entities", "item_id", "timestamp")
+        "clicked_entities", "item_id", "timestamp") \
+        .dropDuplicates(['user_id', 'item_id', 'timestamp', 'action_type'])
+
     return dataset_final
 
 
