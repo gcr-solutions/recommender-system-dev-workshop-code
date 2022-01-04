@@ -245,7 +245,7 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     val_count = val_dataset.count()
     print("train_count {}, val_dataset: {}".format(train_count, val_dataset))
 
-    if val_dataset < 200 or val_dataset > train_count:
+    if val_count < 200 or val_count > train_count:
         print("train_count {}, val_dataset: {}, use randomSplit".format(train_count, val_dataset))
         train_dataset, val_dataset = df_action_with_clicked_hist.randomSplit([0.7, 0.3], seed=42)
 
