@@ -131,8 +131,8 @@ model_s3_key = "{}/model/rank/action/dkn/latest/model.tar.gz".format(prefix)
 
 train_file_name = 'action_train.csv'
 val_file_name = 'action_val.csv'
-train_local_folder = 'model-update-dkn/train/'
-val_local_folder = 'model-update-dkn/val/'
+train_local_folder = '/opt/ml/input/data/model-update-dkn/train/'
+val_local_folder = '/opt/ml/input/data/model-update-dkn/val/'
 
 for local_folder in [train_local_folder, val_local_folder, 'info']:
     if not os.path.exists(local_folder):
