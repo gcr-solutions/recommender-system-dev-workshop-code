@@ -242,7 +242,7 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     val_dataset = df_action_with_clicked_hist.where(col('timestamp') > split_timestamp)
 
     train_count = train_dataset.count()
-    val_dataset = val_dataset.count()
+    val_count = val_dataset.count()
     print("train_count {}, val_dataset: {}".format(train_count, val_dataset))
 
     if val_dataset < 200 or val_dataset > train_count:
