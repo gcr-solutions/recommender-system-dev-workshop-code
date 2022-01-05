@@ -89,7 +89,7 @@ class UdfFunction:
         pairs = []
         for e, w, a, it, tm in zip(entities_list, words_list, action_value_list, item_id_list, timestamp_list):
             pairs.append((e, w, a, it, tm))
-        pairs = sorted(pairs, key=lambda x: x[-1] * 10 + x[2])
+        pairs = sorted(pairs, key=lambda x: x[-1] * 10 + int(x[2]))
         result_arr = []
         clicked_entities_hist = []
         clicked_words_hist = []
