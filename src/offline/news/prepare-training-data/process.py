@@ -93,17 +93,21 @@ class UdfFunction:
         result_arr = []
         clicked_entities_hist = []
         clicked_words_hist = []
+        clicked_items_hist = []
         for i in range(len(pairs)):
-            click_words_hist_len = len(clicked_words_hist)
+            item_id = pairs[i][3]
+            timestamp = pairs[i][-1]
+
+            clicked_items_hist_len = len(clicked_items_hist)
             if pairs[i][2] == '1':
                 clicked_entities_hist.append(str(pairs[i][0]))
                 clicked_words_hist.append(str(pairs[i][1]))
+                clicked_items_hist.append(str(item_id))
 
-            item_id = pairs[i][3]
-            timestamp = pairs[i][-1]
             el = json.dumps({
-                    "clicked_entities_arr": clicked_entities_hist[click_words_hist_len - N: click_words_hist_len],
-                    "clicked_words_arr": clicked_words_hist[click_words_hist_len - N: click_words_hist_len],
+                    "clicked_entities_arr": clicked_entities_hist[clicked_items_hist_len - N: clicked_items_hist_len],
+                    "clicked_words_arr": clicked_words_hist[clicked_items_hist_len - N: clicked_items_hist_len],
+                    "clicked_items_arr": clicked_items_hist[clicked_items_hist_len - N: clicked_items_hist_len],
                     "item_id": item_id,
                     "timestamp": timestamp,
                 })
@@ -125,6 +129,7 @@ def gen_train_dataset(train_dataset_input):
     clicked_schema = StructType([
         StructField('clicked_entities_arr', ArrayType(StringType()), False),
         StructField('clicked_words_arr', ArrayType(StringType()), False),
+        StructField('clicked_items_arr', ArrayType(StringType()), False),
         StructField('item_id', StringType(), False),
         StructField('timestamp', IntegerType(), False)
     ])
@@ -145,15 +150,18 @@ def gen_train_dataset(train_dataset_input):
                     array_join(col('clicked_entities_arr'), "-")) \
         .withColumn("clicked_words",
                     array_join(col('clicked_words_arr'), "-")) \
+        .withColumn("clicked_item_ids",
+                    array_join(col('clicked_items_arr'), "-")) \
         .drop("clicked_entities_arr") \
-        .drop("clicked_words_arr")
+        .drop("clicked_words_arr") \
+        .drop("clicked_items_arr")
     join_type = "left_outer"
     dataset_final = train_dataset_input \
         .join(train_entities_words_df, on=["user_id", "item_id", "timestamp"], how=join_type) \
         .select(
         "user_id", "words", "entities",
         "action_value", "clicked_words",
-        "clicked_entities", "item_id", "timestamp") \
+        "clicked_entities", "item_id", "timestamp", "clicked_item_ids") \
         .dropDuplicates(['user_id', 'item_id', 'timestamp', 'action_value'])
 
     return dataset_final
