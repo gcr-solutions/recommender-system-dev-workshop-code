@@ -61,7 +61,7 @@ Resources:
                   "ClusterConfig": {
                     "InstanceCount": 2,
                     "InstanceType.$": "$.InstanceType",
-                    "VolumeSizeInGB": 300
+                    "VolumeSizeInGB": 120
                   }
                 },
                 "RoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/service-role/rs-${Stage}-${SagemakerRoleName}-${AWS::Region}",
@@ -124,7 +124,7 @@ Resources:
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
                   "ImageName": "rs/news-action-preprocessing",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
-                  "InstanceType": "ml.r5.4xlarge"
+                  "InstanceType": "ml.r5.2xlarge"
                 },
                 "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-SMProcessingStepFunc",
                 "Name.$": "States.Format('Nactionpre{}', $.Precheck.Payload.UID)"
@@ -835,7 +835,7 @@ Resources:
                 "ResourceConfig": {
                   "InstanceCount": 1,
                   "InstanceType": "ml.p2.xlarge",
-                  "VolumeSizeInGB": 300
+                  "VolumeSizeInGB": 120
                 },
                 "RoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/service-role/rs-${Stage}-${SagemakerRoleName}-${AWS::Region}",
                 "HyperParameters": {
@@ -925,7 +925,7 @@ Resources:
                 "ResourceConfig": {
                   "InstanceCount": 1,
                   "InstanceType": "ml.p2.xlarge",
-                  "VolumeSizeInGB": 300
+                  "VolumeSizeInGB": 120
                 },
                 "RoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/service-role/rs-${Stage}-${SagemakerRoleName}-${AWS::Region}",
                 "HyperParameters": {
