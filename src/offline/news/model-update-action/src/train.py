@@ -7,7 +7,7 @@ import json
 import os
 import shutil
 import subprocess
-
+import sys
 import boto3
 
 # tqdm.pandas()
@@ -60,6 +60,18 @@ def run_script(script):
         raise Exception(out_msg)
 
 
+def run_script_v2(script):
+    print("run_script_v2: '{}'".format(script))
+    output = os.popen(script)
+    while True:
+        line = output.readline()
+        if line:
+            print(line, end='')
+        else:
+            break
+    output.close()
+
+
 param_path = os.path.join('/opt/ml/', 'input/config/hyperparameters.json')
 parser = argparse.ArgumentParser()
 model_dir = None
@@ -69,7 +81,6 @@ region = None
 
 if os.path.exists(param_path):
     # running training job
-
     print("load param from {}".format(param_path))
     with open(param_path) as f:
         hp = json.load(f)
@@ -168,7 +179,7 @@ else:
 
 cwd_path = os.getcwd()
 print("cwd_path:", cwd_path)
-run_script("./embed_dkn_wrapper.sh")
+run_script_v2("./embed_dkn_wrapper.sh")
 model_file = "/opt/ml/input/data/model-update-dkn/model_latest/model.tar.gz"
 
 if not os.path.exists(model_file):
