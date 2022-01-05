@@ -83,6 +83,7 @@ print("input_action_file:", input_action_file)
 
 N = 8
 
+
 class UdfFunction:
     @staticmethod
     def build_sort_click_hist(entities_list, words_list, action_value_list, item_id_list, timestamp_list):
@@ -105,12 +106,15 @@ class UdfFunction:
                 clicked_items_hist.append(str(item_id))
 
             el = json.dumps({
-                    "clicked_entities_arr": clicked_entities_hist[clicked_items_hist_len - N: clicked_items_hist_len],
-                    "clicked_words_arr": clicked_words_hist[clicked_items_hist_len - N: clicked_items_hist_len],
-                    "clicked_items_arr": clicked_items_hist[clicked_items_hist_len - N: clicked_items_hist_len],
-                    "item_id": item_id,
-                    "timestamp": timestamp,
-                })
+                "clicked_entities_arr":
+                    clicked_entities_hist[clicked_items_hist_len - N: clicked_items_hist_len].copy(),
+                "clicked_words_arr":
+                    clicked_words_hist[clicked_items_hist_len - N: clicked_items_hist_len].copy(),
+                "clicked_items_arr":
+                    clicked_items_hist[clicked_items_hist_len - N: clicked_items_hist_len].copy(),
+                "item_id": item_id,
+                "timestamp": timestamp,
+            })
             result_arr.append(el)
 
         return result_arr
