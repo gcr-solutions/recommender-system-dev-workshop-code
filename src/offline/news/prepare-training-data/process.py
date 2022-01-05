@@ -246,10 +246,10 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
 
     if max_timestamp - min_timestamp > 24 * 3600 * 10:
         split_timestamp = max_timestamp - 24 * 3600 * 2
-        print("more than 10 days, split_timestamp: {}, keep 3 days as val".format(split_timestamp))
+        print("more than 10 days, split_timestamp: {}, keep 2 days as val".format(split_timestamp))
     else:
         split_timestamp = int((max_timestamp - min_timestamp) * 0.8 + min_timestamp)
-        print("less 10 days, split_timestamp: {}, keep 0.3 as val".format(split_timestamp))
+        print("less 10 days, split_timestamp: {}, keep 0.2 as val".format(split_timestamp))
 
     train_dataset = df_action_with_clicked_hist.where(col('timestamp') <= split_timestamp)
     val_dataset = df_action_with_clicked_hist.where(col('timestamp') > split_timestamp)
