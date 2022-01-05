@@ -98,17 +98,16 @@ class UdfFunction:
             if pairs[i][2] == '1':
                 clicked_entities_hist.append(str(pairs[i][0]))
                 clicked_words_hist.append(str(pairs[i][1]))
-            if click_words_hist_len > 0:
-                item_id = pairs[i][3]
-                timestamp = pairs[i][-1]
-                el = json.dumps({
+
+            item_id = pairs[i][3]
+            timestamp = pairs[i][-1]
+            el = json.dumps({
                     "clicked_entities_arr": clicked_entities_hist[click_words_hist_len - N: click_words_hist_len],
                     "clicked_words_arr": clicked_words_hist[click_words_hist_len - N: click_words_hist_len],
                     "item_id": item_id,
                     "timestamp": timestamp,
                 })
-                if el not in result_arr:
-                    result_arr.append(el)
+            result_arr.append(el)
 
         return result_arr
 
