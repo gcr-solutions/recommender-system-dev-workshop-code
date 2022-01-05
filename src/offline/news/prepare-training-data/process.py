@@ -144,9 +144,9 @@ def gen_train_dataset(train_dataset_input):
                     array_join(col('clicked_words_arr'), "-")) \
         .drop("clicked_entities_arr") \
         .drop("clicked_words_arr")
-
+    join_type = "left_outer"
     dataset_final = train_dataset_input \
-        .join(train_entities_words_df, on=["user_id", "timestamp"]) \
+        .join(train_entities_words_df, on=["user_id", "timestamp"], how=join_type) \
         .select(
         "user_id", "words", "entities",
         "action_value", "clicked_words",
@@ -250,7 +250,7 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     val_count = val_dataset.count()
     print("train_count {}, val_dataset: {}".format(train_count, val_dataset))
 
-    if val_count < 200 or val_count > train_count:
+    if val_count < 1000 or val_count > train_count:
         print("train_count {}, val_dataset: {}, use randomSplit".format(train_count, val_dataset))
         train_dataset, val_dataset = df_action_with_clicked_hist.randomSplit([0.7, 0.3], seed=42)
 
