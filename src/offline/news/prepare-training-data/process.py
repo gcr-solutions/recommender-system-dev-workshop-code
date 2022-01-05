@@ -237,25 +237,27 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     df_user_id_map = spark.createDataFrame(user_list, user_map_schema).dropDuplicates(['user_id'])
 
     max_timestamp, min_timestamp = df_action_input.selectExpr("max(timestamp)", "min(timestamp)").collect()[0]
-    print("min_timestamp {}, max_timestamp: {}".format(min_timestamp, max_timestamp))
+    print("min_timestamp: {}, max_timestamp: {}".format(min_timestamp, max_timestamp))
     df_action_input_latest = df_action_input.where(col('timestamp') > max_timestamp - 24 * 3600 * n_days)
     df_action_with_feat = df_action_input_latest.join(df_feat, on=['item_id'])
     df_action_with_clicked_hist = gen_train_dataset(df_action_with_feat)
 
     if max_timestamp - min_timestamp > 24 * 3600 * 10:
         split_timestamp = max_timestamp - 24 * 3600 * 3
+        print("more than 10 days, split_timestamp: {}, keep 3 days as val".format(split_timestamp))
     else:
-        split_timestamp = (max_timestamp - min_timestamp) * 0.7 + min_timestamp
+        split_timestamp = int((max_timestamp - min_timestamp) * 0.7 + min_timestamp)
+        print("less 10 days, split_timestamp: {}, 0.3 as val".format(split_timestamp))
 
     train_dataset = df_action_with_clicked_hist.where(col('timestamp') <= split_timestamp)
     val_dataset = df_action_with_clicked_hist.where(col('timestamp') > split_timestamp)
 
     train_count = train_dataset.count()
     val_count = val_dataset.count()
-    print("train_count {}, val_dataset: {}".format(train_count, val_dataset))
+    print("train_count: {}, val_count: {}".format(train_count, val_count))
 
-    if val_count < 1000 or val_count > train_count:
-        print("train_count {}, val_dataset: {}, use randomSplit".format(train_count, val_dataset))
+    if val_count < 500 or val_count > train_count:
+        print("train_count: {}, val_count: {}, use randomSplit".format(train_count, val_count))
         train_dataset, val_dataset = df_action_with_clicked_hist.randomSplit([0.7, 0.3], seed=42)
 
     # window_spec = Window.orderBy('timestamp')
