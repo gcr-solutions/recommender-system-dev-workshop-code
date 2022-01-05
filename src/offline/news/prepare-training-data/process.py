@@ -85,11 +85,11 @@ N = 8
 
 class UdfFunction:
     @staticmethod
-    def build_sort_click_hist(entities_list, words_list, action_value_list, timestamp_list):
+    def build_sort_click_hist(entities_list, words_list, action_value_list, item_id_list, timestamp_list):
         pairs = []
-        for e, w, a, t in zip(entities_list, words_list, action_value_list, timestamp_list):
-            pairs.append((e, w, a, t))
-        pairs = sorted(pairs, key=lambda x: x[-1])
+        for e, w, a, it, tm in zip(entities_list, words_list, action_value_list, item_id_list, timestamp_list):
+            pairs.append((e, w, a, it, tm))
+        pairs = sorted(pairs, key=lambda x: x[-1] * 10 + x[2])
         result_arr = []
         clicked_entities_hist = []
         clicked_words_hist = []
@@ -99,11 +99,13 @@ class UdfFunction:
                 clicked_entities_hist.append(str(pairs[i][0]))
                 clicked_words_hist.append(str(pairs[i][1]))
             if click_words_hist_len > 0:
-                timestamp = pairs[i][3]
+                item_id = pairs[i][2]
+                timestamp = pairs[i][-1]
                 el = json.dumps({
                     "clicked_entities_arr": clicked_entities_hist[click_words_hist_len - N: click_words_hist_len],
                     "clicked_words_arr": clicked_words_hist[click_words_hist_len - N: click_words_hist_len],
-                    "timestamp": timestamp
+                    "item_id": item_id,
+                    "timestamp": timestamp,
                 })
                 if el not in result_arr:
                     result_arr.append(el)
@@ -124,6 +126,7 @@ def gen_train_dataset(train_dataset_input):
     clicked_schema = StructType([
         StructField('clicked_entities_arr', ArrayType(StringType()), False),
         StructField('clicked_words_arr', ArrayType(StringType()), False),
+        StructField('item_id', StringType(), False),
         StructField('timestamp', IntegerType(), False)
     ])
     train_clicked_entities_words_arr_df = train_dataset_input \
@@ -133,6 +136,7 @@ def gen_train_dataset(train_dataset_input):
             F.collect_list("entities"),
             F.collect_list("words"),
             F.collect_list("action_value"),
+            F.collect_list("item_id"),
             F.collect_list("timestamp")).alias('clicked_hist_arr')) \
         .select('user_id', F.explode(col('clicked_hist_arr')).alias('clicked_hist')) \
         .withColumn('json_col', from_json('clicked_hist', clicked_schema)) \
@@ -146,7 +150,7 @@ def gen_train_dataset(train_dataset_input):
         .drop("clicked_words_arr")
     join_type = "left_outer"
     dataset_final = train_dataset_input \
-        .join(train_entities_words_df, on=["user_id", "timestamp"], how=join_type) \
+        .join(train_entities_words_df, on=["user_id", "item_id", "timestamp"], how=join_type) \
         .select(
         "user_id", "words", "entities",
         "action_value", "clicked_words",
