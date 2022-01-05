@@ -170,7 +170,7 @@ Resources:
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
                   "ImageName": "rs/news-action-preprocessing",
                   "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}', '--only4popularity', '1')",
-                  "InstanceType": "ml.r5.4xlarge"
+                  "InstanceType": "ml.r5.2xlarge"
                 },
                 "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-SMProcessingStepFunc",
                 "Name.$": "States.Format('Nactionact4pop{}', $.Precheck.Payload.UID)"
