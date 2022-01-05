@@ -258,9 +258,9 @@ with SparkSession.builder.appName("Spark App - action preprocessing").getOrCreat
     val_count = val_dataset.count()
     print("train_count: {}, val_count: {}".format(train_count, val_count))
 
-    if val_count < 500 or val_count > train_count:
-        print("train_count: {}, val_count: {}, use randomSplit[0.7, 0.3]".format(train_count, val_count))
-        train_dataset, val_dataset = df_action_with_clicked_hist.randomSplit([0.8, 0.2], seed=42)
+    # if val_count < 10 or val_count > train_count:
+    #     print("train_count: {}, val_count: {}, use randomSplit[0.7, 0.3]".format(train_count, val_count))
+    #     train_dataset, val_dataset = df_action_with_clicked_hist.randomSplit([0.8, 0.2], seed=42)
 
     # window_spec = Window.orderBy('timestamp')
     # timestamp_num = row_number().over(window_spec)
