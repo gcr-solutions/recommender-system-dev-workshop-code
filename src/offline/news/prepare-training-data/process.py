@@ -38,7 +38,7 @@ parser.add_argument("--bucket", type=str, help="s3 bucket")
 parser.add_argument("--prefix", type=str,
                     help="s3 input key prefix")
 parser.add_argument("--region", type=str, help="aws region")
-parser.add_argument("--n_days", type=int, default=35, help="history data used to train model")
+parser.add_argument("--n_days", type=int, default=99999, help="history data used to train model")
 parser.add_argument("--method", type=str, default='customize', help="method name")
 
 args, _ = parser.parse_known_args()
