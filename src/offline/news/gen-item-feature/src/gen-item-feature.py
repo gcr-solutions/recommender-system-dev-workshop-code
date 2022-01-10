@@ -164,7 +164,14 @@ def analyze_map(raw_idx, map_dict, filter_idx):
             filter_idx.append(map_dict[idx])
 
 
+count = 0
+total = len(df_filter_item)
+
 for row in df_filter_item.iterrows():
+    count += 1
+    if count % 1000 == 0:
+        print("{}/{}".format(count, total))
+
     item_row = row[1]
     program_id = str(item_row['news_id'])
     title_result = model[item_row['title']]
