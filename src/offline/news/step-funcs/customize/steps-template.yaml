@@ -779,7 +779,7 @@ Resources:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
-      StateMachineName: !Sub ${NamePrefix}-ItemFeatureUpdateBatchStepFunc
+      StateMachineName: !Sub ${NamePrefix}-GenItemFeatureStepFunc
       DefinitionString: !Sub |
         {
           "StartAt": "Pre check",
