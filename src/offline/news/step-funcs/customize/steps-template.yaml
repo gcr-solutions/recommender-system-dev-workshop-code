@@ -774,6 +774,60 @@ Resources:
           }
         }
 
+# news-item-feature-update-batch
+  GenItemFeatureStepFunc:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/rs-${Stage}-${StepFuncAndLambdaRoleName}-${AWS::Region}"
+      StateMachineName: !Sub ${NamePrefix}-ItemFeatureUpdateBatchStepFunc
+      DefinitionString: !Sub |
+        {
+          "StartAt": "Pre check",
+          "States": {
+            "Pre check": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "rs-${Stage}-${PreCheckLabmda}",
+                "Payload": {
+                  "bucket.$": "$.Bucket",
+                  "prefix.$": "$.S3Prefix",
+                  "file_list": [
+                    "model/rank/content/dkn_embedding_latest/complete_dkn_word_embedding.npy",
+                    "system/item-data/item.csv",
+                    "model/meta_files/entities_dbpedia.dict",
+                    "model/meta_files/relations_dbpedia.dict",
+                    "model/meta_files/kg_dbpedia.txt",
+                    "model/meta_files/entities_dbpedia_train.dict",
+                    "model/meta_files/relations_dbpedia_train.dict",
+                    "model/meta_files/kg_dbpedia_train.txt",
+                    "model/meta_files/entity_industry.txt"
+                  ]
+                }
+              },
+              "ResultSelector": {
+                "Payload.$": "$.Payload"
+              },
+              "ResultPath": "$.Precheck",
+              "Next": "Run processing"
+            },
+            "Run processing": {
+              "Type": "Task",
+              "Resource": "arn:${AWS::Partition}:states:::states:startExecution.sync:2",
+              "Parameters": {
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID.$": "$$.Execution.Id",
+                  "ImageName": "rs/news-gen-item-feature",
+                  "ContainerArguments.$": "States.Array('--bucket', $.Bucket, '--prefix', $.S3Prefix, '--region', '${AWS::Region}')",
+                  "InstanceType": "ml.m5.xlarge"
+                },
+                "StateMachineArn": "arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${NamePrefix}-SMProcessingStepFunc",
+                "Name.$": "States.Format('Nitemfeat{}', $.Precheck.Payload.UID)"
+              },
+              "End": true
+            }
+          }
+        }
 
   ########################################################################################
   # Training step funcs

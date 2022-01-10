@@ -199,12 +199,12 @@ def load_user_dict(user_id_map_file):
 local_folder = 'info'
 if not os.path.exists(local_folder):
     os.makedirs(local_folder)
-files_to_load = ["news_id_news_feature_dict.pickle"]
+files_to_load = ["news_id_news_feature_dict_for_train.pickle"]
 sync_s3(files_to_load,
         "{}/feature/content/inverted-list/".format(prefix),
         local_folder)
 feat_list = load_feature_dict(os.path.join(
-    local_folder, "news_id_news_feature_dict.pickle"))
+    local_folder, "news_id_news_feature_dict_for_train.pickle"))
 print("feat_list len:{}".format(len(feat_list)))
 
 files_to_load = ["raw_embed_user_mapping.pickle"]
