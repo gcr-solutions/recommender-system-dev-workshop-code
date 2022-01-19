@@ -95,11 +95,11 @@ os.environ['KG_ENTITY_KEY'] = '{}/entities_dbpedia.dict'.format(
     meta_file_prefix)
 os.environ['KG_RELATION_KEY'] = '{}/relations_dbpedia.dict'.format(
     meta_file_prefix)
-os.environ['KG_DBPEDIA_TRAIN_KEY'] = '{}/kg_dbpedia_train.txt'.format(
+os.environ['KG_DBPEDIA_TRAIN_KEY'] = '{}/kg_dbpedia.txt'.format(
     meta_file_prefix)
-os.environ['KG_ENTITY_TRAIN_KEY'] = '{}/entities_dbpedia_train.dict'.format(
+os.environ['KG_ENTITY_TRAIN_KEY'] = '{}/entities_dbpedia.dict'.format(
     meta_file_prefix)
-os.environ['KG_RELATION_TRAIN_KEY'] = '{}/relations_dbpedia_train.dict'.format(
+os.environ['KG_RELATION_TRAIN_KEY'] = '{}/relations_dbpedia.dict'.format(
     meta_file_prefix)
 os.environ['KG_ENTITY_INDUSTRY_KEY'] = '{}/entity_industry.txt'.format(
     meta_file_prefix)
