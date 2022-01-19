@@ -176,7 +176,7 @@ class Kg:
             for k in self.p:
                 f.write(k)
 #     def train(self, output_dir = 'kg_embedding', hidden_dim=128, max_step=320000):
-    def train(self, output_dir = '/opt/ml/model', hidden_dim=128, max_step=200, method='TransE', upload_context=True):
+    def train(self, output_dir = '/opt/ml/model', hidden_dim=64, max_step=200, method='RotatE', upload_context=True):
         self.check_parent_dir('.',self.train_output_key)
         dglke_train.main(['--dataset',self.kg_folder,
                   '--model_name', method,
@@ -185,7 +185,7 @@ class Kg:
                   '--max_step',str(max_step),
                   '--log_interval',str(max_step//100),
                   '--batch_size_eval','1000',
-                  '--hidden_dim', str(hidden_dim), # RotatE模型传入的是1/2 hidden_dim的
+                  '--hidden_dim', str(hidden_dim//2), # RotatE模型传入的是1/2 hidden_dim的
                   '-adv',
                   '--regularization_coef','1.00E-09',
                  '--gpu','0',
