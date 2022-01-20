@@ -86,13 +86,15 @@ s3_folder = '{}/system/item-data'.format(prefix)
 sync_s3(file_name_list, s3_folder, local_folder)
 
 #创建ItemDatasetImportJob
-ps_item_file_name_list = ['ps_item.csv']
-ps_item_s3_folder = '{}/system/ps-ingest-data/item'.format(prefix)
-sync_s3(ps_item_file_name_list, ps_item_s3_folder, local_folder)
 
-ps_config_file_name = ['ps_config.json']
-ps_config_s3_folder = '{}/system/ps-config'.format(prefix)
-sync_s3(ps_config_file_name, ps_config_s3_folder, local_folder)
+if "ps" in method:
+    ps_item_file_name_list = ['ps_item.csv']
+    ps_item_s3_folder = '{}/system/ps-ingest-data/item'.format(prefix)
+    sync_s3(ps_item_file_name_list, ps_item_s3_folder, local_folder)
+
+    ps_config_file_name = ['ps_config.json']
+    ps_config_s3_folder = '{}/system/ps-config'.format(prefix)
+    sync_s3(ps_config_file_name, ps_config_s3_folder, local_folder)
 
 def add_item_batch():
     lbe = LabelEncoder()
