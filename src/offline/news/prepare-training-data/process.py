@@ -166,6 +166,7 @@ def gen_train_dataset(train_dataset_input):
         "user_id", "words", "entities",
         "action_value", "clicked_words",
         "clicked_entities", "item_id", "timestamp", "clicked_item_ids") \
+        .where("clicked_words != ''") \
         .dropDuplicates(['user_id', 'item_id', 'timestamp', 'action_value'])
 
     return dataset_final
