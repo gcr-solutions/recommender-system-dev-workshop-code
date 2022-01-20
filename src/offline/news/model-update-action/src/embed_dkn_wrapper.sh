@@ -12,7 +12,7 @@ python3 embed_dkn.py \
 --use_entity True \
 --use_context 0 \
 --max_title_length 16 \
---entity_dim 128 \
+--entity_dim 64 \
 --word_dim 300 \
 --batch_size 128 \
 --perform_shuffle 1 \

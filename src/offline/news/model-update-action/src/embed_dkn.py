@@ -35,7 +35,7 @@ tf.app.flags.DEFINE_string('attention_activation', 'relu',
                            'activation method for attention module')
 tf.app.flags.DEFINE_string('KGE', 'TransE',
                            'knowledge graph embedding method, please ensure that the specified input file exists')
-tf.app.flags.DEFINE_integer('entity_dim', 128,
+tf.app.flags.DEFINE_integer('entity_dim', 64,
                             'dimension of entity embeddings, please ensure that the specified input file exists')
 tf.app.flags.DEFINE_integer('word_dim', 300,
                             'dimension of word embeddings, please ensure that the specified input file exists')
@@ -147,7 +147,7 @@ class DKN(object):
             if params["use_context"]:
                 print("run here 2.1!")
                 context_embs = np.load(os.path.join(raw_dir,'context_embeddings_' +
-                                      params["KGE"] + '_' + str(params["entity_dim"]) + '.npy'))
+                                      params["KGE"] + '_128' + '.npy'))
                 self.context_embeddings = tf.Variable(
                     context_embs, trainable=False, dtype=np.float32, name='context')
 #                 self.reg_params.append(self.context_embeddings)
@@ -627,13 +627,13 @@ def input_fn(filenames='', channel='training', batch_size=32, num_epochs=1, perf
     
     word_embs = np.load(os.path.join(raw_dir,'word_embeddings_' + str(FLAGS.word_dim) + '.npy'))
     entity_embs = np.load(os.path.join(raw_dir,'entity_embeddings_' +
-                                      FLAGS.KGE + '_' + str(FLAGS.entity_dim) + '.npy'))
-    context_embs = np.load(os.path.join(raw_dir,'context_embeddings_' +
-                                      FLAGS.KGE + '_' + str(FLAGS.entity_dim) + '.npy'))
+                                      FLAGS.KGE + '_128' + '.npy'))
+    # context_embs = np.load(os.path.join(raw_dir,'context_embeddings_' +
+    #                                   FLAGS.KGE + '_' + str(FLAGS.entity_dim) + '.npy'))
 
     word_embeddings = tf.Variable(word_embs, trainable=False, dtype=np.float32, name='word')
     entity_embeddings = tf.Variable(entity_embs, trainable=False, dtype=np.float32, name='entity')
-    context_embeddings = tf.Variable(context_embs, trainable=False, dtype=np.float32, name='context')
+    # context_embeddings = tf.Variable(context_embs, trainable=False, dtype=np.float32, name='context')
     
     batch_features = {}
     batch_features['click_words'] = tf.nn.embedding_lookup(word_embeddings, tf.reshape(batch_features_index["click_words"],[-1,max_title_length]))
@@ -773,6 +773,8 @@ def main(_):
         "embed_l2": FLAGS.embed_l2,
         "layer_l2": FLAGS.layer_l2
     }
+
+    print(f"model param {model_params}")
 
     config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
