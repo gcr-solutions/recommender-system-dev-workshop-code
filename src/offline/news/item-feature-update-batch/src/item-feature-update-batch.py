@@ -154,14 +154,14 @@ map_words = {}
 map_entities = {}
 
 
-def analyze_map(raw_idx, map_dict, filter_idx):
-    for idx in raw_idx:
-        if idx == 0:
-            filter_idx.append(0)
-        else:
-            if idx not in map_dict.keys():
-                map_dict[idx] = len(map_dict) + 1
-            filter_idx.append(map_dict[idx])
+# def analyze_map(raw_idx, map_dict, filter_idx):
+#     for idx in raw_idx:
+#         if idx == 0:
+#             filter_idx.append(0)
+#         else:
+#             if idx not in map_dict.keys():
+#                 map_dict[idx] = len(map_dict) + 1
+#             filter_idx.append(map_dict[idx])
 
 
 for row in df_filter_item.iterrows():
@@ -172,12 +172,12 @@ for row in df_filter_item.iterrows():
     current_entities = title_result[1]
     filter_words = []
     filter_entities = []
-    analyze_map(current_words, map_words, filter_words)
-    analyze_map(current_entities, map_entities, filter_entities)
+    # analyze_map(current_words, map_words, filter_words)
+    # analyze_map(current_entities, map_entities, filter_entities)
     # filter entities & filter words
     program_dict = {
-        'entities': filter_entities,
-        'words': filter_words
+        'entities': current_words,
+        'words': current_entities
     }
     news_id_news_feature_dict[program_id] = program_dict
 
@@ -261,13 +261,13 @@ list_word_embedding.append([0] * 300)
 for raw_key, map_v in map_words.items():
     list_word_embedding.append(complete_dkn_word_embed[raw_key])
 
-file_name = 'info/dkn_word_embedding.npy'
-with open(file_name, "wb") as f:
-    np.save(f, np.array(list_word_embedding))
-
-write_to_s3(file_name,
-            bucket,
-            '{}/model/rank/content/dkn_embedding_latest/dkn_word_embedding.npy'.format(prefix))
+# file_name = 'info/dkn_word_embedding.npy'
+# with open(file_name, "wb") as f:
+#     np.save(f, np.array(list_word_embedding))
+#
+# write_to_s3(file_name,
+#             bucket,
+#             '{}/model/rank/content/dkn_embedding_latest/dkn_word_embedding.npy'.format(prefix))
 
 write_to_s3(kg_dbpedia_train_path,
             bucket,
