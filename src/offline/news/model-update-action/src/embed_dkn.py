@@ -781,7 +781,7 @@ def main(_):
 
     print("sagemaker mode building ...")
     dkn_estimator = tf.estimator.Estimator(model_fn=model_fn, model_dir=FLAGS.checkpointPath,
-                                            params=model_params, config=tf.estimator.RunConfig().replace(session_config=config))
+                                            params=model_params, config=tf.estimator.RunConfig().replace(session_config=config, checkpoint_save_graph_def=False))
     if FLAGS.task_type == 'train':
         """
         train_spec = tf.estimator.TrainSpec(input_fn=lambda: input_fn(tr_files, channel='training', num_epochs=FLAGS.num_epochs, batch_size=FLAGS.batch_size), hooks=[bcast_hook])
@@ -826,6 +826,6 @@ def main(_):
         print("finish saving model!")
 
 if __name__ == "__main__":
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
     tf.compat.v1.app.run()
