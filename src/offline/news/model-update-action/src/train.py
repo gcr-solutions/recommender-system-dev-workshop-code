@@ -51,25 +51,8 @@ def write_str_to_s3(content, bucket, key):
 
 
 def run_script(script):
-    print("run_script: '{}'".format(script))
-    re_code, out_msg = subprocess.getstatusoutput([script])
-    print("run_script re_code:", re_code)
-    for line in out_msg.split("\n"):
-        print(line)
-    if re_code != 0:
-        raise Exception(out_msg)
-
-
-def run_script_v2(script):
-    print("run_script_v2: '{}'".format(script))
-    output = os.popen(script)
-    while True:
-        line = output.readline()
-        if line:
-            print(line, end='')
-        else:
-            break
-    output.close()
+    print("run_script with subprocess.call: '{}'".format(script))
+    subprocess.call([script])
 
 
 param_path = os.path.join('/opt/ml/', 'input/config/hyperparameters.json')
@@ -179,7 +162,7 @@ else:
 
 cwd_path = os.getcwd()
 print("cwd_path:", cwd_path)
-run_script_v2("./embed_dkn_wrapper.sh")
+run_script("./embed_dkn_wrapper.sh")
 model_file = "/opt/ml/input/data/model-update-dkn/model_latest/model.tar.gz"
 
 if not os.path.exists(model_file):
