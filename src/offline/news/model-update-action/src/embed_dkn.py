@@ -780,8 +780,11 @@ def main(_):
     config.gpu_options.allow_growth = True
 
     print("sagemaker mode building ...")
-    dkn_estimator = tf.estimator.Estimator(model_fn=model_fn, model_dir=FLAGS.checkpointPath,
-                                            params=model_params, config=tf.estimator.RunConfig().replace(session_config=config, checkpoint_save_graph_def=False))
+    
+    params=model_params, config=tf.estimator.RunConfig().replace(session_config=config))
+
+    #dkn_estimator = tf.estimator.Estimator(model_fn=model_fn, model_dir=FLAGS.checkpointPath,
+    #                                        params=model_params, config=tf.estimator.RunConfig().replace(session_config=config, checkpoint_save_graph_def=False))
     if FLAGS.task_type == 'train':
         """
         train_spec = tf.estimator.TrainSpec(input_fn=lambda: input_fn(tr_files, channel='training', num_epochs=FLAGS.num_epochs, batch_size=FLAGS.batch_size), hooks=[bcast_hook])
