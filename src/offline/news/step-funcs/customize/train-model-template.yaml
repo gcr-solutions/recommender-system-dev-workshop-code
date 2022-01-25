@@ -46,7 +46,7 @@ Resources:
       DefinitionString: !Sub |
         {
             "StartAt": "Generate item feature",
-            "TimeoutSeconds": 72000,
+            "TimeoutSeconds": 432000,
             "States": {
                 "Generate item feature": {
                     "Type": "Task",

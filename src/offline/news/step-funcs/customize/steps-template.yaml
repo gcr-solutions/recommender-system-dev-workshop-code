@@ -884,7 +884,7 @@ Resources:
                   "S3OutputPath.$": "States.Format('s3://{}/{}/model/rank/content/dkn_embedding_train_output/', $.Bucket,  $.S3Prefix)"
                 },
                 "StoppingCondition": {
-                  "MaxRuntimeInSeconds": 86400
+                  "MaxRuntimeInSeconds": 259200
                 },
                 "ResourceConfig": {
                   "InstanceCount": 1,
@@ -974,7 +974,7 @@ Resources:
                   "S3OutputPath.$": "States.Format('s3://{}/{}/model/rank/action/dkn_train_output/', $.Bucket,  $.S3Prefix)"
                 },
                 "StoppingCondition": {
-                  "MaxRuntimeInSeconds": 86400
+                  "MaxRuntimeInSeconds": 259200
                 },
                 "ResourceConfig": {
                   "InstanceCount": 1,
