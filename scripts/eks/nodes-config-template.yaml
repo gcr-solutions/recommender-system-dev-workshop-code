@@ -4,7 +4,7 @@ kind: ClusterConfig
 metadata:
   name: gcr-rs-dev-application-cluster
   region: __AWS_REGION__
-  version: "1.20"
+  version: "1.21"
 
 #__AVAILABILITYZONE__#
 
